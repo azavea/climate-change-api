@@ -1,0 +1,23 @@
+version: '2'
+services:
+  django:
+    build:
+      context: ./django
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    volumes:
+      - ./django:/opt/climate
+      - $HOME/.aws:/root/.aws:ro
+  postgres:
+    image: quay.io/azavea/postgis:0.1.0
+    environment:
+      POSTGRES_USER: climate
+      POSTGRES_PASSWORD: climate
+      POSTGRES_DB: climate
+    ports:
+      - "5432:5432"
