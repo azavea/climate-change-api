@@ -12,6 +12,8 @@ end
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
+  config.vm.synced_folder "./", "/home/vagrant/climate-change-api"
+
   # Mount into directory to share creds
   config.vm.synced_folder "~/.aws", "/home/vagrant/.aws"
 
@@ -42,7 +44,7 @@ Vagrant.configure(2) do |config|
       ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ANSIBLE_CALLBACK_WHITELIST=profile_tasks \
       ansible-playbook -u vagrant -i 'localhost,' --extra-vars "dev_user=#{ENV.fetch("USER", "vagrant")} aws_profile=climate" \
           cc-api.yml
-      cd /vagrant
+      cd /home/vagrant/climate-change-api
       su vagrant ./scripts/console django './manage.py migrate'
     SHELL
   end

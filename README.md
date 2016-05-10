@@ -7,7 +7,7 @@ To get started, run these commands inside the `api` directory:
 ```bash
 vagrant up
 vagrant ssh
-cd /vagrant
+cd climate-change-api
 docker-compose up
 ```
 
