@@ -2,7 +2,7 @@
 
 ## Development Environment
 
-To get started, run these commands inside the `api` directory:
+To get started, run these commands:
 
 ```bash
 vagrant up
