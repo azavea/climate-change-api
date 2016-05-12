@@ -5,6 +5,7 @@ from django.contrib.gis.db import models
 
 class ClimateModel(models.Model):
     """Model representing a climate model"""
+
     id = models.PositiveSmallIntegerField(primary_key=True)
     name = models.CharField(max_length=40)
 
@@ -12,6 +13,7 @@ class ClimateModel(models.Model):
 
 
 class City(models.Model):
+    """Model representing a city"""
 
     id = models.PositiveIntegerField(primary_key=True)
     geom = models.PointField()
@@ -19,9 +21,25 @@ class City(models.Model):
     name = models.CharField(max_length=40)
     admin_name = models.CharField(max_length=40)
 
-    population = models.PositiveIntegerField()
+    climate = models.CharField(max_length=40, null=True)
+    precip = models.CharField(max_length=40, null=True)
+    temp = models.CharField(max_length=40, null=True)
+
+    continent = models.CharField(max_length=20, null=True)
+    gdp_md_est = models.PositiveIntegerField(null=True)
 
     objects = models.GeoManager()
+
+
+class PopulationCount(models.Model):
+    id = models.PositiveIntegerField(primary_key=True)
+
+    city = models.ForeignKey(City)
+    year = models.PositiveSmallIntegerField()
+    pop = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('city', 'year')
 
 
 class ClimateData(models.Model):
@@ -38,3 +56,6 @@ class ClimateData(models.Model):
     pr = models.FloatField(null=True)
 
     objects = models.GeoManager()
+
+    class Meta:
+        unique_together = ('city', 'climate_model', 'year', 'day_of_year')
