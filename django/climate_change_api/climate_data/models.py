@@ -17,26 +17,11 @@ class City(models.Model):
     geom = models.PointField()
 
     name = models.CharField(max_length=40)
-    admin_name = models.CharField(max_length=40)
+    admin = models.CharField(max_length=40)
 
-    climate = models.CharField(max_length=40, null=True)
-    precip = models.CharField(max_length=40, null=True)
-    temp = models.CharField(max_length=40, null=True)
-
-    continent = models.CharField(max_length=20, null=True)
-    gdp_md_est = models.PositiveIntegerField(null=True)
+    population = models.PositiveIntegerField()
 
     objects = models.GeoManager()
-
-
-class PopulationCount(models.Model):
-
-    city = models.ForeignKey(City)
-    year = models.PositiveSmallIntegerField()
-    pop = models.PositiveIntegerField()
-
-    class Meta:
-        unique_together = ('city', 'year')
 
 
 class ClimateData(models.Model):
