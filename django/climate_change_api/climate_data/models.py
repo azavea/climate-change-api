@@ -6,7 +6,6 @@ from django.contrib.gis.db import models
 class ClimateModel(models.Model):
     """Model representing a climate model"""
 
-    id = models.PositiveSmallIntegerField(primary_key=True)
     name = models.CharField(max_length=40)
 
     objects = models.GeoManager()
@@ -15,7 +14,6 @@ class ClimateModel(models.Model):
 class City(models.Model):
     """Model representing a city"""
 
-    id = models.PositiveIntegerField(primary_key=True)
     geom = models.PointField()
 
     name = models.CharField(max_length=40)
@@ -32,7 +30,6 @@ class City(models.Model):
 
 
 class PopulationCount(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
 
     city = models.ForeignKey(City)
     year = models.PositiveSmallIntegerField()
@@ -43,7 +40,6 @@ class PopulationCount(models.Model):
 
 
 class ClimateData(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
 
     city = models.ForeignKey(City)
     climate_model = models.ForeignKey(ClimateModel)
