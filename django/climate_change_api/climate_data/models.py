@@ -8,6 +8,9 @@ class ClimateModel(models.Model):
 
     name = models.CharField(max_length=40)
 
+    def __str__(self):
+        return self.name
+
 
 class City(models.Model):
     """Model representing a city"""
@@ -16,6 +19,9 @@ class City(models.Model):
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
+
+    def __str__(self):
+        return '{}, {}'.format(self.name, self.admin)
 
 
 class ClimateData(models.Model):
