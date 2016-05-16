@@ -17,8 +17,6 @@ class City(models.Model):
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
 
-    population = models.PositiveIntegerField()
-
 
 class ClimateData(models.Model):
 
