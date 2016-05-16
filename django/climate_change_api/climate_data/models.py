@@ -8,8 +8,6 @@ class ClimateModel(models.Model):
 
     name = models.CharField(max_length=40)
 
-    objects = models.GeoManager()
-
 
 class City(models.Model):
     """Model representing a city"""
@@ -21,8 +19,6 @@ class City(models.Model):
 
     population = models.PositiveIntegerField()
 
-    objects = models.GeoManager()
-
 
 class ClimateData(models.Model):
 
@@ -32,11 +28,12 @@ class ClimateData(models.Model):
     year = models.PositiveSmallIntegerField()
     day_of_year = models.PositiveSmallIntegerField()
 
-    tasmin = models.FloatField(null=True)
-    tasmax = models.FloatField(null=True)
-    pr = models.FloatField(null=True)
-
-    objects = models.GeoManager()
+    tasmin = models.FloatField(null=True,
+                               help_text='Daily Minimum Near-Surface Air Temperature, Degrees Kelvin')  # NOQA
+    tasmax = models.FloatField(null=True,
+                               help_text='Daily Maximum Near-Surface Air Temperature, Degrees Kelvin')  # NOQA
+    pr = models.FloatField(null=True,
+                           help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
 
     class Meta:
         unique_together = ('city', 'climate_model', 'year', 'day_of_year')
