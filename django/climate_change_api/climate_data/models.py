@@ -4,7 +4,14 @@ from django.contrib.gis.db import models
 
 
 class ClimateModel(models.Model):
-    """Model representing a climate model"""
+    """
+    Model representing a climate model
+
+    We are storing a table of climate models as an alternative to storing the
+    climate model name in CharFields on the ClimateData django model in order
+    to make sure that table, which will store a large amount of rows, stays
+    as small as possible.
+    """
 
     name = models.CharField(max_length=40)
 
@@ -36,9 +43,9 @@ class ClimateData(models.Model):
     day_of_year = models.PositiveSmallIntegerField()
 
     tasmin = models.FloatField(null=True,
-                               help_text='Daily Minimum Near-Surface Air Temperature, Degrees Kelvin')  # NOQA
+                               help_text='Daily Minimum Near-Surface Air Temperature, Kelvin')
     tasmax = models.FloatField(null=True,
-                               help_text='Daily Maximum Near-Surface Air Temperature, Degrees Kelvin')  # NOQA
+                               help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
     pr = models.FloatField(null=True,
                            help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
 
