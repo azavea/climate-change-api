@@ -4,7 +4,7 @@ from climate_data.models import ClimateData
 from climate_data.serializers import ClimateDataSerializer
 
 
-class ClimateDataViewSet(viewsets.ModelViewSet):
+class ClimateDataViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = ClimateData.objects.all()
     serializer_class = ClimateDataSerializer
