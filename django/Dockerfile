@@ -1,4 +1,4 @@
-FROM quay.io/azavea/django:1.9.2
+FROM quay.io/azavea/django:1.9.6
 
 MAINTAINER Azavea
 
