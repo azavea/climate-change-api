@@ -165,6 +165,10 @@ LOGGING = {
 
 # Django Rest Framework
 # http://www.django-rest-framework.org/
+DEFAULT_RENDERER_CLASSES = ('rest_framework.renderers.JSONRenderer',)
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES += ('rest_framework.renderers.BrowsableAPIRenderer',)
+
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.DjangoFilterBackend',
@@ -174,8 +178,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ],
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
+    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
     'PAGE_SIZE': 20
 }
