@@ -19,7 +19,7 @@ services:
       - .:/opt
       - $HOME/.aws:/root/.aws:ro
   postgres:
-    image: quay.io/azavea/postgis:0.1.0
+    image: quay.io/azavea/postgis:9.5.3
     environment:
       POSTGRES_USER: climate
       POSTGRES_PASSWORD: climate
