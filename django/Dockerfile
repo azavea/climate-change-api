@@ -2,8 +2,6 @@ FROM quay.io/azavea/django:1.9.2
 
 MAINTAINER Azavea
 
-VOLUME /media/static
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libmemcached-dev python-dev && \
     rm -rf /var/lib/apt/lists/*
