@@ -39,15 +39,24 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Django core
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
+
+    # 3rd-party
+    'django_filters',
+    'rest_framework',
+
+    # Apps
     'climate_data',
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ['django_extensions']
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -132,3 +141,41 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/media/static'
+
+
+# Logging
+# https://docs.djangoproject.com/en/1.9/topics/logging/
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+        }
+    }
+}
+
+
+# Django Rest Framework
+# http://www.django-rest-framework.org/
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'PAGE_SIZE': 20
+}
