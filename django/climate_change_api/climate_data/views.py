@@ -13,10 +13,12 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    filter_backends = (DistanceToPointFilter, InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DistanceToPointFilter, InBBoxFilter,
+                       filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name', 'admin',)
     ordering_fields = ('name',)
     pagination_class = GeoJsonPagination
+    bbox_filter_field = 'geom'
     bbox_filter_include_overlapping = True
     distance_filter_convert_meters = True
 
