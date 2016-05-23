@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # 3rd-party
     'django_filters',
     'rest_framework',
+    'rest_framework_gis',
 
     # Apps
     'climate_data',

@@ -1,13 +1,14 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from climate_data.models import City, ClimateData, ClimateModel
 
 
-class CitySerializer(serializers.ModelSerializer):
+class CitySerializer(GeoFeatureModelSerializer):
 
     class Meta:
         model = City
-        fields = ()
+        geo_field = 'geom'
 
 
 class ClimateDataSerializer(serializers.ModelSerializer):
