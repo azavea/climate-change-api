@@ -185,3 +185,45 @@ class CityViewSetTestCase(APITestCase):
         self.assertEqual(response.data['count'], 1)
         feature = response.data['features'][0]
         self.assertEqual(feature['properties']['name'], self.city1.name)
+
+    def test_nearest_endpoint(self):
+        """ Test getting the list of nearest cities from a separate endpoint """
+        url = reverse('city-nearest')
+
+        # test nearest, ensure it paginates by checking 'count', and defaults limit to 1
+        response = self.client.get(url, {'lat': 5, 'lon': 5})
+        geojson = response.data
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(geojson['count'], 1)
+        feature = geojson['features'][0]
+        self.assertEqual(feature['properties']['name'], self.city1.name)
+
+        # Test limit param
+        response = self.client.get(url, {'lat': 5, 'lon': 5, 'limit': 2})
+        geojson = response.data
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(geojson['count'], 2)
+        self.assertEqual(geojson['features'][0]['properties']['name'], self.city1.name)
+        self.assertEqual(geojson['features'][1]['properties']['name'], self.city2.name)
+
+    def test_nearest_bad_requests(self):
+        """ Test that nearest throws proper errors when given bad data """
+        url = reverse('city-nearest')
+
+        response = self.client.get(url, {'lat': 5})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.get(url, {'lon': 5})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.get(url, {'lat': 'foo', 'lon': 5})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.get(url, {'lat': 5, 'lon': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.get(url, {'lat': 5, 'lon': 5, 'limit': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.get(url, {'lat': 5, 'lon': 5, 'limit': 0})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
