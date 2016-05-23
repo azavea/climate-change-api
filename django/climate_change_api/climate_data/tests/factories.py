@@ -53,6 +53,6 @@ def generate_climate_data():
             for day in range(1, 50):
                 tasmin = climate_data.tasmin + day / 10
                 tasmax = climate_data.tasmax + day / 10
-                pr = climate_data.pr + day / 500000
+                pr = climate_data.pr + day / 500000.0
                 ClimateDataFactory(climate_model=model, year=year, day_of_year=day,
                                    tasmin=tasmin, tasmax=tasmax, pr=pr)
