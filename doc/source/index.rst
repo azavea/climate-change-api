@@ -7,10 +7,13 @@ Welcome to Azavea Climate Data API's documentation!
 ===================================================
 
 Contents:
+---------
 
 .. toctree::
    :maxdepth: 2
 
+   project_readme
+   climate_data_api/modules
 
 
 Indices and tables
