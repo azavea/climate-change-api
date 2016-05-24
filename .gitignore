@@ -1,2 +1,6 @@
+!.gitkeep
+
 .vagrant
 *.pyc
+
+/doc/build/*

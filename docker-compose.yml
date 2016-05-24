@@ -15,6 +15,7 @@ services:
       - postgres
     volumes:
       - ./django:/opt/climate
+      - ./doc:/opt/doc
       - $HOME/.aws:/root/.aws:ro
   postgres:
     image: quay.io/azavea/postgis:0.1.0

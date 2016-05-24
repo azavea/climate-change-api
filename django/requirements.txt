@@ -5,3 +5,4 @@ djangorestframework==3.3.3
 djangorestframework-gis==0.10.1
 django-filter==0.13.0
 factory_boy==2.7.0
+sphinx==1.4.1
