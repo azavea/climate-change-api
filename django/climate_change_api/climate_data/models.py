@@ -13,7 +13,7 @@ class ClimateModel(models.Model):
     as small as possible.
     """
 
-    name = models.CharField(max_length=40)
+    name = models.CharField(max_length=40, unique=True)
 
     def __str__(self):
         return self.name

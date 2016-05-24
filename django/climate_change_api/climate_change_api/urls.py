@@ -24,7 +24,9 @@ from climate_data import views as climate_data_views
 
 
 router = routers.DefaultRouter()
+router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
+router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

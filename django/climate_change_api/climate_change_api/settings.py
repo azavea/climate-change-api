@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # 3rd-party
     'django_filters',
     'rest_framework',
+    'rest_framework_gis',
 
     # Apps
     'climate_data',
@@ -165,6 +166,10 @@ LOGGING = {
 
 # Django Rest Framework
 # http://www.django-rest-framework.org/
+DEFAULT_RENDERER_CLASSES = ('rest_framework.renderers.JSONRenderer',)
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES += ('rest_framework.renderers.BrowsableAPIRenderer',)
+
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.DjangoFilterBackend',
@@ -174,8 +179,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ],
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
-    'PAGE_SIZE': 20
+    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
+    'PAGE_SIZE': 20,
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
