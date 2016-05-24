@@ -1,0 +1,30 @@
+#!/bin/bash
+set -eu
+
+
+DIR="$(dirname "$0")"
+
+function usage() {
+    echo -n \
+"Usage: $(basename "$0") <component>
+Serve application components in development.
+
+<component> is one of:
+  - docs
+"
+}
+
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]
+then
+    if [ "${1:-}" = "--help" ]
+    then
+        usage
+    elif [ "${1:-}" = "docs" ]
+    then
+      cd doc/build/html && python -m SimpleHTTPServer 8088
+    else
+      usage
+    fi
+    exit
+fi
