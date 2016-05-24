@@ -51,9 +51,11 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework_gis',
+    'bootstrap3',
 
     # Apps
     'climate_data',
+    'users',
 ]
 
 if DEBUG:
@@ -123,6 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'users.APIUser'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/

@@ -21,17 +21,22 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework import routers
 
 from climate_data import views as climate_data_views
+from users import views as users_views
+from users.forms import NewUserForm
 
 
 router = routers.DefaultRouter()
+router.register(r'users', users_views.APIUserViewSet)
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^register/', users_views.new_signup, name='new_signup'),
 ]
 
 if settings.DEBUG:
