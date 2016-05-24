@@ -1,7 +1,13 @@
 {% load bootstrap3 %}
 {% bootstrap_css %}
 <form method="post" class="form">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    {% buttons submit='Submit' reset="Cancel" button_class="btn-primary" %}{% endbuttons %}
+    <head>
+        <title>Register a new account</title>
+    </head>
+    <body>
+        <h1>Sign-up</h1>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit='Submit' reset="Cancel" button_class="btn-primary" %}{% endbuttons %}
+    </body>
 </form>
