@@ -14,7 +14,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./django:/opt/climate
+      - .:/opt
       - $HOME/.aws:/root/.aws:ro
   postgres:
     image: quay.io/azavea/postgis:0.1.0

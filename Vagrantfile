@@ -28,6 +28,7 @@ Vagrant.configure(2) do |config|
 
   # django port
   config.vm.network :forwarded_port, guest: 8080, host: Integer(ENV.fetch("CC_PORT_8080", 8080))
+  config.vm.network :forwarded_port, guest: 8088, host: Integer(ENV.fetch("CC_PORT_8088", 8088))
 
   config.ssh.forward_x11 = true
 

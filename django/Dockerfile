@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /tmp/
 RUN pip install --upgrade pip && pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY ./ /opt/climate
+COPY ./ /opt/django
 
-WORKDIR /opt/climate/climate_change_api
+WORKDIR /opt/django/climate_change_api
 
 EXPOSE 8080
 

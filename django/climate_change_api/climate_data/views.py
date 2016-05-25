@@ -29,6 +29,14 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(methods=['GET'])
     def nearest(self, request):
+        """ Given a lat/lon return the nearest city as a GeoJSON feature collection
+
+        GET params:
+          - lat (float) Required. The latitude to search at.
+          - lon (float) Required. The longitude to search at.
+          - limit (int) The number of results to return. Default: 1.
+
+        """
         try:
             lat = float(request.query_params.get('lat', None))
         except (TypeError, ValueError):
