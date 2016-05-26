@@ -51,9 +51,11 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework_gis',
+    'bootstrap3',
 
     # Apps
     'climate_data',
+    'user_management',
 ]
 
 if DEBUG:
@@ -87,6 +89,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'climate_change_api.wsgi.application'
 
@@ -122,6 +125,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# User Registration
+ACCOUNT_ACTIVATION_DAYS = 14
 
 
 # Internationalization

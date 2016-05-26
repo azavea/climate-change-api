@@ -4,6 +4,8 @@ django-extensions==1.5.9
 djangorestframework==3.3.3
 djangorestframework-gis==0.10.1
 django-filter==0.13.0
+django-registration==2.0.4
+django-bootstrap3==7.0.1
 factory_boy==2.7.0
 sphinx==1.4.1
 sphinx_rtd_theme==0.1.9
