@@ -1,6 +1,8 @@
-from pprint import pprint
+import logging
 
-from django.core.management.base import BaseCommand, CommandError
+import boto3
+
+from django.core.management.base import BaseCommand
 
 from django.contrib.gis.geos import Point
 
@@ -9,20 +11,25 @@ from django.db.utils import IntegrityError
 from climate_data.models import City
 import json
 
+logger = logging.getLogger('django')
+
 
 class Command(BaseCommand):
     help = 'imports a cities.json file into the database'
 
     def add_arguments(self, parser):
-        parser.add_argument('filename', type=str)
+        parser.add_argument('bucket', type=str)
+        parser.add_argument('key', type=str)
 
     def handle(self, *args, **options):
         FIELDS = (
             ('name', 'name'),
             ('admin1', 'admin'),
         )
-        with open(options['filename'], 'r') as f:
-            cities = json.load(f)['features']
+        client = boto3.client('s3')
+        response = client.get_object(Bucket=options['bucket'],
+                                     Key=options['key'])
+        cities = json.load(response['Body'])['features']
         success = 0
         error = 0
         for city_data in cities:
@@ -34,13 +41,12 @@ class Command(BaseCommand):
                 city.save()
                 success += 1
             except TypeError:
-                print('Bad item:')
-                pprint(city_data)
+                logger.error('Bad item: %s', city_data)
                 error += 1
             except IntegrityError:
-                print('Skipping {}, {} due to IntregrityError'
-                      .format(city.name, city.admin))
+                logger.error('Skipping %s, %s due to IntregrityError',
+                             city.name, city.admin)
                 error += 1
 
-        print('{} saved successfully'.format(success))
-        print('{} skipped due to error'.format(error))
+        logger.info('%s saved successfully', success)
+        logger.info('%s skipped due to error', error)
