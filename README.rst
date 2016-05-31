@@ -36,3 +36,11 @@ Django Management commands
 To run Django management commands, use the console helper script::
 
     ./scripts/console django './manage.py migrate'
+
+Django runserver can be found on port 8082. Have the project running, in another terminal window inside the VM execute::
+
+    docker exec -it climatechangeapi_django_1 /bin/bash
+
+    ./manage.py runserver 0.0.0.0:8082
+
+and view at http://localhost:8082
