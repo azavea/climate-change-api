@@ -11,7 +11,7 @@ from django.db.utils import IntegrityError
 from climate_data.models import City
 import json
 
-logger = logging.getLogger('django')
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -23,7 +23,7 @@ class Command(BaseCommand):
     name - city name
     admin1 - administrative name"""
 
-    help = 'imports a cities.json file into the database form s3'
+    help = 'imports a cities.json file into the database from s3'
 
     def add_arguments(self, parser):
         parser.add_argument('bucket', type=str)
