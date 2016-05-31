@@ -93,6 +93,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'climate_change_api.wsgi.application'
 
+AUTH_PROFILE_MODULE = 'user_management.UserProfile'
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
+EMAIL_FILE_PATH = '/tmp/emails/'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases

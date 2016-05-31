@@ -23,12 +23,14 @@ from registration import views
 from rest_framework import routers
 
 from climate_data import views as climate_data_views
+from user_management import views as user_views
 
 
 router = routers.DefaultRouter()
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
+router.register(r'users', user_views.UserViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

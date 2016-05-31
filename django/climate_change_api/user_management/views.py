@@ -11,10 +11,14 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core import signing
 from django.template.loader import render_to_string
 from django.http import HttpResponsePermanentRedirect
+from rest_framework import viewsets
 
 from registration import signals
 from registration.views import ActivationView as BaseActivationView
 from registration.views import RegistrationView as BaseRegistrationView
+from user_management.serializers import APIUserSerializer, UserProfileSerializer
+from user_management.models import UserProfile
+from user_management.forms import NewUserForm
 
 
 REGISTRATION_SALT = getattr(settings, 'REGISTRATION_SALT', 'registration')
@@ -33,7 +37,8 @@ class RegistrationView(BaseRegistrationView):
     email_body_template = 'registration/activation_email.txt'
     email_subject_template = 'registration/activation_email_subject.txt'
 
-    def register(self, form):
+    def register(self):
+        form = NewUserForm()
         new_user = self.create_inactive_user(form)
         signals.user_registered.send(sender=self.__class__,
                                      user=new_user,
@@ -49,6 +54,7 @@ class RegistrationView(BaseRegistrationView):
         activation instructions.
 
         """
+        form = NewUserForm()
         new_user = form.save(commit=False)
         new_user.is_active = False
         new_user.save()
@@ -85,6 +91,7 @@ class RegistrationView(BaseRegistrationView):
 
         """
         activation_key = self.get_activation_key(user)
+        import pdb; pdb.set_trace()
         context = self.get_email_context(activation_key)
         context.update({
             'user': user
@@ -158,3 +165,10 @@ class ActivationView(BaseActivationView):
             return user
         except User.DoesNotExist:
             return None
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """ Viewset for Django API """
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
