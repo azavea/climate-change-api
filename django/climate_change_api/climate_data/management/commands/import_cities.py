@@ -15,7 +15,15 @@ logger = logging.getLogger('django')
 
 
 class Command(BaseCommand):
-    help = 'imports a cities.json file into the database'
+    """Imports a cities.json file into the database from s3
+
+    cities.json is a geojson file where the features are points and have at
+    minimum the following properties:
+
+    name - city name
+    admin1 - administrative name"""
+
+    help = 'imports a cities.json file into the database form s3'
 
     def add_arguments(self, parser):
         parser.add_argument('bucket', type=str)
