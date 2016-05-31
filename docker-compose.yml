@@ -7,6 +7,7 @@ services:
     environment:
       CC_DEBUG: 'true'
       DJANGO_LOG_LEVEL: 'INFO'
+      AWS_PROFILE: 'climate'
     ports:
       - "8080:8080"
     links:
