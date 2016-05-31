@@ -18,7 +18,6 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import TemplateView, RedirectView
-from registration import views
 
 from rest_framework import routers
 
@@ -30,12 +29,12 @@ router = routers.DefaultRouter()
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
-router.register(r'users', user_views.UserViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^accounts/', include('user_management.urls')),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^accounts/.*$', RedirectView.as_view(url='/accounts/login/')),
 ]

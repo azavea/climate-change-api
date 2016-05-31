@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+
 class UserProfile(models.Model):
     def __unicode__(self):
-        return '%s %s <%s>' % (self.user.first_name, self.user.last_name, self.user.email)
+        return '%s' % (self.user.username)
 
     class Meta:
         ordering = 'user__last_name', 'user__first_name'
