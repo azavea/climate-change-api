@@ -8,7 +8,7 @@ from user_management.models import UserProfile
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
-    verbose_name_plural = 'User Profile'
+    verbose_name_plural = 'User Profiles'
 
 
 # Define a new User admin
@@ -16,6 +16,6 @@ class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline, )
 
 
-# Re-register User and UserAdmin
+# Overwrite default user settings
 admin.site.unregister([User, Group, ], )
 admin.site.register(User, UserAdmin, )

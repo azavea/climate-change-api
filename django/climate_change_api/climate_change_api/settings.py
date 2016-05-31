@@ -60,6 +60,10 @@ INSTALLED_APPS = [
 
 if DEBUG:
     INSTALLED_APPS += ['django_extensions']
+    # Email settings set here for development mode only
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
+
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -95,9 +99,6 @@ WSGI_APPLICATION = 'climate_change_api.wsgi.application'
 
 AUTH_PROFILE_MODULE = 'user_management.UserProfile'
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
-EMAIL_FILE_PATH = '/tmp/emails/'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases

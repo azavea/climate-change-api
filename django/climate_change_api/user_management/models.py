@@ -8,9 +8,6 @@ class UserProfile(models.Model):
     def __unicode__(self):
         return '%s' % (self.user.username)
 
-    class Meta:
-        ordering = 'user__last_name', 'user__first_name'
-
     user = models.OneToOneField(User)
     organization = models.CharField(max_length=255, blank=True, default='')
 
