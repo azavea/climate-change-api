@@ -51,13 +51,19 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework_gis',
+    'bootstrap3',
 
     # Apps
     'climate_data',
+    'user_management',
 ]
 
 if DEBUG:
     INSTALLED_APPS += ['django_extensions']
+    # Email settings set here for development mode only
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
+
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -88,7 +94,10 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'climate_change_api.wsgi.application'
+
+AUTH_PROFILE_MODULE = 'user_management.UserProfile'
 
 
 # Database
@@ -122,6 +131,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Django-Registration
+# https://django-registration.readthedocs.io/en/2.1/
+ACCOUNT_ACTIVATION_DAYS = 14
 
 
 # Internationalization

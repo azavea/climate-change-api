@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+
+<head>
+    <title>{% block title %}User Registration{% endblock %}</title>
+</head>
+
+<body>
+    {% block content %}
+    <form method="post" action=".">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% buttons submit='Submit' reset="Cancel" button_class="btn-primary" %}{% endbuttons %}
+    </form>
+    {% endblock %}
+</body>

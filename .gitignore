@@ -4,3 +4,5 @@
 *.pyc
 
 /doc/build/*
+
+*.DS_Store
