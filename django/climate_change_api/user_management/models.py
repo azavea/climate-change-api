@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
     def __unicode__(self):
-        return '%s' % (self.user.username)
+        return '{}'.format(self.user.username)
 
     user = models.OneToOneField(User)
     organization = models.CharField(max_length=255, blank=True, default='')

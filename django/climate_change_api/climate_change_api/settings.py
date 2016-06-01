@@ -132,7 +132,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# User Registration
+# Django-Registration
+# https://django-registration.readthedocs.io/en/2.1/
 ACCOUNT_ACTIVATION_DAYS = 14
 
 

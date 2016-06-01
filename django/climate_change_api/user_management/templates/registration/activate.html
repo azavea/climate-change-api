@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block content %}
+<head>
+    <title>{% block title %}Account activation{% endblock %}</title>
+</head>
 
-<p>{% trans "Account activation failed" %}</p>
+<body>
+    {% block content %}
 
-{% endblock %}
+    <p>{% trans "Account activation failed" %}</p>
+
+    {% endblock %}
+</body>
