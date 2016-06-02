@@ -8,6 +8,7 @@ on signup.
 
 from registration.backends.hmac.views import RegistrationView as BaseRegistrationView
 from user_management.forms import UserForm, UserProfileForm
+from user_management.models import UserProfile
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -25,6 +26,12 @@ def edit_profile(request):
     # Redirect to log-in page if not logged in
     if not request.user.is_authenticated():
         return HttpResponseRedirect('{}'.format(reverse('auth_login')))
+
+    #create userprofile if none yet
+    if not hasattr(request.user, 'userprofile'):
+        newprofile = UserProfile.create(user=request.user)
+        request.user.userprofile = newprofile
+        newprofile.save()
 
     user = request.user
     form = UserProfileForm(request.POST or None, initial={'first_name': user.first_name,
