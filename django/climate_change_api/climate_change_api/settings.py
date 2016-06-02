@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import docker_helper
+import requests
 
-docker_helper.wait_for_database()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,13 +28,30 @@ SECRET_KEY = os.getenv('CC_SECRET_KEY', 'SECRET_KEY_dm!*rrb%!r%$qmei!de@hyc0a_z0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv('CC_DEBUG', False) else False
 
+
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
     # prevent from running in production mode with default secret key
     raise Exception('Default SECRET_KEY in production mode')
 
+if DEBUG:
+    docker_helper.wait_for_database()
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.us-east-1.elb.amazonaws.com']  # TODO: change me later!
 
+# solution from https://dryan.com/articles/elb-django-allowed-hosts/
+EC2_PRIVATE_IP = None
+AWS_AVAILBILITY_ZONE = None
+
+try:
+    EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4',
+                                  timeout=0.1).text
+    AWS_AVAILABILITY_ZONE = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone',  # NOQA
+                                         timeout=0.1).text
+except requests.exceptions.RequestException:
+    pass
+
+if EC2_PRIVATE_IP:
+    ALLOWED_HOSTS.append(EC2_PRIVATE_IP)
 
 # Application definition
 
@@ -52,6 +69,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'bootstrap3',
+    'watchman',
 
     # Apps
     'climate_data',
@@ -106,7 +124,7 @@ AUTH_PROFILE_MODULE = 'user_management.UserProfile'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('CC_DB_DATABSE', 'climate'),
+        'NAME': os.getenv('CC_DB_DATABASE', 'climate'),
         'USER': os.getenv('CC_DB_USER', 'climate'),
         'PASSWORD': os.getenv('CC_DB_PASSWORD', 'climate'),
         'HOST': os.getenv('CC_DB_HOST', 'postgres')
@@ -200,3 +218,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+
+# watchman
+WATCHMAN_ERROR_CODE = 503
+WATCHMAN_CHECKS = (
+    'watchman.checks.caches',
+    'watchman.checks.databases',
+)

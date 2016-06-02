@@ -37,6 +37,9 @@ urlpatterns = [
     url(r'^accounts/', include('user_management.urls')),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^accounts/.*$', RedirectView.as_view(url='/accounts/login/')),
+
+    # 3rd party
+    url(r'^healthcheck/', include('watchman.urls'))
 ]
 
 if settings.DEBUG:

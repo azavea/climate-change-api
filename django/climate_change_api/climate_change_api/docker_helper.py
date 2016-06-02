@@ -1,8 +1,9 @@
 import socket
+import os
 from time import sleep
 
-DATABASE_HOST = 'postgres'
-DATABASE_PORT = 5432
+DATABASE_HOST = os.getenv('CC_DB_HOST', 'postgres')
+DATABASE_PORT = int(os.getenv('CC_DB_PORT', 5432))
 
 
 def wait_for_database():

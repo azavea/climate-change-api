@@ -1,0 +1,39 @@
+- volumesFrom: []
+  memory: 1024
+  extraHosts: null
+  dnsServers: null
+  disableNetworking: null
+  dnsSearchDomains: null
+  portMappings:
+    - hostPort: 8080
+      containerPort: 8080
+      protocol: tcp
+  hostname: null
+  essential: true
+  entryPoint: []
+  mountPoints: []
+  name: "django"
+  ulimits: null
+  dockerSecurityOptions: null
+  environment:
+    - name: "CC_SECRET_KEY"
+      value: "${django_secret_key}"
+    - name: "CC_DB_HOST"
+      value: "${rds_host}"
+    - name: "CC_DB_PORT"
+      value: "5432"
+    - name: "CC_DB_PASSWORD"
+      value: "${rds_password}"
+    - name: "CC_DB_USER"
+      value: "${rds_username}"
+    - name: "CC_DB_DATABASE"
+      value: "${rds_database_name}"
+  workingDirectory: null
+  readonlyRootFilesystem: null
+  image: "784347171332.dkr.ecr.us-east-1.amazonaws.com/cc-api:${git_commit}"
+  command: []
+  user: null
+  dockerLabels: null
+  logConfiguration: null
+  cpu: 0
+  privileged: null

@@ -6,3 +6,6 @@
 
 - src: azavea.unzip
   version: 0.1.2
+
+- src: azavea.terraform
+  version: 0.1.0
