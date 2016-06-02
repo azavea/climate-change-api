@@ -5,12 +5,13 @@ HMAC activation workflow.
 """
 
 from django.conf.urls import include, url
-from user_management.views import RegistrationView
+from user_management import views
 
 
 urlpatterns = [
     url(r'^register/$',
-        RegistrationView.as_view(),
+        views.RegistrationView.as_view(),
         name='registration_register'),
+    url(r'^profile/$', views.edit_profile, name='edit_profile'),
     url(r'', include('registration.auth_urls')),
 ]

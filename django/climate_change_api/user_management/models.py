@@ -11,5 +11,10 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     organization = models.CharField(max_length=255, blank=True, default='')
 
+    @classmethod
+    def create(self, user):
+        profile = self(user=user)
+        return profile
+
     def save(self, *args, **kwargs):
         return super(UserProfile, self).save(*args, **kwargs)
