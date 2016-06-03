@@ -2,14 +2,21 @@
     "model": "climate_data.Scenario",
     "pk": 1,
     "fields": {
-        "name": "RCP 4.5",
-        "description": "Stabilization without overshoot pathway to 4.5 W/m2 at stabilization after 2100"
+        "name": "PLACEHOLDER",
+        "description": "Dummy scenario used by climate_data migrations to set Scenario non-nullable."
     }
 }, {
     "model": "climate_data.Scenario",
     "pk": 2,
     "fields": {
-        "name": "RCP 8.5",
+        "name": "RCP45",
+        "description": "Stabilization without overshoot pathway to 4.5 W/m2 at stabilization after 2100"
+    }
+}, {
+    "model": "climate_data.Scenario",
+    "pk": 3,
+    "fields": {
+        "name": "RCP85",
         "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100."
     }
 }]
