@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 
 from factory.django import DjangoModelFactory
 
-from climate_data.models import ClimateModel, City, ClimateData
+from climate_data.models import ClimateModel, City, ClimateData, Scenario
 
 
 class CityFactory(DjangoModelFactory):
@@ -14,6 +14,15 @@ class CityFactory(DjangoModelFactory):
     class Meta:
         model = City
         django_get_or_create = ('name', 'admin',)
+
+
+class ScenarioFactory(DjangoModelFactory):
+    name = 'RCP 4.5'
+    description = None
+
+    class Meta:
+        model = Scenario
+        django_get_or_create = ('name',)
 
 
 class ClimateModelFactory(DjangoModelFactory):
@@ -29,6 +38,7 @@ class ClimateDataFactory(DjangoModelFactory):
 
     city = CityFactory()
     climate_model = ClimateModelFactory()
+    scenario = ScenarioFactory()
     year = 2000
     day_of_year = 1
     tasmin = 273
@@ -48,11 +58,12 @@ def generate_climate_data():
 
     """
     climate_data = ClimateDataFactory()
+    scenario = ScenarioFactory()
     for model in (ClimateModelFactory(), ClimateModelFactory(name='ukmet'),):
         for year in range(climate_data.year + 1, climate_data.year + 4):
             for day in range(1, 50):
                 tasmin = climate_data.tasmin + day / 10
                 tasmax = climate_data.tasmax + day / 10
                 pr = climate_data.pr + day / 500000.0
-                ClimateDataFactory(climate_model=model, year=year, day_of_year=day,
-                                   tasmin=tasmin, tasmax=tasmax, pr=pr)
+                ClimateDataFactory(climate_model=model, scenario=scenario, year=year,
+                                   day_of_year=day, tasmin=tasmin, tasmax=tasmax, pr=pr)
