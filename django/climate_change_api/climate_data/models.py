@@ -19,6 +19,19 @@ class ClimateModel(models.Model):
         return self.name
 
 
+class Scenario(models.Model):
+    """ Model representing a particular climate emissions scenario
+
+    TODO: Could add more fields here, such as links to sources and citations
+
+    """
+    name = models.CharField(max_length=48, unique=True)
+    description = models.CharField(max_length=4096, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class City(models.Model):
     """Model representing a city"""
 

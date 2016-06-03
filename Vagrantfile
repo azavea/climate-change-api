@@ -50,6 +50,7 @@ Vagrant.configure(2) do |config|
           cc-api.yml
       cd /home/vagrant/climate-change-api
       su vagrant ./scripts/console django './manage.py migrate'
+      su vagrant ./scripts/console django './manage.py loaddata scenarios'
     SHELL
   end
 end
