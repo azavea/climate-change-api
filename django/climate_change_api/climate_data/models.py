@@ -51,6 +51,7 @@ class ClimateData(models.Model):
 
     city = models.ForeignKey(City)
     climate_model = models.ForeignKey(ClimateModel)
+    scenario = models.ForeignKey(Scenario)
 
     year = models.PositiveSmallIntegerField()
     day_of_year = models.PositiveSmallIntegerField()
