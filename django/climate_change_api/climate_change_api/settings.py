@@ -78,9 +78,12 @@ INSTALLED_APPS = [
 
 if DEBUG:
     INSTALLED_APPS += ['django_extensions']
-    # Email settings set here for development mode only
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
+
+
+# Email
+# https://docs.djangoproject.com/en/1.9/topics/email/
+EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
+DEFAULT_FROM_EMAIL = 'support@futurefeelslike.com'
 
 
 MIDDLEWARE_CLASSES = [
@@ -219,6 +222,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
+
 # Watchman
 # http://django-watchman.readthedocs.io/en/latest/
 WATCHMAN_ERROR_CODE = 503
@@ -226,6 +230,11 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
+
+
+# Django Amazon SES
+# https://github.com/azavea/django-amazon-ses
+AWS_PROFILE = 'climate'
 
 
 # climate_data app
