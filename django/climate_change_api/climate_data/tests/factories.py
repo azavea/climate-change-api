@@ -17,7 +17,7 @@ class CityFactory(DjangoModelFactory):
 
 
 class ScenarioFactory(DjangoModelFactory):
-    name = 'RCP 4.5'
+    name = 'RCP45'
     description = None
 
     class Meta:

@@ -9,13 +9,14 @@ def fill_climate_data_scenario_forwards(apps, schema_editor):
     Scenario = apps.get_model("climate_data", "Scenario")
     ClimateData = apps.get_model("climate_data", "ClimateData")
 
-    # Fill with a placeholder scenario, so that we don't disrupt existing data
-    # You are responsible for attaching the correct scenario to existing data,
-    # because you know best where it came from.
-    scenario = Scenario.objects.create(name='PLACEHOLDER')
+    # This migration existed before we had real data in the repo, so
+    # to keep things simple we just update each data point with a
+    # null scenario to use a default valid Scenario
+    scenario, created = Scenario.objects.get_or_create(name='RCP45')
     for data in ClimateData.objects.filter(scenario__isnull=True):
         data.scenario = scenario
         data.save()
+
 
 def fill_climate_data_scenario_backwards(apps, schema_editor):
     """ Do nothing, we're just setting the scenario field to allow NULL """
@@ -23,7 +24,6 @@ def fill_climate_data_scenario_backwards(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
 
     dependencies = [
         ('climate_data', '0009_climatedata_scenario'),
