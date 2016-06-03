@@ -225,3 +225,9 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
+
+
+# climate_data app
+# This string should match the name of the object with pk=1 in the
+# climate_data/fixtures/scenarios.json file
+PLACEHOLDER_SCENARIO_NAME = 'PLACEHOLDER'
