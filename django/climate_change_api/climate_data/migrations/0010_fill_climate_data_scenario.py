@@ -12,7 +12,7 @@ def fill_climate_data_scenario_forwards(apps, schema_editor):
     # Fill with a placeholder scenario, so that we don't disrupt existing data
     # You are responsible for attaching the correct scenario to existing data,
     # because you know best where it came from.
-    scenario = Scenario.objects.create(name='PLACEHOLDER')
+    scenario, created = Scenario.objects.get_or_create(name='PLACEHOLDER')
     for data in ClimateData.objects.filter(scenario__isnull=True):
         data.scenario = scenario
         data.save()
