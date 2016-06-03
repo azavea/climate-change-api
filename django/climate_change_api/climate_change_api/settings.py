@@ -83,7 +83,7 @@ if DEBUG:
 # Email
 # https://docs.djangoproject.com/en/1.9/topics/email/
 EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
-DEFAULT_FROM_EMAIL = 'support@futurefeelslike.com'
+DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'support@futurefeelslike.com')
 
 
 MIDDLEWARE_CLASSES = [
