@@ -11,3 +11,4 @@ factory_boy==2.7.0
 sphinx==1.4.1
 sphinx_rtd_theme==0.1.9
 django-watchman==0.10.1
+django-amazon-ses==0.1.3

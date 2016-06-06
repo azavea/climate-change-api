@@ -4,7 +4,12 @@ Climate Change API
 Development Environment
 -----------------------
 
-To get started, run these commands::
+In order to develop on this project, you'll need to setup an AWS ``climate`` profile. First,
+sign into your user in the azavea-climate AWS account and create a set of access keys.
+
+Then, run ``aws configure --profile climate`` and follow the prompts.
+
+Once your AWS profile is setup, run these commands to configure the VM::
 
     vagrant up
     vagrant ssh
@@ -13,7 +18,7 @@ To get started, run these commands::
 
 The Django app will be exposed on port 8080.
 
-All further commands assume you are first in the directory `~/climate-change-api` inside the vagrant vm.
+All further commands assume you are first in the directory ``~/climate-change-api`` inside the vagrant vm.
 
 
 Documentation
