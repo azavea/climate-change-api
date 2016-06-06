@@ -6,7 +6,15 @@
 
 <h1>User Profile</h1>
 
-<form action="" method="post">{% csrf_token %}
+<form action="new_token/" method="post">
+    {% csrf_token %}
+    <!-- TODO: Modal warning for token refresh: "Any existing apps that use the current token will no longer work"-->
+    <input type="submit" class="btn btn-primary" href="{% url 'new_token' %}" value='Get new API token'>
+    <div name="apitoken">{{ user.auth_token }}</div>
+</form>
+
+<form action="" method="post">
+    {% csrf_token %}
     {% bootstrap_form form %}
     {% buttons submit='Update' button_class="btn-primary" %}{% endbuttons %}
 </form>

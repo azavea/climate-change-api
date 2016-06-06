@@ -12,5 +12,7 @@ urlpatterns = [
     url(r'^register/$',
         views.RegistrationView.as_view(),
         name='registration_register'),
-    url(r'^profile/$', views.edit_profile, name='edit_profile'),
+    url(r'^profile/$', views.UserProfileView.as_view(), name='edit_profile'),
+    url(r'^new_token/$', views.new_token, name='new_token'),
+    url(r'', include('registration.auth_urls')),
 ]
