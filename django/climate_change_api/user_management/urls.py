@@ -5,14 +5,14 @@ HMAC activation workflow.
 """
 
 from django.conf.urls import include, url
-from user_management import views
-from django.contrib.auth import views as auth_views
+from user_management.views import RegistrationView, UserProfileView
+
 
 urlpatterns = [
     url(r'^register/$',
-        views.RegistrationView.as_view(),
+        RegistrationView.as_view(),
         name='registration_register'),
-    url(r'^profile/$', views.UserProfileView.as_view(), name='edit_profile'),
-    url(r'^new_token/$', views.new_token, name='new_token'),
+    url(r'^profile/new_token/', UserProfileView().new_token, name='new_token'),
+    url(r'^profile/$', UserProfileView.as_view(), name='edit_profile'),
     url(r'', include('registration.auth_urls')),
 ]

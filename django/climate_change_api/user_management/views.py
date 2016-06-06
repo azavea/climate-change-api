@@ -13,11 +13,9 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic import View
-from django.forms import ValidationError
 
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import authentication_classes
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -68,18 +66,14 @@ class UserProfileView(View):
             user.userprofile.organization = self.form.cleaned_data.get('organization')
             user.save()
             user.userprofile.save()
-        else:
-            raise ValidationError('{}'.format(self.form.errors))
 
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
 
-
-def new_token(request):
-    """ Generate new auth token"""
-
-    user = request.user
-    if user.auth_token:
-        user.auth_token.delete()
-    user.auth_token = Token.objects.create(user=user)
-    user.auth_token.save()
-    return user.auth_token
+    def new_token(self, request):
+        """ Generate new auth token"""
+        user = request.user
+        if user.auth_token:
+            user.auth_token.delete()
+        user.auth_token = Token.objects.create(user=user)
+        user.auth_token.save()
+        return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
