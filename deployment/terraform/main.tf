@@ -100,8 +100,16 @@ module "ecs" {
 
   alarm_actions = "${aws_sns_topic.cc_sns_topic.arn}"
   django_secret_key = "${var.django_secret_key}"
+  sqs_queue_name = "${var.sqs_queue_name}"
 
   desired_instances = "${var.desired_instances}"
   deploy_max_instances_pct = "${var.deploy_max_instances_pct}"
   deploy_min_healthy_instances_pct = "${var.deploy_min_healthy_instances_pct}"
+}
+
+# SQS
+resource "aws_sqs_queue" "sqs_queue" {
+  name = "${var.sqs_queue_name}"
+  max_message_size = 1024
+  receive_wait_time_seconds = 10
 }

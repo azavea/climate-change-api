@@ -12,6 +12,7 @@ variable "rds_database_name" { }
 variable "alarm_actions" { }
 
 variable "django_secret_key" { }
+variable "sqs_queue_name" { }
 
 variable "desired_instances" { }
 variable "deploy_max_instances_pct" { }
