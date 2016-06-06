@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
-import docker_helper
 import requests
+import boto3
 
+import docker_helper
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -236,3 +237,12 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
+
+# Boto setup
+if DEBUG:
+    boto3.setup_default_session(profile_name='climate')
+
+SQS_QUEUE_NAME = os.getenv('CC_SQS_QUEUE_NAME', 'climate-api')
+
+if DEBUG:
+    SQS_QUEUE_NAME = 'cc-api-{}'.format(os.getenv('DEV_USER', 'developer'))
