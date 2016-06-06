@@ -82,7 +82,10 @@ if DEBUG:
 
 # Email
 # https://docs.djangoproject.com/en/1.9/topics/email/
-EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'support@futurefeelslike.com')
 
 
@@ -230,11 +233,6 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
-
-
-# Django Amazon SES
-# https://github.com/azavea/django-amazon-ses
-AWS_PROFILE = 'climate'
 
 
 # climate_data app
