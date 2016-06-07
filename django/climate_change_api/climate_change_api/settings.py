@@ -81,9 +81,15 @@ INSTALLED_APPS = [
 
 if DEBUG:
     INSTALLED_APPS += ['django_extensions']
-    # Email settings set here for development mode only
+
+
+# Email
+# https://docs.djangoproject.com/en/1.9/topics/email/
+if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'ccapi@azavea.com'
+else:
+    EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'support@futurefeelslike.com')
 
 
 MIDDLEWARE_CLASSES = [
@@ -221,6 +227,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+
 
 # Watchman
 # http://django-watchman.readthedocs.io/en/latest/
