@@ -56,6 +56,10 @@ if EC2_PRIVATE_IP:
 # Application definition
 
 INSTALLED_APPS = [
+
+    # Priority apps: override defaults in django core
+    'user_management',
+
     # Django core
     'django.contrib.admin',
     'django.contrib.auth',
@@ -73,7 +77,6 @@ INSTALLED_APPS = [
 
     # Apps
     'climate_data',
-    'user_management',
 ]
 
 if DEBUG:
