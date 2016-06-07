@@ -7,6 +7,7 @@ from climate_data.models import ClimateData
 class ClimateDataFilterSet(filters.FilterSet):
     """ Allow min/max/equality filtering on all data fields in ClimateData """
     climate_model = django_filters.CharFilter(name='climate_model__name')
+    scenario = django_filters.CharFilter(name='scenario__name')
 
     min_year = django_filters.NumberFilter(name='year', lookup_type='gte')
     max_year = django_filters.NumberFilter(name='year', lookup_type='lte')

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Point
 
@@ -6,6 +7,7 @@ from rest_framework.test import APITestCase
 
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
+                                          ScenarioFactory,
                                           generate_climate_data)
 
 
@@ -33,6 +35,10 @@ class ClimateDataViewTestCase(APITestCase):
             'field': 'climate_model',
             'value': climate_model.name,
             'count': 148
+        }, {
+            'field': 'scenario',
+            'value': 'DOESNOTEXIST',
+            'count': 0
         }, {
             'field': 'year',
             'value': 2002,
@@ -109,6 +115,26 @@ class ClimateModelViewSetTestCase(APITestCase):
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'ukmet'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
+
+class ScenarioViewSetTestCase(APITestCase):
+
+    def test_filtering(self):
+        """ Should allow equality filtering on name """
+        ScenarioFactory(name='RCP45')
+        ScenarioFactory(name='RCP85')
+
+        url = reverse('scenario-list')
+
+        # Ensure no filters pull all data
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        # Begin tests for filtering
+        response = self.client.get(url, {'name': 'RCP45'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
 

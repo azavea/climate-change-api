@@ -28,6 +28,7 @@ router = routers.DefaultRouter()
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
+router.register(r'scenario', climate_data_views.ScenarioViewSet)
 
 urlpatterns = [
     url(r'^accounts/', include('user_management.urls')),

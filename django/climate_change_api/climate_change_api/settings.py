@@ -222,7 +222,8 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
-# watchman
+# Watchman
+# http://django-watchman.readthedocs.io/en/latest/
 WATCHMAN_ERROR_CODE = 503
 WATCHMAN_CHECKS = (
     'watchman.checks.caches',
