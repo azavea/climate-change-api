@@ -56,8 +56,8 @@ if EC2_PRIVATE_IP:
 # Application definition
 
 INSTALLED_APPS = [
-    # Apps
-    'climate_data',
+
+    # Priority apps: override defaults in django core
     'user_management',
 
     # Django core
@@ -74,6 +74,9 @@ INSTALLED_APPS = [
     'rest_framework_gis',
     'bootstrap3',
     'watchman',
+
+    # Apps
+    'climate_data',
 ]
 
 if DEBUG:
