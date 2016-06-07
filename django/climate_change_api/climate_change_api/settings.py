@@ -56,6 +56,10 @@ if EC2_PRIVATE_IP:
 # Application definition
 
 INSTALLED_APPS = [
+    # Apps
+    'climate_data',
+    'user_management',
+
     # Django core
     'django.contrib.admin',
     'django.contrib.auth',
@@ -70,10 +74,6 @@ INSTALLED_APPS = [
     'rest_framework_gis',
     'bootstrap3',
     'watchman',
-
-    # Apps
-    'climate_data',
-    'user_management',
 ]
 
 if DEBUG:
