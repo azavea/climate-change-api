@@ -16,7 +16,7 @@ from django.views.generic import View
 
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 
 
 class RegistrationView(BaseRegistrationView):
@@ -71,9 +71,10 @@ class UserProfileView(View):
 
     def new_token(self, request):
         """ Generate new auth token"""
-        user = request.user
-        if user.auth_token:
-            user.auth_token.delete()
-        user.auth_token = Token.objects.create(user=user)
-        user.auth_token.save()
+        if request.method not in SAFE_METHODS:
+            user = request.user
+            if user.auth_token:
+                user.auth_token.delete()
+            user.auth_token = Token.objects.create(user=user)
+            user.auth_token.save()
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
