@@ -47,7 +47,7 @@ class ClimateDataFactory(DjangoModelFactory):
 
     class Meta:
         model = ClimateData
-        django_get_or_create = ('city', 'climate_model', 'year', 'day_of_year',)
+        django_get_or_create = ('city', 'scenario', 'climate_model', 'year', 'day_of_year',)
 
 
 def generate_climate_data():

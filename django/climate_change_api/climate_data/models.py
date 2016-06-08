@@ -64,4 +64,4 @@ class ClimateData(models.Model):
                            help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
 
     class Meta:
-        unique_together = ('city', 'climate_model', 'year', 'day_of_year')
+        unique_together = ('city', 'scenario', 'climate_model', 'year', 'day_of_year')
