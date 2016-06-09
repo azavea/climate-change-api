@@ -6,7 +6,7 @@ import boto3
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from climate_data.models import ClimateModel
+from climate_data.models import ClimateModel, Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,9 @@ class Command(BaseCommand):
     help = 'Creates jobs on SQS to extract data from NASA NEX NetCDF files'
 
     def add_arguments(self, parser):
+        parser.add_argument('rcp', type=str,
+                            help='Name of climate emmisions scenario to match '
+                                 'name in database')
         parser.add_argument('models', type=str,
                             help='Comma separated list of models, or "all"')
         parser.add_argument('years', type=str,
@@ -45,6 +48,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
+        scenario_id = Scenario.objects.get(name=options['rcp']).id
         if options['models'] == 'all':
             models = map(lambda m: m.id, list(ClimateModel.objects.all()))
         else:
@@ -57,8 +61,13 @@ class Command(BaseCommand):
             vars = ['tasmin', 'tasmax', 'pr']
         else:
             vars = options['vars'].split(',')
+            for var in vars:
+                assert var in ('tasmin', 'tasmax', 'pr')
 
         for var in vars:
             for model in models:
                 for year in years:
-                    send_message(queue, {'var': var, 'model': model, 'year': year})
+                    send_message(queue, {'scenario': scenario_id,
+                                         'var': var,
+                                         'model': model,
+                                         'year': year})
