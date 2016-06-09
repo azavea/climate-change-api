@@ -49,6 +49,8 @@ class City(models.Model):
 
 class ClimateData(models.Model):
 
+    VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
+
     city = models.ForeignKey(City)
     climate_model = models.ForeignKey(ClimateModel)
     scenario = models.ForeignKey(Scenario)
