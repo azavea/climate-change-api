@@ -33,3 +33,4 @@ variable "rds_storage_size_gb" { }
 variable "rds_cpu_credit_alarm_threshold" { }
 
 variable "django_secret_key" { }
+variable "sqs_queue_name" { }

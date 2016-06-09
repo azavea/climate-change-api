@@ -11,6 +11,7 @@ resource "template_file" "ecs_web_task" {
     rds_username = "${var.rds_username}"
     rds_database_name = "${var.rds_database_name}"
     django_secret_key = "${var.django_secret_key}"
+    sqs_queue_name = "${var.sqs_queue_name}"
   }
 }
 
@@ -25,5 +26,6 @@ resource "template_file" "ecs_management_task" {
     rds_username = "${var.rds_username}"
     rds_database_name = "${var.rds_database_name}"
     django_secret_key = "${var.django_secret_key}"
+    sqs_queue_name = "${var.sqs_queue_name}"
   }
 }
