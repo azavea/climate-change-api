@@ -26,7 +26,6 @@ from climate_data import views as climate_data_views
 
 router = routers.DefaultRouter()
 router.register(r'city', climate_data_views.CityViewSet)
-router.register(r'climate-data', climate_data_views.ClimateDataViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 router.register(r'scenario', climate_data_views.ScenarioViewSet)
 
@@ -35,6 +34,8 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^accounts/.*$', RedirectView.as_view(url='/accounts/login/')),
     url(r'^api/', include(router.urls)),
+    url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',
+        climate_data_views.ClimateDataList.as_view(), name='climatedata-list'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', admin.site.urls),
 

@@ -1,101 +1,55 @@
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Point
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from climate_data.models import ClimateData, ClimateModel
+from climate_data.tests.mixins import ClimateDataSetupMixin
 from climate_data.tests.factories import (CityFactory,
+                                          ClimateDataFactory,
                                           ClimateModelFactory,
-                                          ScenarioFactory,
-                                          generate_climate_data)
+                                          ScenarioFactory)
 
 
-class ClimateDataViewTestCase(APITestCase):
+class ClimateDataViewTestCase(ClimateDataSetupMixin, APITestCase):
 
-    def test_data_filtering(self):
-        """ Ensure get param filtering works as expected for each field
+    def test_complete_response(self):
 
-        Do all the checks in one test so we don't have to make multiple expensive calls
-        to generate_climate_data()
+        url = reverse('climatedata-list',
+                      kwargs={'scenario': self.rcp45.name, 'city': self.city1.id})
 
-        Tests min_<field>, max_<field>, <field> for each field
-
-        """
-        generate_climate_data()
-
-        url = reverse('climatedata-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 295)
+        self.assertEqual(response.data['city']['id'], self.city1.id)
+        self.assertEqual(response.data['scenario'], self.rcp45.name)
+        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(len(response.data['data']), 4)
 
-        climate_model = ClimateModelFactory()
+    def test_scenario_filter(self):
+        url = reverse('climatedata-list',
+                      kwargs={'scenario': self.rcp85.name, 'city': self.city1.id})
 
-        checks = [{
-            'field': 'climate_model',
-            'value': climate_model.name,
-            'count': 148
-        }, {
-            'field': 'scenario',
-            'value': 'DOESNOTEXIST',
-            'count': 0
-        }, {
-            'field': 'year',
-            'value': 2002,
-            'count': 98
-        }, {
-            'field': 'min_year',
-            'value': 2002,
-            'count': 196
-        }, {
-            'field': 'max_year',
-            'value': 2002,
-            'count': 197
-        }, {
-            'field': 'day_of_year',
-            'value': 45,
-            'count': 6
-        }, {
-            'field': 'min_day_of_year',
-            'value': 45,
-            'count': 30
-        }, {
-            'field': 'max_day_of_year',
-            'value': 10,
-            'count': 61
-        }, {
-            'field': 'tasmin',
-            'value': 273,
-            'count': 55
-        }, {
-            'field': 'min_tasmin',
-            'value': 275,
-            'count': 180
-        }, {
-            'field': 'max_tasmin',
-            'value': 275,
-            'count': 175
-        }, {
-            'field': 'pr',
-            'value': 0.0001,
-            'count': 1
-        }, {
-            'field': 'min_pr',
-            'value': 0.00015,
-            'count': 150
-        }, {
-            'field': 'max_pr',
-            'value': 0.00015,
-            'count': 145
-        }]
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['city']['id'], self.city1.id)
+        self.assertEqual(response.data['scenario'], self.rcp85.name)
+        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(len(response.data['data']), 1)
 
-        for check in checks:
-            response = self.client.get(url, {check['field']: check['value']})
-            msg = 'GET {}={} should have {} results, got {}'.format(check['field'],
-                                                                    check['value'],
-                                                                    check['count'],
-                                                                    response.data['count'])
-            self.assertEqual(response.data['count'], check['count'], msg=msg)
+    def test_city_filter(self):
+        url = reverse('climatedata-list',
+                      kwargs={'scenario': self.rcp45.name, 'city': self.city2.id})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['city']['id'], self.city2.id)
+        self.assertEqual(response.data['scenario'], self.rcp45.name)
+        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(len(response.data['data']), 0)
 
 
 class ClimateModelViewSetTestCase(APITestCase):
