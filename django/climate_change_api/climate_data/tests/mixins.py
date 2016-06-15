@@ -1,7 +1,19 @@
+from django.contrib.gis.geos import Point
+
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           ScenarioFactory,
                                           ClimateDataFactory)
+
+
+class CityDataSetupMixin(object):
+    """ Creates a set of cities as mock data """
+    def setUp(self):
+        super(CityDataSetupMixin, self).setUp()
+
+        self.city1 = CityFactory(name='Philadelphia', admin='us', geom=Point(10, 10))
+        self.city2 = CityFactory(name='Washington DC', admin='us', geom=Point(20, 20))
+        self.city3 = CityFactory(name='London', admin='uk', geom=Point(30, 30))
 
 
 class ClimateDataSetupMixin(object):

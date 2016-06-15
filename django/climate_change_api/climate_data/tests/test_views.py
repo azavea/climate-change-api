@@ -1,18 +1,16 @@
 from django.core.urlresolvers import reverse
-from django.contrib.gis.geos import Point
 
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from climate_data.models import ClimateData, ClimateModel
-from climate_data.tests.mixins import ClimateDataSetupMixin
-from climate_data.tests.factories import (CityFactory,
-                                          ClimateDataFactory,
-                                          ClimateModelFactory,
+from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
+from climate_data.tests.factories import (ClimateModelFactory,
                                           ScenarioFactory)
 
+from user_management.tests.api_test_case import CCAPITestCase
 
-class ClimateDataViewTestCase(ClimateDataSetupMixin, APITestCase):
+
+class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
 
     def test_complete_response(self):
 
@@ -52,7 +50,7 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, APITestCase):
         self.assertEqual(len(response.data['data']), 0)
 
 
-class ClimateModelViewSetTestCase(APITestCase):
+class ClimateModelViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
         """ Should allow equality filtering on name """
@@ -73,7 +71,7 @@ class ClimateModelViewSetTestCase(APITestCase):
         self.assertEqual(response.data['count'], 1)
 
 
-class ScenarioViewSetTestCase(APITestCase):
+class ScenarioViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
         """ Should allow equality filtering on name """
@@ -93,12 +91,7 @@ class ScenarioViewSetTestCase(APITestCase):
         self.assertEqual(response.data['count'], 1)
 
 
-class CityViewSetTestCase(APITestCase):
-
-    def setUp(self):
-        self.city1 = CityFactory(name='Philadelphia', admin='us', geom=Point(10, 10))
-        self.city2 = CityFactory(name='Washington DC', admin='us', geom=Point(20, 20))
-        self.city3 = CityFactory(name='London', admin='uk', geom=Point(30, 30))
+class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
 
     def test_filtering(self):
         """ Should allow equality filtering on text properties """
