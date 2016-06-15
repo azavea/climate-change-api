@@ -1,7 +1,8 @@
+from django.contrib.auth.models import User
+
 from factory.django import DjangoModelFactory
 
 from user_management.models import UserProfile
-from django.contrib.auth.models import User
 
 
 class UserFactory(DjangoModelFactory):

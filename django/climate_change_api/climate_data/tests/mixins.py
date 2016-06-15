@@ -1,8 +1,9 @@
+from django.contrib.gis.geos import Point
+
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           ScenarioFactory,
                                           ClimateDataFactory)
-from django.contrib.gis.geos import Point
 
 
 class CityDataSetupMixin(object):
