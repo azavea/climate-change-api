@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
-
+    """ Returns a paginated GeoJSON object of the available cities """
     queryset = City.objects.all()
     serializer_class = CitySerializer
     filter_backends = (InBBoxFilter,
@@ -42,12 +42,23 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
     def nearest(self, request):
         """ Given a lat/lon return the nearest city as a GeoJSON feature collection
 
-        GET params:
-
-        - lat (float) Required. The latitude to search at.
-        - lon (float) Required. The longitude to search at.
-        - limit (int) The number of results to return. Default: 1.
-
+        ---
+        parameters:
+            - name: lat
+              description: The latitude to search at
+              required: true
+              type: float
+              paramType: query
+            - name: lon
+              description: The longitude to search at
+              required: true
+              type: float
+              paramType: query
+            - name: limit
+              description: The number of results to return. Defaults to 1.
+              required: false
+              type: int
+              paramType: query
 
         """
         try:
