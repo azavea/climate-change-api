@@ -3,6 +3,9 @@ import logging
 
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.utils.http import urlencode
 
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import list_route
@@ -40,9 +43,11 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         """ Given a lat/lon return the nearest city as a GeoJSON feature collection
 
         GET params:
-          - lat (float) Required. The latitude to search at.
-          - lon (float) Required. The longitude to search at.
-          - limit (int) The number of results to return. Default: 1.
+
+        - lat (float) Required. The latitude to search at.
+        - lon (float) Required. The longitude to search at.
+        - limit (int) The number of results to return. Default: 1.
+
 
         """
         try:
@@ -160,3 +165,10 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+
+
+def swagger_docs_permission_denied_handler(request):
+    """ Redirect to login when accessing docs if not logged in """
+    path = u'{}?{}'.format(reverse('django.contrib.auth.views.login'),
+                           urlencode({'next': request.path}))
+    return HttpResponseRedirect(path)
