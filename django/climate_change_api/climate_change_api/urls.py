@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^accounts/.*$', RedirectView.as_view(url='/accounts/login/')),
     url(r'^api/', include(router.urls)),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',
-        climate_data_views.ClimateDataList.as_view(), name='climatedata-list'),
+        climate_data_views.climate_data_list, name='climatedata-list'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', admin.site.urls),
 
