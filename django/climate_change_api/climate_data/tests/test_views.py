@@ -63,12 +63,12 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
         # Ensure no filters pull all data
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(len(response.data), 3)
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'ukmet'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data), 1)
 
 
 class ScenarioViewSetTestCase(CCAPITestCase):
@@ -83,12 +83,12 @@ class ScenarioViewSetTestCase(CCAPITestCase):
         # Ensure no filters pull all data
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data), 2)
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'RCP45'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data), 1)
 
 
 class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
