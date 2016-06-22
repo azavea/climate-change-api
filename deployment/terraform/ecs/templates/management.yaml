@@ -1,5 +1,5 @@
 - volumesFrom: []
-  memory: 1024
+  memory: 2048
   extraHosts: null
   dnsServers: null
   disableNetworking: null
@@ -26,7 +26,7 @@
     - name: "CC_DB_DATABASE"
       value: "${rds_database_name}"
     - name: "CC_SQS_QUEUE_NAME"
-      value: "${rds_database_name}"
+      value: "${sqs_queue_name}"
     - name: "AWS_DEFAULT_REGION"
       value: "us-east-1"
   workingDirectory: null
