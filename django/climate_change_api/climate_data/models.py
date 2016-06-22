@@ -14,6 +14,7 @@ class ClimateModel(models.Model):
     """
 
     name = models.CharField(max_length=40, unique=True)
+    base_time = models.DateField(null=True)
 
     def __str__(self):
         return self.name
