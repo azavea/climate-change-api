@@ -30,6 +30,8 @@
       value: "${rds_database_name}"
     - name: "CC_SQS_QUEUE_NAME"
       value: "${sqs_queue_name}"
+    - name: "AWS_DEFAULT_REGION"
+      value: "us-east-1"
   workingDirectory: null
   readonlyRootFilesystem: null
   image: "784347171332.dkr.ecr.us-east-1.amazonaws.com/cc-api:${git_commit}"
