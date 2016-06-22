@@ -112,4 +112,5 @@ resource "aws_sqs_queue" "sqs_queue" {
   name = "${var.sqs_queue_name}"
   max_message_size = 1024
   receive_wait_time_seconds = 10
+  visibility_timeout_seconds = 43200
 }
