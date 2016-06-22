@@ -4,9 +4,10 @@ import json
 import boto3
 
 from django.core.management.base import BaseCommand
+from django.db.utils import IntegrityError
 from django.conf import settings
 
-from climate_data.models import ClimateModel, Scenario
+from climate_data.models import ClimateModel, Scenario, ClimateData, City
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +50,11 @@ class Command(BaseCommand):
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         scenario_id = Scenario.objects.get(name=options['rcp']).id
+        cities = City.objects.all()
         if options['models'] == 'all':
-            models = map(lambda m: m.id, list(ClimateModel.objects.all()))
+            model_ids = map(lambda m: m.id, list(ClimateModel.objects.all()))
         else:
-            models = map(get_model_id_from_name, options['models'].split(','))
+            model_ids = map(get_model_id_from_name, options['models'].split(','))
         if options['years'] == 'all':
             years = map(str, range(2006, 2100))
         else:
@@ -64,10 +66,28 @@ class Command(BaseCommand):
             for var in vars:
                 assert var in ('tasmin', 'tasmax', 'pr')
 
-        for var in vars:
-            for model in models:
-                for year in years:
-                    send_message(queue, {'scenario': scenario_id,
+        for year in years:
+            for model_id in model_ids:
+                objects_to_create = []
+                for city in cities:
+                    objects_to_create += [ClimateData(city=city,
+                                                      climate_model_id=model_id,
+                                                      scenario_id=scenario_id,
+                                                      year=int(year),
+                                                      day_of_year=day)
+                                          for day in xrange(1, 367)]
+                    if len(objects_to_create) > 10000:
+                        try:
+                            ClimateData.objects.bulk_create(objects_to_create)
+                        except IntegrityError:
+                            pass
+                        objects_to_create = []
+                try:
+                    ClimateData.objects.bulk_create(objects_to_create)
+                except IntegrityError:
+                    pass
+                for var in vars:
+                    send_message(queue, {'scenario_id': scenario_id,
                                          'var': var,
-                                         'model': model,
+                                         'model_id': model_id,
                                          'year': year})
