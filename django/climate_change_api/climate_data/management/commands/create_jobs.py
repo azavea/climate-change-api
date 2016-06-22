@@ -23,6 +23,33 @@ def get_model_id_from_name(name):
     return ClimateModel.objects.get(name=name).id
 
 
+def prepopulate_rows(queue, model_id, scenario_id, vars, year):
+    cities = City.objects.all()
+    objects_to_create = []
+    for city in cities:
+        objects_to_create += [ClimateData(city=city,
+                                          climate_model_id=model_id,
+                                          scenario_id=scenario_id,
+                                          year=int(year),
+                                          day_of_year=day)
+                              for day in xrange(1, 367)]
+        if len(objects_to_create) > 10000:
+            try:
+                ClimateData.objects.bulk_create(objects_to_create)
+            except IntegrityError:
+                pass
+            objects_to_create = []
+    try:
+        ClimateData.objects.bulk_create(objects_to_create)
+    except IntegrityError:
+        pass
+    for var in vars:
+        send_message(queue, {'scenario_id': scenario_id,
+                             'var': var,
+                             'model_id': model_id,
+                             'year': year})
+
+
 class Command(BaseCommand):
     """Creates jobs on SQS to extract data from NASA NEX NetCDF files
 
@@ -50,7 +77,6 @@ class Command(BaseCommand):
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         scenario_id = Scenario.objects.get(name=options['rcp']).id
-        cities = City.objects.all()
         if options['models'] == 'all':
             model_ids = map(lambda m: m.id, list(ClimateModel.objects.all()))
         else:
@@ -65,29 +91,10 @@ class Command(BaseCommand):
             vars = options['vars'].split(',')
             for var in vars:
                 assert var in ('tasmin', 'tasmax', 'pr')
-
         for year in years:
             for model_id in model_ids:
-                objects_to_create = []
-                for city in cities:
-                    objects_to_create += [ClimateData(city=city,
-                                                      climate_model_id=model_id,
-                                                      scenario_id=scenario_id,
-                                                      year=int(year),
-                                                      day_of_year=day)
-                                          for day in xrange(1, 367)]
-                    if len(objects_to_create) > 10000:
-                        try:
-                            ClimateData.objects.bulk_create(objects_to_create)
-                        except IntegrityError:
-                            pass
-                        objects_to_create = []
-                try:
-                    ClimateData.objects.bulk_create(objects_to_create)
-                except IntegrityError:
-                    pass
-                for var in vars:
-                    send_message(queue, {'scenario_id': scenario_id,
-                                         'var': var,
-                                         'model_id': model_id,
-                                         'year': year})
+                send_message(queue, {'scenario_id': scenario_id,
+                                     'vars': vars,
+                                     'model_id': model_id,
+                                     'year': year,
+                                     'prepopulate': True})

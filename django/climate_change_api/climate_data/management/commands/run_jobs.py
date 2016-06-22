@@ -11,6 +11,8 @@ from django.conf import settings
 from climate_data.models import ClimateModel, Scenario
 from climate_data import nex2db
 
+from climate_data.management.commands.create_jobs import prepopulate_rows
+
 logger = logging.getLogger(__name__)
 
 BUCKET = 'nasanex'
@@ -26,13 +28,16 @@ def download_nc(rcp, model, year, var, dir):
     return filename
 
 
-def process_message(message):
+def process_message(message, queue):
     # extract info from message
     message_dict = json.loads(message.body)
-    var = message_dict['var']
     model = ClimateModel.objects.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+    if 'prepopulate' in message_dict:
+        prepopulate_rows(queue, model.id, scenario.id, message_dict['vars'], year)
+        return
+    var = message_dict['var']
     tmpdir = tempfile.mkdtemp()
     # get .nc file
     filename = download_nc(scenario.name, model.name, year, var, tmpdir)
@@ -60,7 +65,7 @@ class Command(BaseCommand):
             try:
                 while True:
                     message = queue.receive_messages()[0]
-                    process_message(message)
+                    process_message(message, queue)
                     message.delete()
                     failures = 0
             except:
