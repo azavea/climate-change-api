@@ -1,4 +1,4 @@
-from django.db.models import Avg
+import django.db.models
 from django.db.models.query import QuerySet
 
 from rest_framework import serializers
@@ -42,12 +42,16 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     :param context Dict
         Provide key 'variables' with an iterable subset of ClimateData.VARIABLE_CHOICES to filter
         the output.
+        Provide key 'aggregation' with one of ('min', 'max', 'avg') to aggregate the data values
+        across models. Default is 'avg'.
 
     """
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
             self._context['variables'] = ClimateData.VARIABLE_CHOICES
+        if self._context.get('aggregation', None) is None:
+            self._context['aggregation'] = 'avg'
 
     def to_representation(self, queryset):
         """ Serialize queryset to the expected python object format
@@ -62,7 +66,11 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         """
         assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'
 
-        aggregations = {variable: Avg(variable) for variable in self._context['variables']}
+        aggregation = self._context['aggregation']
+        aggregation_function = getattr(django.db.models, aggregation.capitalize())
+
+        aggregations = {variable: aggregation_function(variable)
+                        for variable in self._context['variables']}
         results = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
         output = {}
         for result in results:
