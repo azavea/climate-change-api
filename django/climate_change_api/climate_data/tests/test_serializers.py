@@ -36,7 +36,8 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def test_data_aggregation(self):
         """ Get all data we've created and ensure it matches the output we expect
 
-        Also tests the default context, which is that all variables are returned
+        Also tests the default context, which is that all variables are returned and
+        that avg is the default aggregation
 
         """
         serializer = ClimateCityScenarioDataSerializer(self.queryset)
@@ -52,6 +53,16 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
         self.assertNotIn(skip_var, serializer.data[2000])
         self.assertNotIn(skip_var, serializer.data[2001])
         self.assert_serializer_data_valid(serializer.data, variable_list, 15.0)
+
+    def test_min_aggregation(self):
+        context = {'aggregation': 'min'}
+        serializer = ClimateCityScenarioDataSerializer(self.queryset, context=context)
+        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 10.0)
+
+    def test_max_aggregation(self):
+        context = {'aggregation': 'max'}
+        serializer = ClimateCityScenarioDataSerializer(self.queryset, context=context)
+        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 20.0)
 
     def test_limit_models(self):
         """ The serializer should compute the average using only the filtered models """
