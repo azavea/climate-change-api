@@ -121,8 +121,8 @@ def climate_data_list(request, *args, **kwargs):
     parameters:
       - name: models
         description: A list of comma separated model names to filter the response data by.
-                     If not provided, defaults to all models. The data values in the response
-                     will be an average of the selected models.
+                     The data values in the response will be an average of the selected models.
+                     If not provided, defaults to all models.
         required: false
         type: string
         paramType: query
@@ -136,6 +136,15 @@ def climate_data_list(request, *args, **kwargs):
         description: A list of comma separated year ranges to filter the response by. Defaults
                      to all years available. A year range is of the form 'start[:end]'. These are
                      some examples - '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'
+        required: false
+        type: string
+        paramType: query
+      - name: agg
+        description: Use a different aggregation to generate the data values across models. Can
+                     be one of [min,max,avg]. If not provided, defaults to 'avg'.
+        required: false
+        type: string
+        paramType: query
 
     """
     def filter_variables_list(variables):
@@ -170,10 +179,15 @@ def climate_data_list(request, *args, **kwargs):
     variables = request.query_params.get('variables', None)
     cleaned_variables = filter_variables_list(variables)
 
+    # Get valid aggregation param
+    AGGREGATION_CHOICES = ('avg', 'min', 'max',)
+    aggregation = request.query_params.get('agg', '')
+    aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
+
     # Filter on the ClimateData filter set
     data_filter = ClimateDataFilterSet(request.query_params, queryset)
 
-    context = {'variables': cleaned_variables}
+    context = {'variables': cleaned_variables, 'aggregation': aggregation}
     serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
