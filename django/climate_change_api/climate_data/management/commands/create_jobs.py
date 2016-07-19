@@ -4,10 +4,9 @@ import json
 import boto3
 
 from django.core.management.base import BaseCommand
-from django.db.utils import IntegrityError
 from django.conf import settings
 
-from climate_data.models import ClimateModel, Scenario, ClimateData, City
+from climate_data.models import ClimateModel, Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -21,33 +20,6 @@ def send_message(queue, message):
 
 def get_model_id_from_name(name):
     return ClimateModel.objects.get(name=name).id
-
-
-def prepopulate_rows(queue, model_id, scenario_id, vars, year):
-    cities = City.objects.all()
-    objects_to_create = []
-    for city in cities:
-        objects_to_create += [ClimateData(city=city,
-                                          climate_model_id=model_id,
-                                          scenario_id=scenario_id,
-                                          year=int(year),
-                                          day_of_year=day)
-                              for day in xrange(1, 367)]
-        if len(objects_to_create) > 10000:
-            try:
-                ClimateData.objects.bulk_create(objects_to_create)
-            except IntegrityError:
-                pass
-            objects_to_create = []
-    try:
-        ClimateData.objects.bulk_create(objects_to_create)
-    except IntegrityError:
-        pass
-    for var in vars:
-        send_message(queue, {'scenario_id': scenario_id,
-                             'var': var,
-                             'model_id': model_id,
-                             'year': year})
 
 
 class Command(BaseCommand):
@@ -69,9 +41,6 @@ class Command(BaseCommand):
                             help='Comma separated list of models, or "all"')
         parser.add_argument('years', type=str,
                             help='Comma separated list of years, or "all"')
-        parser.add_argument('vars', type=str,
-                            help='Comma separated list of vars (of "tasmin", '
-                                 '"tasmax", and "pr") or "all"')
 
     def handle(self, *args, **options):
         sqs = boto3.resource('sqs')
@@ -85,16 +54,8 @@ class Command(BaseCommand):
             years = map(str, range(2006, 2100))
         else:
             years = options['years'].split(',')
-        if options['vars'] == 'all':
-            vars = ['tasmin', 'tasmax', 'pr']
-        else:
-            vars = options['vars'].split(',')
-            for var in vars:
-                assert var in ('tasmin', 'tasmax', 'pr')
         for year in years:
             for model_id in model_ids:
                 send_message(queue, {'scenario_id': scenario_id,
-                                     'vars': vars,
                                      'model_id': model_id,
-                                     'year': year,
-                                     'prepopulate': True})
+                                     'year': year})

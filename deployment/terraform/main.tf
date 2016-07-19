@@ -14,7 +14,7 @@ module "vpc" {
   source = "github.com/azavea/terraform-aws-vpc?ref=1.1.0"
   region = "us-east-1"
   key_name = "${var.key_name}"
-  external_access_cidr_block = "96.93.19.137/32"
+  external_access_cidr_block = "66.212.12.106/32"
   private_subnet_cidr_blocks = "10.0.1.0/24,10.0.3.0/24"
   public_subnet_cidr_blocks = "10.0.0.0/24,10.0.2.0/24"
   availability_zones = "us-east-1a,us-east-1c"
@@ -112,5 +112,5 @@ resource "aws_sqs_queue" "sqs_queue" {
   name = "${var.sqs_queue_name}"
   max_message_size = 1024
   receive_wait_time_seconds = 10
-  visibility_timeout_seconds = 43200
+  visibility_timeout_seconds = 14400
 }

@@ -8,10 +8,8 @@ from time import sleep
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from climate_data.models import ClimateModel, Scenario
+from climate_data.models import ClimateModel, Scenario, ClimateDataSource
 from climate_data import nex2db
-
-from climate_data.management.commands.create_jobs import prepopulate_rows
 
 logger = logging.getLogger(__name__)
 
@@ -34,24 +32,26 @@ def process_message(message, queue):
     model = ClimateModel.objects.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
-    if 'prepopulate' in message_dict:
-        prepopulate_rows(queue, model.id, scenario.id, message_dict['vars'], year)
-        return
-    var = message_dict['var']
     tmpdir = tempfile.mkdtemp()
     # get .nc file
-    filename = download_nc(scenario.name, model.name, year, var, tmpdir)
+    tasmin = download_nc(scenario.name, model.name, year, 'tasmin', tmpdir)
+    tasmax = download_nc(scenario.name, model.name, year, 'tasmax', tmpdir)
+    pr = download_nc(scenario.name, model.name, year, 'pr', tmpdir)
     # pass to nex2db
-    nex2db.nex2db(filename, var, scenario, model, model.base_time)
+    datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
+    datasource.save()
+    nex2db.nex2db(tasmin, tasmax, pr, datasource, model.base_time)
     # delete .nc file
-    os.unlink(filename)
+    os.unlink(tasmin)
+    os.unlink(tasmax)
+    os.unlink(pr)
 
 
 class Command(BaseCommand):
     """Processes jobs from SQS to extract data from NASA NEX NetCDF files
 
     Processes messages with the following format:
-    {"scenario_id": 1, "var": "tasmin", "model_id": 1, "year": "2016"}
+    {"scenario_id": 1, "model_id": 1, "year": "2016"}
 
     """
 
@@ -68,6 +68,6 @@ class Command(BaseCommand):
                     process_message(message, queue)
                     message.delete()
                     failures = 0
-            except:
+            except IndexError:
                 sleep(10)
                 failures += 1
