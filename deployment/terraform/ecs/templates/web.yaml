@@ -32,6 +32,10 @@
       value: "${sqs_queue_name}"
     - name: "AWS_DEFAULT_REGION"
       value: "us-east-1"
+    - name: "CC_S3STORAGE_BUCKET"
+      value: "climate-change-api"
+    - name: "COMMIT"
+      value: "${git_commit}"
   workingDirectory: null
   readonlyRootFilesystem: null
   image: "784347171332.dkr.ecr.us-east-1.amazonaws.com/cc-api:${git_commit}"
