@@ -8,6 +8,7 @@ export REPO
 export AWSCLI_OPTS
 
 push: build login
+	docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm --entrypoint "./manage.py" django "collectstatic" "--noinput"
 	docker tag django:$(COMMIT) $(REPO):$(COMMIT)
 	docker push $(REPO):$(COMMIT)
 

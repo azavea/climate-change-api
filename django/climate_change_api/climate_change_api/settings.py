@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 3rd-party
+    'storages',
     'django_filters',
     'rest_framework',
     'rest_framework_gis',
@@ -183,9 +184,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = '/media/static'
-
+if os.getenv('COMMIT'):
+    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+    AWS_STORAGE_BUCKET_NAME = os.getenv('CC_S3STORAGE_BUCKET')
+    AWS_LOCATION = '/{}/static'.format(os.getenv('COMMIT'))
+else:
+    STATIC_ROOT = '/media/static/'
+    STATIC_URL = '/static/'
 
 # Logging
 # https://docs.djangoproject.com/en/1.9/topics/logging/

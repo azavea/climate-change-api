@@ -8,6 +8,8 @@ services:
       CC_DEBUG: 'true'
       DJANGO_LOG_LEVEL: 'INFO'
       AWS_PROFILE: 'climate'
+      CC_S3STORAGE_BUCKET: 'climate-change-api'
+      COMMIT:
     ports:
       - "8080:8080"
       - "8082:8082"
