@@ -41,33 +41,21 @@ class Command(BaseCommand):
                             help='Comma separated list of models, or "all"')
         parser.add_argument('years', type=str,
                             help='Comma separated list of years, or "all"')
-        parser.add_argument('vars', type=str,
-                            help='Comma separated list of vars (of "tasmin", '
-                                 '"tasmax", and "pr") or "all"')
 
     def handle(self, *args, **options):
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         if options['models'] == 'all':
-            models = map(lambda m: m.id, list(ClimateModel.objects.all()))
+            model_ids = map(lambda m: m.id, list(ClimateModel.objects.all()))
         else:
-            models = map(get_model_id_from_name, options['models'].split(','))
+            model_ids = map(get_model_id_from_name, options['models'].split(','))
         if options['years'] == 'all':
             years = map(str, range(2006, 2100))
         else:
             years = options['years'].split(',')
-        if options['vars'] == 'all':
-            vars = ['tasmin', 'tasmax', 'pr']
-        else:
-            vars = options['vars'].split(',')
-            for var in vars:
-                assert var in ('tasmin', 'tasmax', 'pr')
-
-        for var in vars:
-            for model in models:
-                for year in years:
-                    send_message(queue, {'scenario': scenario_id,
-                                         'var': var,
-                                         'model': model,
-                                         'year': year})
+        for year in years:
+            for model_id in model_ids:
+                send_message(queue, {'scenario_id': scenario_id,
+                                     'model_id': model_id,
+                                     'year': year})

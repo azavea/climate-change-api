@@ -1,6 +1,31 @@
 from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext_lazy as _
+from django.core import exceptions
+
+
+class TinyAutoField(models.AutoField):
+
+    def rel_db_type(self, connection):
+        return models.SmallIntegerField().db_type(connection=connection)
+
+    def get_internal_type(self):
+        return "SmallIntegerField"
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError(
+                _("This value must be a short integer."))
+
+
+class TinyForeignKey(models.ForeignKey):
+    def db_type(self, connection):
+        return models.SmallIntegerField().db_type(connection=connection)
 
 
 class ClimateModel(models.Model):
@@ -14,6 +39,7 @@ class ClimateModel(models.Model):
     """
 
     name = models.CharField(max_length=40, unique=True)
+    base_time = models.DateField(null=True)
 
     def __str__(self):
         return self.name
@@ -47,15 +73,21 @@ class City(models.Model):
         unique_together = ('name', 'admin')
 
 
+class ClimateDataSource(models.Model):
+    model = models.ForeignKey(ClimateModel)
+    scenario = models.ForeignKey(Scenario)
+    year = models.PositiveSmallIntegerField()
+
+    class Meta:
+        unique_together = ('model', 'scenario', 'year')
+
+
 class ClimateData(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
 
-    city = models.ForeignKey(City)
-    climate_model = models.ForeignKey(ClimateModel)
-    scenario = models.ForeignKey(Scenario)
-
-    year = models.PositiveSmallIntegerField()
+    city = TinyForeignKey(City)
+    data_source = TinyForeignKey(ClimateDataSource)
     day_of_year = models.PositiveSmallIntegerField()
 
     tasmin = models.FloatField(null=True,
@@ -66,4 +98,4 @@ class ClimateData(models.Model):
                            help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
 
     class Meta:
-        unique_together = ('city', 'scenario', 'climate_model', 'year', 'day_of_year')
+        unique_together = ('city', 'data_source', 'day_of_year')
