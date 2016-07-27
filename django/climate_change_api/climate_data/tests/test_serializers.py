@@ -11,7 +11,8 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def setUp(self):
 
         super(ClimateCityScenarioDataSerializerTestCase, self).setUp()
-        self.queryset = ClimateData.objects.filter(city=self.city1).filter(scenario=self.rcp45)
+        self.queryset = (ClimateData.objects.filter(city=self.city1)
+                                            .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):
         """ Helper to test the serialized python object
@@ -55,10 +56,10 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def test_limit_models(self):
         """ The serializer should compute the average using only the filtered models """
 
-        queryset = self.queryset.filter(climate_model=self.model1)
+        queryset = self.queryset.filter(data_source__model=self.model1)
         serializer = ClimateCityScenarioDataSerializer(queryset)
         self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 10.0)
 
-        queryset = self.queryset.filter(climate_model=self.model2)
+        queryset = self.queryset.filter(data_source__model=self.model2)
         serializer = ClimateCityScenarioDataSerializer(queryset)
         self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 20.0)

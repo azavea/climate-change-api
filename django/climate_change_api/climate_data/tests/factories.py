@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from django.contrib.gis.geos import Point
 
 from factory.django import DjangoModelFactory
 
-from climate_data.models import ClimateModel, City, ClimateData, Scenario
+from climate_data.models import ClimateModel, City, ClimateData, ClimateDataSource, Scenario
 
 
 class CityFactory(DjangoModelFactory):
@@ -28,18 +30,28 @@ class ScenarioFactory(DjangoModelFactory):
 class ClimateModelFactory(DjangoModelFactory):
 
     name = 'ncar'
+    base_time = datetime(2000, 1, 1)
 
     class Meta:
         model = ClimateModel
         django_get_or_create = ('name',)
 
 
+class ClimateDataSourceFactory(DjangoModelFactory):
+
+    model = ClimateModelFactory()
+    scenario = ScenarioFactory()
+    year = 2000
+
+    class Meta:
+        model = ClimateDataSource
+        django_get_or_create = ('model', 'scenario', 'year',)
+
+
 class ClimateDataFactory(DjangoModelFactory):
 
     city = CityFactory()
-    climate_model = ClimateModelFactory()
-    scenario = ScenarioFactory()
-    year = 2000
+    data_source = ClimateDataSourceFactory()
     day_of_year = 1
     tasmin = 273
     tasmax = 293
@@ -47,4 +59,4 @@ class ClimateDataFactory(DjangoModelFactory):
 
     class Meta:
         model = ClimateData
-        django_get_or_create = ('city', 'scenario', 'climate_model', 'year', 'day_of_year',)
+        django_get_or_create = ('city', 'data_source', 'day_of_year',)
