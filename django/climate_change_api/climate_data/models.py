@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models.functions import Distance
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
@@ -58,19 +59,40 @@ class Scenario(models.Model):
         return self.name
 
 
+class CityManager(models.Manager):
+    def nearest(self, point, limit=1):
+        """ Get the nearest N cities to the given point.
+
+        :arg Point point: A Point object to find the nearest cities to
+        :arg int limit: Number of cities to return (default: 1)
+        """
+        return self.annotate(distance=Distance('_geog', point)).order_by('distance')[:limit]
+
+
 class City(models.Model):
-    """Model representing a city"""
+    """Model representing a city
+
+    Keeps a copy of the geometry in a geography field to enable accurate indexed distance ordering.
+    """
 
     geom = models.PointField()
+    _geog = models.PointField(geography=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
+
+    objects = CityManager()
 
     def __str__(self):
         return '{}, {}'.format(self.name, self.admin)
 
     class Meta:
         unique_together = ('name', 'admin')
+
+    def save(self, *args, **kwargs):
+        """ Override save to keep the geography field up to date """
+        self._geog = self.geom
+        super(City, self).save(*args, **kwargs)
 
 
 class ClimateDataSource(models.Model):

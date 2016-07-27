@@ -12,6 +12,7 @@ class CitySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = City
         geo_field = 'geom'
+        exclude = ('_geog',)
 
 
 class ClimateDataSerializer(serializers.ModelSerializer):

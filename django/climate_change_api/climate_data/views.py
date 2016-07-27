@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import logging
 
-from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 
 from rest_framework import filters, generics, status, viewsets
@@ -62,8 +61,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         search_point = Point(lon, lat, srid=4326)
-        nearest_cities = (City.objects.annotate(distance=Distance('geom', search_point))
-                                      .order_by('distance')[:limit])
+        nearest_cities = City.objects.nearest(search_point, limit)
         page = self.paginate_queryset(nearest_cities)
         serializer = self.get_serializer(nearest_cities, many=True)
         if page is not None:
