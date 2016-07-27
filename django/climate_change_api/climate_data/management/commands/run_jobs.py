@@ -27,24 +27,35 @@ def download_nc(rcp, model, year, var, dir):
 
 
 def process_message(message, queue):
+    logger.debug('processing SQS message')
     # extract info from message
     message_dict = json.loads(message.body)
     model = ClimateModel.objects.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+
+    try:
+        datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
+        datasource.save()
+    except IntegrityError:
+        logger.error('Ignoring message: source already exists for model %s scenario %s year %s',
+                     model.name, scenario.name, year)
+        return
+
+    # download files
     tmpdir = tempfile.mkdtemp()
     # get .nc file
     tasmin = download_nc(scenario.name, model.name, year, 'tasmin', tmpdir)
     tasmax = download_nc(scenario.name, model.name, year, 'tasmax', tmpdir)
     pr = download_nc(scenario.name, model.name, year, 'pr', tmpdir)
+
     # pass to nex2db
-    datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
-    datasource.save()
-    nex2db.nex2db(tasmin, tasmax, pr, datasource, model.base_time)
+    nex2db.nex2db(tasmin, tasmax, pr, datasource)
     # delete .nc file
     os.unlink(tasmin)
     os.unlink(tasmax)
     os.unlink(pr)
+    logger.debug('SQS message processed')
 
 
 class Command(BaseCommand):
