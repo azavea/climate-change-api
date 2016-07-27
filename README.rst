@@ -49,3 +49,32 @@ Django runserver can be found on port 8082. Have the project running, in another
     ./manage.py runserver 0.0.0.0:8082
 
 and view at http://localhost:8082
+
+
+Data Loading
+------------
+
+Run migrations::
+
+    ./scripts/console django './manage.py migrate'
+
+Load cities::
+
+    ./scripts/console django './manage.py import_cities azavea-climate-sandbox geonames_cities_top200_us.geojson'
+
+    Alternatively, load geonames_cities1000_us.geojson for more data.
+
+Define a model::
+
+    docker exec -it climatechangeapi_django_1 /bin/bash
+    ./manage.py shell_plus
+    ClimateModel(name='ACCESS1-0').save()
+
+
+Create a data processing job. Note that if a previous job has been run for the same parameters, the `ClimateDataSource` object it created will need to be deleted first::
+
+    ./scripts/console django './manage.py create_jobs RCP45 ACCESS1-0 2050'
+
+Process the job::
+
+    ./scripts/console django './manage.py run_jobs'
