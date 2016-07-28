@@ -42,7 +42,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
           - lat (float) Required. The latitude to search at.
           - lon (float) Required. The longitude to search at.
           - limit (int) The number of results to return. Default: 1.
-
         """
         try:
             lat = float(request.query_params.get('lat', None))
@@ -62,11 +61,13 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
         search_point = Point(lon, lat, srid=4326)
         nearest_cities = City.objects.nearest(search_point, limit)
+
         page = self.paginate_queryset(nearest_cities)
-        serializer = self.get_serializer(nearest_cities, many=True)
         if page is not None:
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
+            serializer = self.get_serializer(nearest_cities, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
