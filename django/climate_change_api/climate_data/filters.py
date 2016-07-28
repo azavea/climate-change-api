@@ -23,7 +23,7 @@ class ClimateDataFilterSet(filters.FilterSet):
 
         """
         if value:
-            queryset = queryset.filter(climate_model__name__in=value.split(','))
+            queryset = queryset.filter(data_source__model__name__in=value.split(','))
         return queryset
 
     def filter_years(self, queryset, value):
@@ -46,10 +46,10 @@ class ClimateDataFilterSet(filters.FilterSet):
                     start_year = int(year_range[0])
                     end_year = int(year_range[1])
                     # AND the year range
-                    year_filters.append((Q(year__gte=start_year) & Q(year__lte=end_year)))
+                    year_filters.append((Q(data_source__year__gte=start_year) & Q(data_source__year__lte=end_year)))
                 if len(year_range) == 1:
                     year = int(year_range[0])
-                    year_filters.append(Q(year=year))
+                    year_filters.append(Q(data_source__year=year))
             logger.debug(year_filters)
             # Now OR together all the year filters we've created
             queryset = queryset.filter(reduce(lambda x, y: x | y, year_filters))

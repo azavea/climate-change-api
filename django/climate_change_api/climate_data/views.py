@@ -105,7 +105,7 @@ class ClimateDataList(generics.ListAPIView):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
         queryset = self.get_queryset()
-        queryset = queryset.filter(city=city).filter(scenario=scenario)
+        queryset = queryset.filter(city=city).filter(data_source__scenario=scenario)
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)

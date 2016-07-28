@@ -3,7 +3,8 @@ from django.contrib.gis.geos import Point
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           ScenarioFactory,
-                                          ClimateDataFactory)
+                                          ClimateDataFactory,
+                                          ClimateDataSourceFactory)
 
 
 class CityDataSetupMixin(object):
@@ -41,34 +42,45 @@ class ClimateDataSetupMixin(object):
         self.model1 = ClimateModelFactory(name='model1')
         self.model2 = ClimateModelFactory(name='model2')
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model1,
-                           year=2000, day_of_year=1,
+        self.ds_s1_m1_2000 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model1,
+                                                      year=2000)
+        self.ds_s1_m1_2001 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model1,
+                                                      year=2001)
+        self.ds_s1_m1_2002 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model1,
+                                                      year=2002)
+        self.ds_s1_m1_2003 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model1,
+                                                      year=2003)
+
+        self.ds_s1_m2_2000 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model2,
+                                                      year=2000)
+        self.ds_s1_m2_2001 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model2,
+                                                      year=2001)
+
+        self.ds_s2_m1_2000 = ClimateDataSourceFactory(scenario=self.rcp85, model=self.model1,
+                                                      year=2000)
+        self.ds_s2_m2_2000 = ClimateDataSourceFactory(scenario=self.rcp85, model=self.model2,
+                                                      year=2000)
+
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m1_2000, day_of_year=1,
                            tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model2,
-                           year=2000, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m2_2000, day_of_year=1,
                            tasmax=20, tasmin=20, pr=20)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model1,
-                           year=2001, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m1_2001, day_of_year=1,
                            tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model2,
-                           year=2001, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m2_2001, day_of_year=1,
                            tasmax=20, tasmin=20, pr=20)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model1,
-                           year=2002, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m1_2002, day_of_year=1,
                            tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp45, climate_model=self.model1,
-                           year=2003, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s1_m1_2003, day_of_year=1,
                            tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp85, climate_model=self.model1,
-                           year=2000, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s2_m1_2000, day_of_year=1,
                            tasmax=30, tasmin=30, pr=30)
 
-        ClimateDataFactory(city=self.city1, scenario=self.rcp85, climate_model=self.model2,
-                           year=2000, day_of_year=1,
+        ClimateDataFactory(city=self.city1, data_source=self.ds_s2_m2_2000, day_of_year=1,
                            tasmax=40, tasmin=40, pr=40)

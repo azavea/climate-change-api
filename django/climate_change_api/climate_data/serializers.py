@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from climate_data.models import City, ClimateData, ClimateModel, Scenario
+from climate_data.models import City, ClimateData, ClimateDataSource, ClimateModel, Scenario
 
 
 class CitySerializer(GeoFeatureModelSerializer):
@@ -15,11 +15,16 @@ class CitySerializer(GeoFeatureModelSerializer):
         exclude = ('_geog',)
 
 
+class ClimateDataSourceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ClimateDataSource
+
+
 class ClimateDataSerializer(serializers.ModelSerializer):
 
     city = serializers.HyperlinkedRelatedField(read_only=True, view_name='city-detail')
-    climate_model = serializers.SlugRelatedField(read_only=True, slug_field='name')
-    scenario = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    data_source = ClimateDataSourceSerializer(read_only=True)
 
     class Meta:
         model = ClimateData
@@ -58,10 +63,10 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'
 
         aggregations = {variable: Avg(variable) for variable in self._context['variables']}
-        results = queryset.values('year', 'day_of_year').annotate(**aggregations)
+        results = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
         output = {}
         for result in results:
-            year = result['year']
+            year = result['data_source__year']
             day_of_year = result['day_of_year']
             if year not in output:
                 output[year] = {}
