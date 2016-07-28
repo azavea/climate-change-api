@@ -63,10 +63,29 @@ class CityManager(models.Manager):
     def nearest(self, point, limit=1):
         """ Get the nearest N cities to the given point.
 
+        Uses an index distance search on geography.
+
+        Returns a list rather than a queryset because the raw query returns a RawQuerySet which
+        the view can't paginate because it doesn't support having 'len()' called on it. Loading
+        the whole list of cities in before paginating it is potentially inefficient, but for
+        smallish values of 'limit', which is the normal case, there's little to no actual cost.
+
         :arg Point point: A Point object to find the nearest cities to
         :arg int limit: Number of cities to return (default: 1)
+        :returns: list[City]
         """
-        return self.annotate(distance=Distance('_geog', point)).order_by('distance')[:limit]
+        query = """
+            SELECT id, name, geom,
+                   ST_Distance(_geog, ST_GeogFromText(%(point)s)) AS distance
+            FROM {table}
+            ORDER BY _geog <-> ST_GeogFromText(%(point)s) ASC
+            LIMIT %(limit)s;
+            """.format(table=self.model._meta.db_table)
+        params = {
+            'point': point.wkt,
+            'limit': limit
+        }
+        return list(self.raw(query, params))
 
 
 class City(models.Model):
