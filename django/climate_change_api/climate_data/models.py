@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models.functions import Distance
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
@@ -58,19 +59,59 @@ class Scenario(models.Model):
         return self.name
 
 
+class CityManager(models.Manager):
+    def nearest(self, point, limit=1):
+        """ Get the nearest N cities to the given point.
+
+        Uses an index distance search on geography.
+
+        Returns a list rather than a queryset because the raw query returns a RawQuerySet which
+        the view can't paginate because it doesn't support having 'len()' called on it. Loading
+        the whole list of cities in before paginating it is potentially inefficient, but for
+        smallish values of 'limit', which is the normal case, there's little to no actual cost.
+
+        :arg Point point: A Point object to find the nearest cities to
+        :arg int limit: Number of cities to return (default: 1)
+        :returns: list[City]
+        """
+        query = """
+            SELECT id, name, geom,
+                   ST_Distance(_geog, ST_GeogFromText(%(point)s)) AS distance
+            FROM {table}
+            ORDER BY _geog <-> ST_GeogFromText(%(point)s) ASC
+            LIMIT %(limit)s;
+            """.format(table=self.model._meta.db_table)
+        params = {
+            'point': point.wkt,
+            'limit': limit
+        }
+        return list(self.raw(query, params))
+
+
 class City(models.Model):
-    """Model representing a city"""
+    """Model representing a city
+
+    Keeps a copy of the geometry in a geography field to enable accurate indexed distance ordering.
+    """
 
     geom = models.PointField()
+    _geog = models.PointField(geography=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
+
+    objects = CityManager()
 
     def __str__(self):
         return '{}, {}'.format(self.name, self.admin)
 
     class Meta:
         unique_together = ('name', 'admin')
+
+    def save(self, *args, **kwargs):
+        """ Override save to keep the geography field up to date """
+        self._geog = self.geom
+        super(City, self).save(*args, **kwargs)
 
 
 class ClimateDataSource(models.Model):
