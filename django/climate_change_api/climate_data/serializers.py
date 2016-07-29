@@ -57,10 +57,10 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'
 
         aggregations = {variable: Avg(variable) for variable in self._context['variables']}
-        results = queryset.values('year', 'day_of_year').annotate(**aggregations)
+        results = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
         output = {}
         for result in results:
-            year = result['year']
+            year = result['data_source__year']
             day_of_year = result['day_of_year']
             if year not in output:
                 output[year] = {}
