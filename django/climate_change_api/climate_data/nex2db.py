@@ -11,7 +11,9 @@ from models import City, ClimateData
 
 logger = logging.getLogger()
 
-CITIES = list(City.objects.all())
+
+def get_cities():
+    return City.objects.all().order_by('pk')
 
 
 def get_var_data(var_name, path):
@@ -57,7 +59,7 @@ def get_var_data(var_name, path):
 
     # map city ID to its values for each day
     city_vals = []
-    for city in CITIES:
+    for city in get_cities():
         logging.debug('processing variable %s for city: %s', var_name, city.name)
         sys.stdout.flush()
 
@@ -117,7 +119,7 @@ def nex2db(tasmin_path, tasmax_path, pr_path, data_source):
     tasmax = get_var_data('tasmax', tasmax_path)
     pr = get_var_data('pr', pr_path)
 
-    for i, city in enumerate(CITIES):
+    for i, city in enumerate(get_cities()):
         to_insert = []
         for day_of_year, date in enumerate(days_in_year(int(data_source.year))):
             to_insert.append(ClimateData(city=city,
