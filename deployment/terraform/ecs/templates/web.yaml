@@ -33,7 +33,7 @@
     - name: "AWS_DEFAULT_REGION"
       value: "us-east-1"
     - name: "CC_S3STORAGE_BUCKET"
-      value: "climate-change-api"
+      value: "${s3storage_bucket}"
     - name: "COMMIT"
       value: "${git_commit}"
   workingDirectory: null
