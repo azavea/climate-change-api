@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import IntegrityError
 
 from climate_data.models import ClimateModel, Scenario, ClimateDataSource
-from climate_data import nex2db
+from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def process_message(message, queue):
     pr = download_nc(scenario.name, model.name, year, 'pr', tmpdir)
 
     # pass to nex2db
-    nex2db.nex2db(tasmin, tasmax, pr, datasource)
+    Nex2DB().nex2db(tasmin, tasmax, pr, datasource)
     # delete .nc file
     os.unlink(tasmin)
     os.unlink(tasmax)
