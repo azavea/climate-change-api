@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 logger.error('Bad item: %s', city_data)
                 error += 1
             except IntegrityError:
-                logger.error('Skipping %s, %s due to IntregrityError',
+                logger.error('Skipping %s, %s due to IntegrityError',
                              city.name, city.admin)
                 error += 1
 
