@@ -26,3 +26,5 @@ simplegeneric==0.8.1
 six==1.10.0
 traitlets==4.2.2
 wcwidth==0.1.7
+django-storages==1.4.1
+boto==2.42.0

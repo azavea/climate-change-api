@@ -8,6 +8,8 @@ services:
       CC_DEBUG: 'true'
       DJANGO_LOG_LEVEL: 'INFO'
       AWS_PROFILE: 'climate'
+      AWS_CACHE_DURATION: 31536000
+      COMMIT:
     ports:
       - "8080:8080"
       - "8082:8082"

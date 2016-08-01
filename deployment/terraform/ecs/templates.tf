@@ -12,6 +12,7 @@ resource "template_file" "ecs_web_task" {
     rds_database_name = "${var.rds_database_name}"
     django_secret_key = "${var.django_secret_key}"
     sqs_queue_name = "${var.sqs_queue_name}"
+    s3storage_bucket = "${var.s3storage_bucket}"
   }
 }
 
@@ -27,5 +28,6 @@ resource "template_file" "ecs_management_task" {
     rds_database_name = "${var.rds_database_name}"
     django_secret_key = "${var.django_secret_key}"
     sqs_queue_name = "${var.sqs_queue_name}"
+    s3storage_bucket = "${var.s3storage_bucket}"
   }
 }
