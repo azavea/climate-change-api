@@ -1,0 +1,6 @@
+version: '2'
+services:
+  django:
+    image: django:${COMMIT}
+    environment:
+      CC_S3STORAGE_BUCKET: 'climate-change-api'

@@ -101,6 +101,7 @@ module "ecs" {
   alarm_actions = "${aws_sns_topic.cc_sns_topic.arn}"
   django_secret_key = "${var.django_secret_key}"
   sqs_queue_name = "${var.sqs_queue_name}"
+  s3storage_bucket = "${var.s3storage_bucket}"
 
   desired_instances = "${var.desired_instances}"
   deploy_max_instances_pct = "${var.deploy_max_instances_pct}"

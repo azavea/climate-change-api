@@ -8,7 +8,6 @@ services:
       CC_DEBUG: 'true'
       DJANGO_LOG_LEVEL: 'INFO'
       AWS_PROFILE: 'climate'
-      CC_S3STORAGE_BUCKET: 'climate-change-api'
       AWS_CACHE_DURATION: 31536000
       COMMIT:
     ports:

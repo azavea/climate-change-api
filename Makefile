@@ -8,12 +8,12 @@ export REPO
 export AWSCLI_OPTS
 
 push: build login
-	docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm --entrypoint "./manage.py" django "collectstatic" "--noinput"
+	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "collectstatic" "--noinput"
 	docker tag django:$(COMMIT) $(REPO):$(COMMIT)
 	docker push $(REPO):$(COMMIT)
 
 build:
-	docker-compose -f docker-compose.yml -f docker-compose.test.yml build django
+	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml build django
 
 login:
 	`aws $(AWSCLI_OPTS) ecr get-login`
