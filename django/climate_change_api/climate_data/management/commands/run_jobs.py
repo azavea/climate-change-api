@@ -7,6 +7,7 @@ import boto3
 from time import sleep
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.db import IntegrityError
 
 from climate_data.models import ClimateModel, Scenario, ClimateDataSource
 from climate_data import nex2db
