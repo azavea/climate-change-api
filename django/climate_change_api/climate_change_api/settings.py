@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'rest_framework_swagger',
     'bootstrap3',
     'watchman',
 
@@ -239,6 +240,16 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+}
+
+
+# Django REST Swagger
+# https://django-rest-swagger.readthedocs.io/en/latest/
+SWAGGER_SETTINGS = {
+    'api_version': '0.1.0',
+    'doc_expansion': 'list',
+    'is_authenticated': True,
+    'permission_denied_handler': 'climate_data.views.swagger_docs_permission_denied_handler'
 }
 
 
