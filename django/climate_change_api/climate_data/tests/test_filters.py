@@ -12,7 +12,7 @@ class ClimateDataFilterSetTestCase(ClimateDataSetupMixin, TestCase):
     def setUp(self):
 
         super(ClimateDataFilterSetTestCase, self).setUp()
-        self.queryset = (ClimateData.objects.filter(city=self.city1)
+        self.queryset = (ClimateData.objects.filter(map_cell__city=self.city1)
                                             .filter(data_source__scenario=self.rcp45))
 
     def test_models_filter(self):

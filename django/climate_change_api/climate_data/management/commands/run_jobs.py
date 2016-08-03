@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import IntegrityError
 
-from climate_data.models import ClimateModel, Scenario, ClimateDataSource
+from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateData
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger(__name__)
@@ -46,16 +46,15 @@ def process_message(message, queue):
     # download files
     tmpdir = tempfile.mkdtemp()
     # get .nc file
-    tasmin = download_nc(scenario.name, model.name, year, 'tasmin', tmpdir)
-    tasmax = download_nc(scenario.name, model.name, year, 'tasmax', tmpdir)
-    pr = download_nc(scenario.name, model.name, year, 'pr', tmpdir)
+    variables = {var: download_nc(scenario.name, model.name, year, var, tmpdir)
+                 for var in ClimateData.VARIABLE_CHOICES}
 
     # pass to nex2db
-    Nex2DB().nex2db(tasmin, tasmax, pr, datasource)
+    Nex2DB().nex2db(variables, datasource)
     # delete .nc file
-    os.unlink(tasmin)
-    os.unlink(tasmax)
-    os.unlink(pr)
+    for path in variables.values():
+        os.unlink(path)
+
     logger.debug('SQS message processed')
 
 

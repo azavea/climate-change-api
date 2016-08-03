@@ -157,7 +157,7 @@ def climate_data_list(request, *args, **kwargs):
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
     queryset = ClimateData.objects.all()
-    queryset = queryset.filter(city=city).filter(data_source__scenario=scenario)
+    queryset = queryset.filter(map_cell__city=city).filter(data_source__scenario=scenario)
 
     # Get valid model params list to use in response
     models_param = request.query_params.get('models', None)
