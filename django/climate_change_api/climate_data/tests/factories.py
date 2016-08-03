@@ -3,8 +3,10 @@ from datetime import datetime
 from django.contrib.gis.geos import Point
 
 from factory.django import DjangoModelFactory
+import factory
 
-from climate_data.models import ClimateModel, City, ClimateData, ClimateDataSource, Scenario
+from climate_data.models import (ClimateModel, City, ClimateData,
+                                 ClimateDataSource, Scenario, ClimateDataCell)
 
 
 class CityFactory(DjangoModelFactory):
@@ -16,6 +18,15 @@ class CityFactory(DjangoModelFactory):
     class Meta:
         model = City
         django_get_or_create = ('name', 'admin',)
+
+    @factory.post_generation
+    def map_cells(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for map_cell in extracted:
+                self.map_cells.add(map_cell)
 
 
 class ScenarioFactory(DjangoModelFactory):
@@ -48,9 +59,19 @@ class ClimateDataSourceFactory(DjangoModelFactory):
         django_get_or_create = ('model', 'scenario', 'year',)
 
 
+class ClimateDataCellFactory(DjangoModelFactory):
+
+    lat = 0
+    lon = 0
+
+    class Meta:
+        model = ClimateDataCell
+        django_get_or_create = ('lat', 'lon',)
+
+
 class ClimateDataFactory(DjangoModelFactory):
 
-    city = CityFactory()
+    map_cell = ClimateDataCellFactory()
     data_source = ClimateDataSourceFactory()
     day_of_year = 1
     tasmin = 273
@@ -59,4 +80,4 @@ class ClimateDataFactory(DjangoModelFactory):
 
     class Meta:
         model = ClimateData
-        django_get_or_create = ('city', 'data_source', 'day_of_year',)
+        django_get_or_create = ('map_cell', 'data_source', 'day_of_year',)

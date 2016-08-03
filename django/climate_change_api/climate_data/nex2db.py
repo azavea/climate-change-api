@@ -2,11 +2,14 @@ import os
 import datetime
 import gc
 import logging
+import collections
+from decimal import Decimal
 
 import numpy
 import netCDF4
 
-from models import City, ClimateData
+from models import City, ClimateData, ClimateDataCell
+from django.contrib.gis.geos import Point
 
 logger = logging.getLogger()
 
@@ -33,11 +36,9 @@ class Nex2DB(object):
         @param path Full path to the NetCDF file on disk
 
         @returns Object containing:
-            cities: matrix of variable readings for nearest point to each city, where offsets
-                    correspond to those in CITIES;
-                    each city entry contains a list of readings for dates
-            dates: map of each date for which there is a reading to the offset for that reading in
-                   the list of readings for the city
+            cells: map of cells by coordinate tuple to dictionary of variable values
+                   keyed by corresponding date
+            cities: map of each city by internal ID to the cell coordinates it matched to
         """
 
         # data in the climate NetCDF files can be referenced as:
@@ -51,9 +52,8 @@ class Nex2DB(object):
             calendar = ds.variables['time'].calendar
 
             # build map of converted date-time values to its array index in the variable values
-            dates = {}
-            for i, numdays in enumerate(ds.variables['time']):
-                dates[netCDF4.num2date(numdays, time_unit, calendar=calendar).date()] = i
+            dates = [netCDF4.num2date(numdays, time_unit, calendar=calendar).date()
+                     for numdays in ds.variables['time']]
 
             # flip right side up by reversing range
             latarr = 90.0 - (90.0 + latarr)
@@ -62,9 +62,9 @@ class Nex2DB(object):
 
             # read variable data into memory
             var_data = numpy.asarray(ds.variables[var_name])
-            num_vars = len(var_data)
 
-        city_vals = []
+        cell_idx = set()
+        city_to_coords = {}
         for city in self.get_cities():
             logging.debug('processing variable %s for city: %s', var_name, city.name)
             # Not geographic distance, but good enough for
@@ -72,64 +72,93 @@ class Nex2DB(object):
             latidx = (numpy.abs(city.geom.y - latarr)).argmin()
             lonidx = (numpy.abs(city.geom.x - lonarr)).argmin()
 
-            city_vals.append([var_data[i][latidx][lonidx] for i in range(num_vars)])
+            cell_idx.add((latidx, lonidx))
+            city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
 
-        return {'cities': city_vals, 'dates': dates}
+        # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
+        cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
+                     dict(zip(dates, list(var_data[:,latidx][:,lonidx])))  # Numpy magic
+                     for (latidx, lonidx) in cell_idx}
 
-    def days_in_year(self, year):
-        """
-        Generator that yields each day in the year as a date object
+        return {'cities': city_to_coords, 'cells': cell_data}
 
-        @param Year as int
-        """
-        first_of_year = datetime.date(year=year, month=1, day=1)
-        last_of_year = datetime.date(year=year, month=12, day=31)
-        delta = datetime.timedelta(days=1)
-
-        dt = first_of_year
-        while dt <= last_of_year:
-            yield dt
-            dt += delta
-
-    def get_date_val(self, var_data, city_index, date):
-        """
-        Helper to look up variable value for a given date and city, if an entry for that date exists
-
-        @param var_data Object returned by get_var_data
-        @param city_index Offset of the city to reference in CITIES list
-        @param date Day of variable reading to get
-
-        @returns Variable reading for given city and day, or None if no reading for that day
-        """
-        val = None
-        date_index = var_data['dates'].get(date)
-        if date_index:
-            val = var_data['cities'][city_index][date_index]
-        return val
-
-    def nex2db(self, tasmin_path, tasmax_path, pr_path, data_source):
+    def nex2db(self, variable_paths, data_source):
         """
         Extracts data about cities from three NetCDF files and writes it to the database
 
-        @param tasmin_path Path to NetCDF with tasmin readings for the data source
-        @param tasmax_path Path to NetCDF with tasmax readings for the data source
-        @param pr_path Path to NetCDF with pr readings for the data source
+        @param variable_paths Dictionary of variable identifier to path for the corresponding NetCDF file
         @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
-        tasmin = self.get_var_data('tasmin', tasmin_path)
-        tasmax = self.get_var_data('tasmax', tasmax_path)
-        pr = self.get_var_data('pr', pr_path)
 
-        for i, city in enumerate(self.get_cities()):
-            to_insert = []
-            for day_of_year, date in enumerate(self.days_in_year(int(data_source.year))):
-                to_insert.append(ClimateData(city=city,
-                                             day_of_year=day_of_year + 1,
-                                             data_source=data_source,
-                                             tasmin=self.get_date_val(tasmin, i, date),
-                                             tasmax=self.get_date_val(tasmax, i, date),
-                                             pr=self.get_date_val(pr, i, date)))
+        assert(set(variable_paths) == ClimateData.VARIABLE_CHOICES)
 
-            ClimateData.objects.bulk_create(to_insert)
+        variable_data = {label: self.get_var_data(label, path)
+                         for label, path in variable_paths.iteritems()}
+
+        # Collate the variables into one list keyed by coordinates
+        cell_list = {}
+        city_coords = {}
+        logger.debug("Collating results")
+        for label, results in variable_data.iteritems():
+            for coords, timeseries_data in results['cells'].iteritems():
+                if coords not in cell_list:
+                    cell_list[coords] = collections.defaultdict(dict)
+
+                for date, value in timeseries_data.iteritems():
+                    cell_list[coords][date].update({
+                        label: value
+                    })
+
+            city_coords.update(results['cities'])
+
+        # Go through the collated list and create all the relevant datapoints
+        cell_models = {}
+        logger.debug("Creating database entries")
+        for coords, timeseries_data in cell_list.iteritems():
+            (lat, lon) = coords
+            try:
+                cell_model = ClimateDataCell.objects.get(lat=lat.item(), lon=lon.item())
+            except ClimateDataCell.DoesNotExist:
+                cell_model = ClimateDataCell(
+                    lat=lat.item(),
+                    lon=lon.item()
+                )
+                cell_model.save()
+
+            cell_models[coords] = cell_model
+
+            climatedata_list = []
+            for date, values in timeseries_data.iteritems():
+                # Testing, ensure that we have values for all variables
+                # (set(dict) produces an unordered set of keys, no values)
+                assert(set(values) == ClimateData.VARIABLE_CHOICES)
+
+                # Use a dictionary since some of ClimateData's keyword args
+                # are variable defined
+                climatedata_args = {
+                    'map_cell': cell_model,
+                    'day_of_year': date.timetuple().tm_yday,
+                    'data_source': data_source,
+                }
+                # Attach the datapoints for this date to the args
+                climatedata_args.update(values)
+
+                # Create the ClimateData entry
+                climatedata_list.append(
+                    ClimateData(**climatedata_args)
+                    )
+
+            ClimateData.objects.bulk_create(climatedata_list)
+
+        # Go through all the cities and set their map_cell to the appropriate model
+        logger.debug("Updating cities")
+        for city in self.get_cities():
+            coords = city_coords[city.id]
+            cell_model = cell_models[coords]
+            if city.map_cell:
+                assert(city.map_cell == cell_model)
+            else:
+                city.map_cell = cell_model
+                city.save()
 
         logging.info('nex2db processing done')
