@@ -37,7 +37,10 @@ if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
 if DEBUG:
     docker_helper.wait_for_database()
 
-ALLOWED_HOSTS = ['.us-east-1.elb.amazonaws.com']  # TODO: change me later!
+ALLOWED_HOSTS = os.getenv('CC_ALLOWED_HOSTS', '').split(',')
+
+if '' in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.remove('')
 
 # solution from https://dryan.com/articles/elb-django-allowed-hosts/
 EC2_PRIVATE_IP = None
