@@ -31,6 +31,8 @@
       value: "us-east-1"
     - name: "CC_S3STORAGE_BUCKET"
       value: "{s3storage_bucket}"
+    - name: "CC_ALLOWED_HOSTS"
+      value: "${django_allowed_hosts}"
     - name: "COMMIT"
       value: "${git_commit}"
   workingDirectory: null

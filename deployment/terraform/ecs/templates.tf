@@ -13,6 +13,7 @@ resource "template_file" "ecs_web_task" {
     django_secret_key = "${var.django_secret_key}"
     sqs_queue_name = "${var.sqs_queue_name}"
     s3storage_bucket = "${var.s3storage_bucket}"
+    django_allowed_hosts = "${var.django_allowed_hosts}"
   }
 }
 
@@ -29,5 +30,6 @@ resource "template_file" "ecs_management_task" {
     django_secret_key = "${var.django_secret_key}"
     sqs_queue_name = "${var.sqs_queue_name}"
     s3storage_bucket = "${var.s3storage_bucket}"
+    django_allowed_hosts = "${var.django_allowed_hosts}"
   }
 }

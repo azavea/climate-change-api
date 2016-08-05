@@ -100,6 +100,7 @@ module "ecs" {
 
   alarm_actions = "${aws_sns_topic.cc_sns_topic.arn}"
   django_secret_key = "${var.django_secret_key}"
+  django_allowed_hosts = "${var.django_allowed_hosts}"
   sqs_queue_name = "${var.sqs_queue_name}"
   s3storage_bucket = "${var.s3storage_bucket}"
 
