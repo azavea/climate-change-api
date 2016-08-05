@@ -27,6 +27,19 @@ class Nex2DB(object):
             self.cities = list(City.objects.all().order_by('pk'))
         return self.cities
 
+    def netcdf2date(self, value, time_unit, calendar):
+        parsed = netCDF4.num2date(value, time_unit, calendar=calendar)
+        try:
+            return parsed.date()
+        except AttributeError:
+            # We got a netcdftime object, which doesn't have a date() method.
+            # However, it does have timetuple(), which gives (year, month, day, [...])
+            timetuple = parsed.timetuple()
+            # We only want the first three, which we can give to datetime.date
+            return datetime.date(*timetuple[0:3])
+
+
+
     def get_var_data(self, var_name, path):
         """
         Read out data from a NetCDF file and return its data, translated, for only the points
@@ -52,7 +65,7 @@ class Nex2DB(object):
             calendar = ds.variables['time'].calendar
 
             # build map of converted date-time values to its array index in the variable values
-            dates = [netCDF4.num2date(numdays, time_unit, calendar=calendar).date()
+            dates = [self.netcdf2date(numdays, time_unit, calendar=calendar)
                      for numdays in ds.variables['time']]
 
             # flip right side up by reversing range
