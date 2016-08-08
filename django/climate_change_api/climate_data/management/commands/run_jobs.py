@@ -48,12 +48,19 @@ def process_message(message, queue):
     # get .nc file
     variables = {var: download_nc(scenario.name, model.name, year, var, tmpdir)
                  for var in ClimateData.VARIABLE_CHOICES}
+    assert(all(variables))
 
     # pass to nex2db
-    Nex2DB().nex2db(variables, datasource)
-    # delete .nc file
-    for path in variables.values():
-        os.unlink(path)
+    try:
+        Nex2DB().nex2db(variables, datasource)
+    except:
+        logger.exception("Failed to process data for model %s scenario %s year %s",
+                         model.name, scenario.name, year)
+        raise
+    finally:
+        # Success or failure, clean up the .nc files
+        for path in variables.values():
+            os.unlink(path)
 
     logger.debug('SQS message processed')
 
