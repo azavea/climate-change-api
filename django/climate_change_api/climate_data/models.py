@@ -88,6 +88,23 @@ class CityManager(models.Manager):
         return list(self.raw(query, params))
 
 
+class ClimateDataSource(models.Model):
+    model = models.ForeignKey(ClimateModel)
+    scenario = models.ForeignKey(Scenario)
+    year = models.PositiveSmallIntegerField()
+
+    class Meta:
+        unique_together = ('model', 'scenario', 'year')
+
+
+class ClimateDataCell(models.Model):
+    lat = models.DecimalField(max_digits=6, decimal_places=3)
+    lon = models.DecimalField(max_digits=6, decimal_places=3)
+
+    class Meta:
+        unique_together = ('lat', 'lon')
+
+
 class City(models.Model):
     """Model representing a city
 
@@ -96,6 +113,8 @@ class City(models.Model):
 
     geom = models.PointField()
     _geog = models.PointField(geography=True)
+
+    map_cell = TinyForeignKey(ClimateDataCell, null=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
@@ -114,20 +133,11 @@ class City(models.Model):
         super(City, self).save(*args, **kwargs)
 
 
-class ClimateDataSource(models.Model):
-    model = models.ForeignKey(ClimateModel)
-    scenario = models.ForeignKey(Scenario)
-    year = models.PositiveSmallIntegerField()
-
-    class Meta:
-        unique_together = ('model', 'scenario', 'year')
-
-
 class ClimateData(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
 
-    city = TinyForeignKey(City)
+    map_cell = TinyForeignKey(ClimateDataCell)
     data_source = TinyForeignKey(ClimateDataSource)
     day_of_year = models.PositiveSmallIntegerField()
 
@@ -139,4 +149,4 @@ class ClimateData(models.Model):
                            help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
 
     class Meta:
-        unique_together = ('city', 'data_source', 'day_of_year')
+        unique_together = ('map_cell', 'data_source', 'day_of_year')
