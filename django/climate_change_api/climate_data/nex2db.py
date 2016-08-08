@@ -1,15 +1,12 @@
-import os
 import datetime
-import gc
 import logging
 import collections
-from decimal import Decimal
 
 import numpy
 import netCDF4
 
 from models import City, ClimateData, ClimateDataCell
-from django.contrib.gis.geos import Point
+from django.db import IntegrityError
 
 logger = logging.getLogger()
 
@@ -37,8 +34,6 @@ class Nex2DB(object):
             timetuple = parsed.timetuple()
             # We only want the first three, which we can give to datetime.date
             return datetime.date(*timetuple[0:3])
-
-
 
     def get_var_data(self, var_name, path):
         """
@@ -136,12 +131,11 @@ class Nex2DB(object):
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
-                cell_model = ClimateDataCell(
+                cell_model, created = ClimateDataCell.objects.get_or_create(
                     lat=lat.item(),
                     lon=lon.item()
                 )
                 cell_models[coords] = cell_model
-                cell_model.save()
 
             climatedata_list = []
             for date, values in timeseries_data.iteritems():
