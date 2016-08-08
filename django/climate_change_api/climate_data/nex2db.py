@@ -125,20 +125,23 @@ class Nex2DB(object):
             city_coords.update(results['cities'])
 
         # Go through the collated list and create all the relevant datapoints
-        cell_models = {}
         logger.debug("Creating database entries")
+
+        # Load all of the map cells that already exist
+        cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
+
         for coords, timeseries_data in cell_list.iteritems():
             (lat, lon) = coords
             try:
-                cell_model = ClimateDataCell.objects.get(lat=lat.item(), lon=lon.item())
-            except ClimateDataCell.DoesNotExist:
+                cell_model = cell_models[coords]
+            except KeyError:
+                # This cell is not in the database, we should create it
                 cell_model = ClimateDataCell(
                     lat=lat.item(),
                     lon=lon.item()
                 )
+                cell_models[coords] = cell_model
                 cell_model.save()
-
-            cell_models[coords] = cell_model
 
             climatedata_list = []
             for date, values in timeseries_data.iteritems():
