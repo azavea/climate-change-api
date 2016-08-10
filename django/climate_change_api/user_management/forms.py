@@ -29,7 +29,7 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('organization',)
+        fields = ('first_name', 'last_name', 'email', 'organization',)
 
     def clean_email(self):
         """Ensures unique emails"""
