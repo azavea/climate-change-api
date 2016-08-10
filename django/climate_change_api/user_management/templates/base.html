@@ -1,12 +1,10 @@
 {% load bootstrap3 %}
-{% bootstrap_css %}
-
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="{{ STATIC_URL }}style.css" />
+    {% bootstrap_css %}
     <title>{% block title %}User Navigation{% endblock %}</title>
 </head>
 
@@ -36,6 +34,7 @@
         {% endblock %}
         </div>
     </div>
+    {% bootstrap_javascript jquery=1 %}
 </body>
 
 </html>
