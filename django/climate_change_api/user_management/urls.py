@@ -14,5 +14,5 @@ urlpatterns = [
         name='registration_register'),
     url(r'^profile/new_token/', UserProfileView().new_token, name='new_token'),
     url(r'^profile/$', UserProfileView.as_view(), name='edit_profile'),
-    url(r'', include('registration.auth_urls')),
+    url(r'', include('registration.backends.hmac.urls')),
 ]
