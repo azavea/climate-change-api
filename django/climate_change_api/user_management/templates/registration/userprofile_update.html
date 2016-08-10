@@ -6,16 +6,41 @@
 
 <h1>User Profile</h1>
 
-<form action="new_token/" method="post">
-    {% csrf_token %}
-    <!-- TODO: Modal warning for token refresh: "Any existing apps that use the current token will no longer work"-->
-    <input type="submit" class="btn btn-primary" href="{% url 'new_token' %}" value='Get new API token'>
-    <div name="apitoken">{{ user.auth_token }}</div>
+<form action="" method="post">
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  {% buttons submit='Update' button_class="btn-primary" %}{% endbuttons %}
 </form>
 
-<form action="" method="post">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    {% buttons submit='Update' button_class="btn-primary" %}{% endbuttons %}
-</form>
-{% endblock %}
+<div name="apitoken">
+  <h2>API token</h2>
+  <pre>{{ user.auth_token }}</pre>
+</div>
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTokenModal">
+  Get New API Token
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="newTokenModal" tabindex="-1" role="dialog" aria-labelledby="newTokenModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="newTokenModalLabel">Replace API token?</h4>
+      </div>
+      <div class="modal-body">
+        Any existing apps that use the current token will no longer work.
+      </div>
+      <div class="modal-footer">
+        <form action="new_token/" method="post">
+          {% csrf_token %}
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger" href="{% url 'new_token' %}">Do It</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
