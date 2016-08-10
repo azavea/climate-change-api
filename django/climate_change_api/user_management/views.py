@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
@@ -24,7 +25,7 @@ class RegistrationView(BaseRegistrationView):
     form_class = UserForm
 
 
-class UserProfileView(View):
+class UserProfileView(LoginRequiredMixin, View):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (TokenAuthentication, )
 

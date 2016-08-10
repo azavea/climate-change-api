@@ -30,9 +30,8 @@ router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 router.register(r'scenario', climate_data_views.ScenarioViewSet)
 
 urlpatterns = [
+    url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
     url(r'^accounts/', include('user_management.urls')),
-    url(r'^accounts/', include('registration.backends.hmac.urls')),
-    url(r'^accounts/.*$', RedirectView.as_view(url='/accounts/login/')),
     url(r'^api/', include(router.urls)),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',
         climate_data_views.climate_data_list, name='climatedata-list'),
