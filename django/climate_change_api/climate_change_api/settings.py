@@ -224,12 +224,6 @@ LOGGING = {
 
 # Django Rest Framework
 # http://www.django-rest-framework.org/
-DEFAULT_RENDERER_CLASSES = ('rest_framework.renderers.JSONRenderer',)
-DEFAULT_AUTHENTICATION_CLASSES = ('rest_framework.authentication.TokenAuthentication',)
-if DEBUG:
-    DEFAULT_RENDERER_CLASSES += ('rest_framework.renderers.BrowsableAPIRenderer',)
-    DEFAULT_AUTHENTICATION_CLASSES += ('rest_framework.authentication.SessionAuthentication',)
-
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.DjangoFilterBackend',
@@ -239,8 +233,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
         ],
-    'DEFAULT_AUTHENTICATION_CLASSES': DEFAULT_AUTHENTICATION_CLASSES,
-    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',
+                                       'rest_framework.authentication.SessionAuthentication',),
+    'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',
+                                 'rest_framework.renderers.BrowsableAPIRenderer',),
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
