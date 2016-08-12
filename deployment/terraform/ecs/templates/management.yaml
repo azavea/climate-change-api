@@ -46,7 +46,7 @@
   logConfiguration:
     logDriver: "awslogs"
     options:
-        awslogs-group: "climate-api-staging"
-        awslogs-region: "us-east-1"
+      awslogs-group: "${cloudwatch_logs_group}"
+      awslogs-region: "us-east-1"
   cpu: 0
   privileged: null

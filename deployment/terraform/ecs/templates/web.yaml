@@ -44,6 +44,10 @@
   command: []
   user: null
   dockerLabels: null
-  logConfiguration: null
+  logConfiguration:
+    logDriver: "awslogs"
+    options:
+      awslogs-group: "${cloudwatch_logs_group}"
+      awslogs-region: "us-east-1"
   cpu: 0
   privileged: null
