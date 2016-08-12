@@ -103,6 +103,7 @@ module "ecs" {
   django_allowed_hosts = "${var.django_allowed_hosts}"
   sqs_queue_name = "${var.sqs_queue_name}"
   s3storage_bucket = "${var.s3storage_bucket}"
+  cloudwatch_logs_group = "${var.cloudwatch_logs_group}"
 
   desired_instances = "${var.desired_instances}"
   deploy_max_instances_pct = "${var.deploy_max_instances_pct}"

@@ -14,6 +14,7 @@ resource "template_file" "ecs_web_task" {
     sqs_queue_name = "${var.sqs_queue_name}"
     s3storage_bucket = "${var.s3storage_bucket}"
     django_allowed_hosts = "${var.django_allowed_hosts}"
+    cloudwatch_logs_group = "${var.cloudwatch_logs_group}"
   }
 }
 
@@ -31,5 +32,6 @@ resource "template_file" "ecs_management_task" {
     sqs_queue_name = "${var.sqs_queue_name}"
     s3storage_bucket = "${var.s3storage_bucket}"
     django_allowed_hosts = "${var.django_allowed_hosts}"
+    cloudwatch_logs_group = "${var.cloudwatch_logs_group}"
   }
 }

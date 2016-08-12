@@ -14,6 +14,7 @@ variable "alarm_actions" { }
 variable "django_secret_key" { }
 variable "django_allowed_hosts" { }
 variable "sqs_queue_name" { }
+variable "cloudwatch_logs_group" { }
 variable "s3storage_bucket" { }
 
 variable "desired_instances" { }
