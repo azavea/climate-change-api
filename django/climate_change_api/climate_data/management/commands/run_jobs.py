@@ -12,7 +12,7 @@ from django.db import IntegrityError
 from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateData
 from climate_data.nex2db import Nex2DB
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('climate_data')
 
 BUCKET = 'nasanex'
 KEY_FORMAT = ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
@@ -31,9 +31,12 @@ def process_message(message, queue):
     logger.debug('processing SQS message')
     # extract info from message
     message_dict = json.loads(message.body)
+    logger.debug('Processing message for model {model_id} scenario {scenario_id} year {year}'.format(**message_dict))
     model = ClimateModel.objects.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+    logger.info('Processing SQS message for model %s scenario %s year %s',
+                 model.name, scenario.name, year)
 
     try:
         datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
@@ -76,6 +79,7 @@ class Command(BaseCommand):
     help = 'Processes jobs from SQS to extract data from NASA NEX NetCDF files'
 
     def handle(self, *args, **options):
+        logger.info('Starting job processing...')
         sqs = boto3.resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         failures = 0
@@ -87,5 +91,7 @@ class Command(BaseCommand):
                     message.delete()
                     failures = 0
             except IndexError:
+                logger.debug("Empty queue, waiting 10 seconds...")
                 sleep(10)
                 failures += 1
+        logger.info('Finished processing jobs')
