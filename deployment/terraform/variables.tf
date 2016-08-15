@@ -36,3 +36,4 @@ variable "django_secret_key" { }
 variable "django_allowed_hosts" { }
 variable "s3storage_bucket" { }
 variable "sqs_queue_name" { }
+variable "cloudwatch_logs_group" { }

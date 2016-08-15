@@ -30,17 +30,23 @@
     - name: "AWS_DEFAULT_REGION"
       value: "us-east-1"
     - name: "CC_S3STORAGE_BUCKET"
-      value: "{s3storage_bucket}"
+      value: "${s3storage_bucket}"
     - name: "CC_ALLOWED_HOSTS"
       value: "${django_allowed_hosts}"
     - name: "COMMIT"
       value: "${git_commit}"
+    - name: "DJANGO_LOG_LEVEL"
+      value: "INFO"
   workingDirectory: null
   readonlyRootFilesystem: null
   image: "784347171332.dkr.ecr.us-east-1.amazonaws.com/cc-api:${git_commit}"
   command: []
   user: null
   dockerLabels: null
-  logConfiguration: null
+  logConfiguration:
+    logDriver: "awslogs"
+    options:
+      awslogs-group: "${cloudwatch_logs_group}"
+      awslogs-region: "us-east-1"
   cpu: 0
   privileged: null
