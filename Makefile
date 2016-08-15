@@ -7,7 +7,7 @@ export STACK_TYPE
 export REPO
 export AWSCLI_OPTS
 
-STACK_TYPE=test
+test: STACK_TYPE=test
 test: build
 	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "migrate"
 	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "test"
