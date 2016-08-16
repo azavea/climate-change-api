@@ -63,11 +63,6 @@ class Nex2DB(object):
             dates = [self.netcdf2date(numdays, time_unit, calendar=calendar)
                      for numdays in ds.variables['time']]
 
-            # flip right side up by reversing range
-            latarr = 90.0 - (90.0 + latarr)
-            # shift range from (0 to 360) to (-180 to 180)
-            lonarr = lonarr - 180
-
             # read variable data into memory
             var_data = numpy.asarray(ds.variables[var_name])
 
@@ -77,8 +72,14 @@ class Nex2DB(object):
             logging.debug('processing variable %s for city: %s', var_name, city.name)
             # Not geographic distance, but good enough for
             # finding a point near a city center from disaggregated data.
-            latidx = (numpy.abs(city.geom.y - latarr)).argmin()
-            lonidx = (numpy.abs(city.geom.x - lonarr)).argmin()
+            # city_y must be in the range [-90, 90]
+            city_y = city.geom.y
+            # city_x must be in the range [0,360] in units degrees east
+            # lon units are degrees east, so degrees west maps inversely to 180-360
+            city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
+
+            latidx = (numpy.abs(city_y - latarr)).argmin()
+            lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
             cell_idx.add((latidx, lonidx))
             city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
