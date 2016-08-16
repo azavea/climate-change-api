@@ -198,6 +198,60 @@ def climate_data_list(request, *args, **kwargs):
     ]))
 
 
+@api_view(['GET'])
+def climate_indicator(request, *args, **kwargs):
+    """ Calculate and return the value of a climate indicator for a given city+scenario
+
+    ---
+
+    omit_serializer: true
+    parameters:
+      - name: models
+        description: A list of comma separated model names to filter the indicator by.
+                     The indicator values in the response will only use the selected models.
+                     If not provided, defaults to all models.
+        required: false
+        type: string
+        paramType: query
+      - name: years
+        description: A list of comma separated year ranges to filter the response by. Defaults
+                     to all years available. A year range is of the form 'start[:end]'. These are
+                     some examples - '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'
+        required: false
+        type: string
+        paramType: query
+
+    """
+    try:
+        city = City.objects.get(id=kwargs['city'])
+    except (City.DoesNotExist, City.MultipleObjectsReturned) as e:
+        raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+
+    try:
+        scenario = Scenario.objects.get(name=kwargs['scenario'])
+    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
+        raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+
+    # TODO: Raise 400 if invalid indicator passed
+    # TODO: API endpoint that details the available list of indicators
+    indicator = kwargs['indicator']
+
+    # Get valid model params list to use in response
+    models_param = request.query_params.get('models', None)
+    if models_param:
+        model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
+    else:
+        model_list = ClimateModel.objects.all()
+
+    return Response(OrderedDict([
+        ('city', CitySerializer(city).data),
+        ('scenario', scenario.name),
+        ('indicator', indicator),
+        ('climate_models', [m.name for m in model_list]),
+        ('data', {}),
+    ]))
+
+
 def swagger_docs_permission_denied_handler(request):
     """ Redirect to login when accessing docs if not logged in """
     path = u'{}?{}'.format(reverse('django.contrib.auth.views.login'),
