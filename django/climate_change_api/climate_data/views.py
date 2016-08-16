@@ -8,7 +8,7 @@ from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, list_route
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
@@ -20,6 +20,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
+from indicators.models import INDICATOR_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -232,9 +233,12 @@ def climate_indicator(request, *args, **kwargs):
     except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-    # TODO: Raise 400 if invalid indicator passed
     # TODO: API endpoint that details the available list of indicators
-    indicator = kwargs['indicator']
+    indicator_key = kwargs['indicator']
+    IndicatorClass = INDICATOR_MAP.get(indicator_key, None)
+    if not IndicatorClass:
+        raise ParseError(detail='Must provide a valid indicator')
+    data = IndicatorClass(city, scenario).calculate()
 
     # Get valid model params list to use in response
     models_param = request.query_params.get('models', None)
@@ -246,9 +250,9 @@ def climate_indicator(request, *args, **kwargs):
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
-        ('indicator', indicator),
+        ('indicator', indicator_key),
         ('climate_models', [m.name for m in model_list]),
-        ('data', {}),
+        ('data', data),
     ]))
 
 
