@@ -79,19 +79,20 @@ class YearlyAverageMinTemperature(YearlyAverageTemperatureIndicator):
     variables = ('tasmin',)
 
 
-class YearlyFrostDays(YearlyIndicator):
+# class YearlyFrostDays(YearlyIndicator):
+#     """ TODO: Fix this indicator, its busted. It requires aggregating this aggregation """
 
-    variables = ('tasmin',)
+#     variables = ('tasmin',)
 
-    def aggregate(self):
-        variable = self.variables[0]
-        return (self.queryset.filter(tasmin__lt=273.15)
-                             .values('data_source__year', 'data_source__model')
-                             .annotate(value=Count(variable)))
+#     def aggregate(self):
+#         variable = self.variables[0]
+#         return (self.queryset.filter(tasmin__lt=273.15)
+#                              .values('data_source__year', 'data_source__model')
+#                              .annotate(value=Count(variable)))
 
 
 INDICATOR_MAP = {
     'yearly_average_max_temperature': YearlyAverageMaxTemperature,
     'yearly_average_min_temperature': YearlyAverageMinTemperature,
-    'yearly_frost_days': YearlyFrostDays,
+    # 'yearly_frost_days': YearlyFrostDays,
 }
