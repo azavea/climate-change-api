@@ -1,3 +1,5 @@
+import sys
+
 from django.db.models import Avg, Count
 
 from climate_data.models import ClimateData
@@ -43,14 +45,6 @@ class Indicator(object):
 
         This method should use self.queryset to calculate the indicator returning a dict
         that matches the form returned by the Django QuerySet annotate method
-        {
-            'year': value
-        }
-        in the case of yearly aggregated indicators, and
-        {
-            'year': [jan_value, feb_value,...,dec_value]
-        }
-        in the case of monthly aggregated indicators
 
         """
         raise NotImplementedError('')
@@ -91,8 +85,14 @@ class YearlyAverageMinTemperature(YearlyAverageTemperatureIndicator):
 #                              .annotate(value=Count(variable)))
 
 
-INDICATOR_MAP = {
-    'yearly_average_max_temperature': YearlyAverageMaxTemperature,
-    'yearly_average_min_temperature': YearlyAverageMinTemperature,
-    # 'yearly_frost_days': YearlyFrostDays,
-}
+def indicator_factory(indicator_name):
+    """ Return a valid indicator class based on the string provided
+
+    Given a lower case, underscore separated indicator name, return the class associated
+    with it. e.g. yearly_frost_days -> indicators.models.YearlyFrostDays
+    If no match found, return None
+
+    """
+    this_module = sys.modules[__name__]
+    class_name = ''.join([s.capitalize() for s in indicator_name.split('_')])
+    return getattr(this_module, class_name, None)

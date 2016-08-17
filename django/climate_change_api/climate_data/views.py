@@ -20,7 +20,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
-from indicators.models import INDICATOR_MAP
+from indicators.models import indicator_factory
 
 logger = logging.getLogger(__name__)
 
@@ -235,7 +235,7 @@ def climate_indicator(request, *args, **kwargs):
 
     # TODO: API endpoint that details the available list of indicators
     indicator_key = kwargs['indicator']
-    IndicatorClass = INDICATOR_MAP.get(indicator_key, None)
+    IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
         raise ParseError(detail='Must provide a valid indicator')
     data = IndicatorClass(city, scenario).calculate()
