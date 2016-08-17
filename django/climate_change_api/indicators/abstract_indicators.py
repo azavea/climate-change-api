@@ -1,6 +1,7 @@
 from django.db.models import Avg
 
 from climate_data.models import ClimateData
+from climate_data.filters import ClimateDataFilterSet
 from .serializers import IndicatorSerializer, YearlyIndicatorSerializer
 
 
@@ -15,8 +16,8 @@ class Indicator(object):
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
 
-        self.models = self._validate_models(models)
-        self.years = self._validate_years(years)
+        self.models = models
+        self.years = years
 
         self.queryset = (ClimateData.objects.filter(map_cell=city.map_cell)
                                             .filter(data_source__scenario=scenario))
@@ -24,14 +25,11 @@ class Indicator(object):
 
         self.serializer = self.serializer_class()
 
-    def _validate_models(self, model_list):
-        return model_list
-
-    def _validate_years(self, year_list):
-        return year_list
-
     def filter_objects(self):
         """ A subclass can override this to further filter the dataset before calling calculate """
+        filter_set = ClimateDataFilterSet()
+        self.queryset = filter_set.filter_years(self.queryset, self.years)
+        self.queryset = filter_set.filter_models(self.queryset, self.models)
         return self.queryset
 
     def calculate(self):
