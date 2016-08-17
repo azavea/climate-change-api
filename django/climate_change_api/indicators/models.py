@@ -1,8 +1,13 @@
-from django.db.models import Avg
+from django.db.models import Avg, Count
 
 from climate_data.models import ClimateData
+from indicators.serializers import IndicatorSerializer, YearlyIndicatorSerializer
+
 
 class Indicator(object):
+
+    variables = ClimateData.VARIABLE_CHOICES
+    serializer_class = IndicatorSerializer
 
     def __init__(self, city, scenario, models=None, years=None):
         if not city:
@@ -17,6 +22,8 @@ class Indicator(object):
                                             .filter(data_source__scenario=scenario))
         self.queryset = self.filter_objects()
 
+        self.serializer = self.serializer_class()
+
     def _validate_models(self, model_list):
         return model_list
 
@@ -28,10 +35,14 @@ class Indicator(object):
         return self.queryset
 
     def calculate(self):
-        """ Calculate the indicator
+        results = self.aggregate()
+        return self.serializer.to_representation(results)
+
+    def aggregate(self):
+        """ Calculate the indicator aggregation
 
         This method should use self.queryset to calculate the indicator returning a dict
-        of the form:
+        that matches the form returned by the Django QuerySet annotate method
         {
             'year': value
         }
@@ -42,33 +53,45 @@ class Indicator(object):
         in the case of monthly aggregated indicators
 
         """
-        raise NotImplementedError('Subclasses must implement calculate()')
+        raise NotImplementedError('')
 
 
 class YearlyIndicator(Indicator):
 
-    def serialize(self, results, varname):
-        output = {}
-        for result in results:
-            output[result['data_source__year']] = result[varname]
-        return output
+    serializer_class = YearlyIndicatorSerializer
 
 
-class YearlyAverageMaxTemperature(YearlyIndicator):
+class YearlyAverageTemperatureIndicator(YearlyIndicator):
 
-    def calculate(self):
-        results = self.queryset.values('data_source__year').annotate(tasmax=Avg('tasmax'))
-        return self.serialize(results, 'tasmax')
+    def aggregate(self):
+        variable = self.variables[0]
+        return (self.queryset.values('data_source__year')
+                             .annotate(value=Avg(variable)))
 
 
-class YearlyAverageMinTemperature(YearlyIndicator):
+class YearlyAverageMaxTemperature(YearlyAverageTemperatureIndicator):
 
-    def calculate(self):
-        results = self.queryset.values('data_source__year').annotate(tasmin=Avg('tasmin'))
-        return self.serialize(results, 'tasmin')
+    variables = ('tasmax',)
+
+
+class YearlyAverageMinTemperature(YearlyAverageTemperatureIndicator):
+
+    variables = ('tasmin',)
+
+
+class YearlyFrostDays(YearlyIndicator):
+
+    variables = ('tasmin',)
+
+    def aggregate(self):
+        variable = self.variables[0]
+        return (self.queryset.filter(tasmin__lt=273.15)
+                             .values('data_source__year', 'data_source__model')
+                             .annotate(value=Count(variable)))
 
 
 INDICATOR_MAP = {
-    'yearly_avg_max_temp': YearlyAverageMaxTemperature,
-    'yearly_avg_min_temp': YearlyAverageMinTemperature,
+    'yearly_average_max_temperature': YearlyAverageMaxTemperature,
+    'yearly_average_min_temperature': YearlyAverageMinTemperature,
+    'yearly_frost_days': YearlyFrostDays,
 }
