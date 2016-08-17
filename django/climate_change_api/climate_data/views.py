@@ -233,19 +233,21 @@ def climate_indicator(request, *args, **kwargs):
     except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-    # TODO: API endpoint that details the available list of indicators
-    indicator_key = kwargs['indicator']
-    IndicatorClass = indicator_factory(indicator_key)
-    if not IndicatorClass:
-        raise ParseError(detail='Must provide a valid indicator')
-    data = IndicatorClass(city, scenario).calculate()
-
     # Get valid model params list to use in response
     models_param = request.query_params.get('models', None)
     if models_param:
         model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
     else:
         model_list = ClimateModel.objects.all()
+
+    years_param = request.query_params.get('years', None)
+
+    # TODO: API endpoint that details the available list of indicators
+    indicator_key = kwargs['indicator']
+    IndicatorClass = indicator_factory(indicator_key)
+    if not IndicatorClass:
+        raise ParseError(detail='Must provide a valid indicator')
+    data = IndicatorClass(city, scenario, models=models_param, years=years_param).calculate()
 
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
