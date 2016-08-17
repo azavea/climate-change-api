@@ -20,7 +20,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
-from indicators.models import indicator_factory
+from indicators import indicator_factory
 
 logger = logging.getLogger(__name__)
 
