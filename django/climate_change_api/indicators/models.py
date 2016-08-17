@@ -47,7 +47,7 @@ class Indicator(object):
         that matches the form returned by the Django QuerySet annotate method
 
         """
-        raise NotImplementedError('')
+        raise NotImplementedError('Indicator subclass must implement aggregate()')
 
 
 class YearlyIndicator(Indicator):
