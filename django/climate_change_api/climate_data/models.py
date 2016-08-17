@@ -6,6 +6,29 @@ from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
 
+CLIMATE_MODELS = ['ACCESS1-0',
+                  'BNU-ESM',
+                  'CCSM4',
+                  'CESM1-BGC',
+                  'CNRM-CM5',
+                  'CSIRO-Mk3-6-0',
+                  'CanESM2',
+                  'GFDL-CM3',
+                  'GFDL-ESM2G',
+                  'GFDL-ESM2M',
+                  'IPSL-CM5A-LR',
+                  'IPSL-CM5A-MR',
+                  'MIROC-ESM-CHEM',
+                  'MIROC-ESM',
+                  'MIROC5',
+                  'MPI-ESM-LR',
+                  'MPI-ESM-MR',
+                  'MRI-CGCM3',
+                  'NorESM1-M',
+                  'bcc-csm1-1',
+                  'inmcm4']
+
+
 class TinyAutoField(models.AutoField):
 
     def rel_db_type(self, connection):
