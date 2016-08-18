@@ -19,11 +19,12 @@ class Indicator(object):
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
 
+        self.city = city
+        self.scenario = scenario
         self.models = models
         self.years = years
 
-        self.queryset = (ClimateData.objects.filter(map_cell=city.map_cell)
-                                            .filter(data_source__scenario=scenario))
+        self.queryset = self.get_queryset()
         self.queryset = self.filter_objects()
 
         self.serializer = self.serializer_class()
@@ -36,11 +37,22 @@ class Indicator(object):
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
         return convert(cls.__name__)
 
+    def get_queryset(self):
+        """ Get the initial indicator queryset
+
+        ClimateData initially filtered by city/scenario and optionally years/models as passed
+        by the constructor
+
+        """
+        filter_set = ClimateDataFilterSet()
+        queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
+                                       .filter(data_source__scenario=self.scenario))
+        queryset = filter_set.filter_years(queryset, self.years)
+        queryset = filter_set.filter_models(queryset, self.models)
+        return queryset
+
     def filter_objects(self):
         """ A subclass can override this to further filter the dataset before calling calculate """
-        filter_set = ClimateDataFilterSet()
-        self.queryset = filter_set.filter_years(self.queryset, self.years)
-        self.queryset = filter_set.filter_models(self.queryset, self.models)
         return self.queryset
 
     def calculate(self):
