@@ -252,7 +252,6 @@ def climate_indicator(request, *args, **kwargs):
 
     years_param = request.query_params.get('years', None)
 
-    # TODO: API endpoint that details the available list of indicators
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
