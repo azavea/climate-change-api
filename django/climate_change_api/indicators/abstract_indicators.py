@@ -1,3 +1,5 @@
+import re
+
 from django.db.models import Avg
 
 from climate_data.models import ClimateData
@@ -7,6 +9,7 @@ from .serializers import IndicatorSerializer, YearlyIndicatorSerializer
 
 class Indicator(object):
 
+    description = ''
     variables = ClimateData.VARIABLE_CHOICES
     serializer_class = IndicatorSerializer
 
@@ -24,6 +27,14 @@ class Indicator(object):
         self.queryset = self.filter_objects()
 
         self.serializer = self.serializer_class()
+
+    @classmethod
+    def name(cls):
+        def convert(name):
+            """ Convert caps case string to snake case, e.g. IndicatorClass -> indicator_class """
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+            return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+        return convert(cls.__name__)
 
     def filter_objects(self):
         """ A subclass can override this to further filter the dataset before calling calculate """
