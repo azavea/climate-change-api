@@ -20,7 +20,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
-from indicators import indicator_factory
+from indicators import indicator_factory, list_available_indicators
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +197,16 @@ def climate_data_list(request, *args, **kwargs):
         ('variables', cleaned_variables),
         ('data', serializer.data),
     ]))
+
+
+@api_view(['GET'])
+def climate_indicator_list(request, *args, **kwargs):
+    """ Return the list of available indicators
+
+    Used to request indicators via /api/climate-data/:city/:scenario/indicator/:name/
+
+    """
+    return Response({'results': list_available_indicators()})
 
 
 @api_view(['GET'])
