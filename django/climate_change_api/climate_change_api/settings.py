@@ -267,4 +267,5 @@ if DEBUG:
 SQS_QUEUE_NAME = os.getenv('CC_SQS_QUEUE_NAME', 'climate-api')
 
 if DEBUG:
-    SQS_QUEUE_NAME = 'cc-api-{}'.format(os.getenv('DEV_USER', 'developer'))
+    dev_user = os.getenv('DEV_USER') if os.getenv('DEV_USER') else 'developer'
+    SQS_QUEUE_NAME = 'cc-api-{}'.format(dev_user)
