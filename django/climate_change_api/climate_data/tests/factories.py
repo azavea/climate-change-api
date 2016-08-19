@@ -40,7 +40,7 @@ class ScenarioFactory(DjangoModelFactory):
 
 class ClimateModelFactory(DjangoModelFactory):
 
-    name = 'ncar'
+    name = ClimateModel.CHOICES[0][0]
     base_time = datetime(2000, 1, 1)
 
     class Meta:

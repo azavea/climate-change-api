@@ -8,7 +8,7 @@ from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, list_route
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
@@ -20,6 +20,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
+from indicators import indicator_factory, list_available_indicators
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +167,7 @@ def climate_data_list(request, *args, **kwargs):
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
     queryset = ClimateData.objects.all()
-    queryset = queryset.filter(map_cell__city=city).filter(data_source__scenario=scenario)
+    queryset = queryset.filter(map_cell=city.map_cell).filter(data_source__scenario=scenario)
 
     # Get valid model params list to use in response
     models_param = request.query_params.get('models', None)
@@ -195,6 +196,74 @@ def climate_data_list(request, *args, **kwargs):
         ('climate_models', [m.name for m in model_list]),
         ('variables', cleaned_variables),
         ('data', serializer.data),
+    ]))
+
+
+@api_view(['GET'])
+def climate_indicator_list(request, *args, **kwargs):
+    """ Return the list of available indicators
+
+    Used to request indicators via /api/climate-data/:city/:scenario/indicator/:name/
+
+    """
+    return Response({'results': list_available_indicators()})
+
+
+@api_view(['GET'])
+def climate_indicator(request, *args, **kwargs):
+    """ Calculate and return the value of a climate indicator for a given city+scenario
+
+    ---
+
+    omit_serializer: true
+    parameters:
+      - name: models
+        description: A list of comma separated model names to filter the indicator by.
+                     The indicator values in the response will only use the selected models.
+                     If not provided, defaults to all models.
+        required: false
+        type: string
+        paramType: query
+      - name: years
+        description: A list of comma separated year ranges to filter the response by. Defaults
+                     to all years available. A year range is of the form 'start[:end]'. These are
+                     some examples - '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'
+        required: false
+        type: string
+        paramType: query
+
+    """
+    try:
+        city = City.objects.get(id=kwargs['city'])
+    except (City.DoesNotExist, City.MultipleObjectsReturned) as e:
+        raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+
+    try:
+        scenario = Scenario.objects.get(name=kwargs['scenario'])
+    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
+        raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+
+    # Get valid model params list to use in response
+    models_param = request.query_params.get('models', None)
+    if models_param:
+        model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
+    else:
+        model_list = ClimateModel.objects.all()
+
+    years_param = request.query_params.get('years', None)
+
+    indicator_key = kwargs['indicator']
+    IndicatorClass = indicator_factory(indicator_key)
+    if not IndicatorClass:
+        raise ParseError(detail='Must provide a valid indicator')
+    data = IndicatorClass(city, scenario, models=models_param, years=years_param).calculate()
+
+    return Response(OrderedDict([
+        ('city', CitySerializer(city).data),
+        ('scenario', scenario.name),
+        ('indicator', indicator_key),
+        ('climate_models', [m.name for m in model_list]),
+        ('data', data),
     ]))
 
 
