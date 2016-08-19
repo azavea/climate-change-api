@@ -1,5 +1,6 @@
 from django.contrib.gis.geos import Point
 
+from climate_data.models import ClimateModel
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           ScenarioFactory,
@@ -37,8 +38,8 @@ class ClimateDataSetupMixin(object):
         self.rcp45 = ScenarioFactory(name='RCP45')
         self.rcp85 = ScenarioFactory(name='RCP85')
 
-        self.model1 = ClimateModelFactory(name='model1')
-        self.model2 = ClimateModelFactory(name='model2')
+        self.model1 = ClimateModelFactory(name=ClimateModel.CHOICES[0][0])
+        self.model2 = ClimateModelFactory(name=ClimateModel.CHOICES[1][0])
 
         self.mapcell = ClimateDataCellFactory(lat=15, lon=240)
 

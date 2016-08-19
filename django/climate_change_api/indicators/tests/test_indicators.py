@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from climate_data.models import ClimateModel
 from climate_data.tests.mixins import ClimateDataSetupMixin
 from indicators import indicators
 
@@ -45,7 +46,7 @@ class IndicatorTests(ClimateDataSetupMixin, object):
     def test_models_filter(self):
         indicator = indicators.YearlyAverageMaxTemperature(self.city1,
                                                            self.rcp45,
-                                                           models='model1')
+                                                           models=ClimateModel.CHOICES[0][0])
         data = indicator.calculate()
         self.assertEqual(data, self.test_models_filter_equals)
 

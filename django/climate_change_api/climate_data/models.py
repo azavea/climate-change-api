@@ -5,29 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
 
-CLIMATE_MODELS = ['ACCESS1-0',
-                  'BNU-ESM',
-                  'CCSM4',
-                  'CESM1-BGC',
-                  'CNRM-CM5',
-                  'CSIRO-Mk3-6-0',
-                  'CanESM2',
-                  'GFDL-CM3',
-                  'GFDL-ESM2G',
-                  'GFDL-ESM2M',
-                  'IPSL-CM5A-LR',
-                  'IPSL-CM5A-MR',
-                  'MIROC-ESM-CHEM',
-                  'MIROC-ESM',
-                  'MIROC5',
-                  'MPI-ESM-LR',
-                  'MPI-ESM-MR',
-                  'MRI-CGCM3',
-                  'NorESM1-M',
-                  'bcc-csm1-1',
-                  'inmcm4']
-
-
 class TinyAutoField(models.AutoField):
 
     def rel_db_type(self, connection):
@@ -61,7 +38,31 @@ class ClimateModel(models.Model):
     as small as possible.
     """
 
-    name = models.CharField(max_length=40, unique=True)
+    CHOICES = (
+        ('ACCESS1-0', 'ACCESS1-0'),
+        ('BNU-ESM', 'BNU-ESM'),
+        ('CCSM4', 'CCSM4'),
+        ('CESM1-BGC', 'CESM1-BGC'),
+        ('CNRM-CM5', 'CNRM-CM5'),
+        ('CSIRO-Mk3-6-0', 'CSIRO-Mk3-6-0'),
+        ('CanESM2', 'CanESM2'),
+        ('GFDL-CM3', 'GFDL-CM3'),
+        ('GFDL-ESM2G', 'GFDL-ESM2G'),
+        ('GFDL-ESM2M', 'GFDL-ESM2M'),
+        ('IPSL-CM5A-LR', 'IPSL-CM5A-LR'),
+        ('IPSL-CM5A-MR', 'IPSL-CM5A-MR'),
+        ('MIROC-ESM-CHEM', 'MIROC-ESM-CHEM'),
+        ('MIROC-ESM', 'MIROC-ESM'),
+        ('MIROC5', 'MIROC5'),
+        ('MPI-ESM-LR', 'MPI-ESM-LR'),
+        ('MPI-ESM-MR', 'MPI-ESM-MR'),
+        ('MRI-CGCM3', 'MRI-CGCM3'),
+        ('NorESM1-M', 'NorESM1-M'),
+        ('bcc-csm1-1', 'bcc-csm1-1'),
+        ('inmcm4', 'inmcm4'),
+    )
+
+    name = models.CharField(max_length=40, unique=True, choices=CHOICES)
     base_time = models.DateField(null=True)
 
     def __str__(self):
