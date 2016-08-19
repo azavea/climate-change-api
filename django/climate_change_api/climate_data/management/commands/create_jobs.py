@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
+        queue = sqs.create_queue(QueueName=settings.SQS_QUEUE_NAME)
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         if options['models'] == 'all':
             model_ids = map(lambda m: m.id, list(ClimateModel.objects.all()))

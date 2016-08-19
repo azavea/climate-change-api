@@ -81,7 +81,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Starting job processing...')
         sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
+        queue = sqs.create_queue(QueueName=settings.SQS_QUEUE_NAME)
         failures = 0
         while failures < 10:
             try:
