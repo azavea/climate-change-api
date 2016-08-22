@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'corsheaders',
     'rest_framework_swagger',
     'bootstrap3',
     'watchman',
@@ -88,6 +89,12 @@ INSTALLED_APPS = [
 
 if DEBUG:
     INSTALLED_APPS += ['django_extensions']
+
+
+# allow read-only CORS requests
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ('GET', 'OPTIONS')
+CORS_REPLACE_HTTPS_REFERER = True
 
 
 # Email
@@ -102,8 +109,10 @@ DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'support@futurefeelslike.com')
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
