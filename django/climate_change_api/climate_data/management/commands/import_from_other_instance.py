@@ -10,7 +10,7 @@ from climate_data.models import (
 
 import requests
 
-from time import time
+from time import time, sleep
 
 logger = logging.getLogger('climate_data')
 
@@ -19,14 +19,35 @@ CITY_LIST_URL = 'https://{domain}/api/city/'
 CLIMATE_DATA_URL = 'https://{domain}/api/climate-data/{city_id}/{rcp}/?models={model}'
 
 
+def make_request(url, token, failures=10):
+    wait = 1
+    tries = 0
+    data = None
+    while True:
+        try:
+            start_time = time()
+            res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
+            data = res.json()
+            return data
+        except Exception as e:
+            tries += 1
+            if tries >= failures:
+                raise e
+            logger.error('Fetching %s failed. Trying again in %d second(s)', url, wait)
+            sleep(wait)
+            wait *= 2
+        finally:
+            if data:
+                logger.info('%s fetched in %f seconds', url, time()-start_time)
+
+
 def get_models(domain, token):
     """
     Returns a list of available models from an instance of climate-change-api
     """
     url = MODEL_LIST_URL.format(domain=domain)
-    logger.info('Fetching %s', url)
-    res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
-    return map(lambda d: d['name'], res.json())
+    data = make_request(url, token)
+    return map(lambda d: d['name'], data)
 
 
 def get_cities(domain, token):
@@ -35,9 +56,7 @@ def get_cities(domain, token):
     """
     url = CITY_LIST_URL.format(domain=domain)
     while url:
-        logger.info('Fetching %s', url)
-        res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
-        data = res.json()
+        data = make_request(url, token)
         for feature in data['features']:
             yield feature
         url = data['next']
@@ -48,11 +67,7 @@ def get_data(domain, token, city_id, rcp, model):
     Gets all the data for a city for a given rcp and model from a climate-change-api instance
     """
     url = CLIMATE_DATA_URL.format(domain=domain, city_id=city_id, rcp=rcp, model=model)
-    logger.info('Fetching %s', url)
-    start_time = time()
-    res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
-    logger.info('Fetched in %f s', time() - start_time)
-    return res.json()
+    return make_request(url, token)
 
 
 def create_models(models):
