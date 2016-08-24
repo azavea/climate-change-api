@@ -51,8 +51,8 @@ Django runserver can be found on port 8082. Have the project running, in another
 and view at http://localhost:8082
 
 
-Data Loading
-------------
+Loading Data from NetCDF
+------------------------
 
 Run migrations::
 
@@ -78,3 +78,23 @@ Create a data processing job. Note that if a previous job has been run for the s
 Process the job::
 
     ./scripts/console django './manage.py run_jobs'
+
+
+Loading Data From Staging
+-------------------------
+
+Run migrations::
+
+    ./scripts/console django './manage.py migrate'
+
+Make sure database is clear for importing data::
+
+    ./scripts/console django './manage.py shell_plus'
+    ClimateModel.objects.all().delete()
+    ClimateDataCell.objects.all().delete()
+    ClimateDataSource.objects.all().delete()
+    Scenario(name='RCP85').save()
+
+Import data (10 models, 100 cities)::
+
+    ./scripts/console django './manage.py import_from_other_instance staging.somewhere.com API_KEY RCP85 10 100'
