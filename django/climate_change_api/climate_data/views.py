@@ -29,9 +29,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
     """ Returns a paginated GeoJSON object of the available cities """
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    filter_backends = (InBBoxFilter,
+    filter_backends = (InBBoxFilter, filters.SearchFilter,
                        filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name', 'admin',)
+    search_fields = ('name',)
     ordering_fields = ('name',)
     pagination_class = GeoJsonPagination
     bbox_filter_field = 'geom'
