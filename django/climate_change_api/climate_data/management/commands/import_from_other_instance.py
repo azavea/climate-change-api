@@ -1,7 +1,8 @@
 import logging
 
-from django.core.management.base import BaseCommand
+from itertools import islice
 
+from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 
 from climate_data.models import (
@@ -27,8 +28,14 @@ def make_request(url, token, failures=10):
         try:
             start_time = time()
             res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
+            res.raise_for_status()
             data = res.json()
+            logger.info('%s fetched in %f seconds', url, time()-start_time)
             return data
+        except requests.exceptions.HTTPError as e:
+            if res.status_code == 401:
+                logger.critical('Check your authorization token')
+                raise e
         except Exception as e:
             tries += 1
             if tries >= failures:
@@ -36,9 +43,6 @@ def make_request(url, token, failures=10):
             logger.error('Fetching %s failed. Trying again in %d second(s)', url, wait)
             sleep(wait)
             wait *= 2
-        finally:
-            if data:
-                logger.info('%s fetched in %f seconds', url, time()-start_time)
 
 
 def get_models(domain, token):
@@ -146,9 +150,7 @@ class Command(BaseCommand):
             models = models[:options['num_models']]
         create_models(models)
         imported_grid_cells = []
-        for i, city in enumerate(get_cities(options['domain'], options['token'])):
-            if i > options['num_cities']:
-                break
+        for city in islice(get_cities(options['domain'], options['token']), options['num_cities']):
             create_city(city)
             logger.info('Importing city %s, %s',
                         city['properties']['name'],
