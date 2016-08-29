@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import IntegrityError
 
+from boto_helpers.sqs import get_queue
 from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateData
 from climate_data.nex2db import Nex2DB
 
@@ -80,8 +81,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logger.info('Starting job processing...')
-        sqs = boto3.resource('sqs')
-        queue = sqs.create_queue(QueueName=settings.SQS_QUEUE_NAME)
+        queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
+                          Attributes=settings.SQS_IMPORT_QUEUE_ATTRIBUTES)
         failures = 0
         while failures < 10:
             try:
