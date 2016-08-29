@@ -1,0 +1,4 @@
+---
+
+aws_profile: "climate"
+dev_user: "developer"

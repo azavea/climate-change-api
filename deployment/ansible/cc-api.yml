@@ -11,3 +11,4 @@
     - { role: "azavea.terraform" }
     - { role: "cc-api.docker" }
     - { role: "cc-api.buildhelpers" }
+    - { role: "cc-api.environment" }

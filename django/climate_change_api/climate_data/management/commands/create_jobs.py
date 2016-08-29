@@ -1,11 +1,10 @@
 import logging
 import json
 
-import boto3
-
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
+from boto_helpers.sqs import get_queue
 from climate_data.models import ClimateModel, Scenario
 
 logger = logging.getLogger(__name__)
@@ -43,8 +42,8 @@ class Command(BaseCommand):
                             help='Comma separated list of years, or "all"')
 
     def handle(self, *args, **options):
-        sqs = boto3.resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
+        queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
+                          Attributes=settings.SQS_IMPORT_QUEUE_ATTRIBUTES)
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         if options['models'] == 'all':
             model_ids = map(lambda m: m.id, list(ClimateModel.objects.all()))
