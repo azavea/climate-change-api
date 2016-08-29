@@ -6,8 +6,9 @@ services:
       dockerfile: Dockerfile
     environment:
       CC_DEBUG: 'true'
+      DEV_USER: '${DEV_USER}'
       DJANGO_LOG_LEVEL: 'INFO'
-      AWS_PROFILE: 'climate'
+      AWS_PROFILE: '${AWS_PROFILE}'
       AWS_CACHE_DURATION: 31536000
       COMMIT:
     ports:
