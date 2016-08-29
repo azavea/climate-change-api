@@ -265,7 +265,15 @@ if DEBUG:
     boto3.setup_default_session(profile_name='climate')
 
 SQS_QUEUE_NAME = os.getenv('CC_SQS_QUEUE_NAME', 'climate-api')
+SQS_IMPORT_QUEUE_ATTRIBUTES = {
+    'VisibilityTimeout': str(3600*4),
+    'ReceiveMessageWaitTimeSeconds': str(10),
+    'MaximumMessageSize': str(1024)
+}
 
 if DEBUG:
     dev_user = os.getenv('DEV_USER') if os.getenv('DEV_USER') else 'developer'
     SQS_QUEUE_NAME = 'cc-api-{}'.format(dev_user)
+    SQS_IMPORT_QUEUE_ATTRIBUTES = {
+        'VisibilityTimeout': str(3600)
+    }
