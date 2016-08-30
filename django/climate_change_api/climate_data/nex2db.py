@@ -64,30 +64,31 @@ class Nex2DB(object):
                      for numdays in ds.variables['time']]
 
             # read variable data into memory
-            var_data = numpy.asarray(ds.variables[var_name])
+            var_data = ds.variables[var_name]
 
-        cell_idx = set()
-        city_to_coords = {}
-        for city in self.get_cities():
-            logging.debug('processing variable %s for city: %s', var_name, city.name)
-            # Not geographic distance, but good enough for
-            # finding a point near a city center from disaggregated data.
-            # city_y must be in the range [-90, 90]
-            city_y = city.geom.y
-            # city_x must be in the range [0,360] in units degrees east
-            # lon units are degrees east, so degrees west maps inversely to 180-360
-            city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
+            cell_idx = set()
+            city_to_coords = {}
+            for city in self.get_cities():
+                logging.debug('processing variable %s for city: %s', var_name, city.name)
+                # Not geographic distance, but good enough for
+                # finding a point near a city center from disaggregated data.
+                # city_y must be in the range [-90, 90]
+                city_y = city.geom.y
+                # city_x must be in the range [0,360] in units degrees east
+                # lon units are degrees east, so degrees west maps inversely to 180-360
+                city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
 
-            latidx = (numpy.abs(city_y - latarr)).argmin()
-            lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
-            cell_idx.add((latidx, lonidx))
-            city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
+                latidx = (numpy.abs(city_y - latarr)).argmin()
+                lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
-        # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
-        cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
-                     dict(zip(dates, list(var_data[:,latidx][:,lonidx])))  # Numpy magic
-                     for (latidx, lonidx) in cell_idx}
+                cell_idx.add((latidx, lonidx))
+                city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
+
+            # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
+            cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
+                         dict(zip(dates, list(var_data[:, latidx, lonidx])))  # netcdf slicing
+                         for (latidx, lonidx) in cell_idx}
 
         return {'cities': city_to_coords, 'cells': cell_data}
 
