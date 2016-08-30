@@ -8,8 +8,6 @@ import netCDF4
 from models import City, ClimateData, ClimateDataCell
 from django.db import IntegrityError
 
-logger = logging.getLogger()
-
 
 class Nex2DB(object):
     """
@@ -18,6 +16,9 @@ class Nex2DB(object):
 
     # cache list of cites to guarantee ordering during import
     cities = None
+
+    def __init__(self, logger=None):
+        self.logger = logger if logger else logging.getLogger(__name__)
 
     def get_cities(self):
         if not self.cities:
@@ -51,7 +52,7 @@ class Nex2DB(object):
 
         # data in the climate NetCDF files can be referenced as:
         # ds.variables[var name][day of year index][latitude index][longitude index]
-        logging.debug('processing NetCDF at %s', path)
+        self.logger.debug('processing NetCDF at %s', path)
         with netCDF4.Dataset(path, 'r') as ds:
             latarr = numpy.asarray(ds.variables['lat'])
             lonarr = numpy.asarray(ds.variables['lon'])
@@ -64,30 +65,31 @@ class Nex2DB(object):
                      for numdays in ds.variables['time']]
 
             # read variable data into memory
-            var_data = numpy.asarray(ds.variables[var_name])
+            var_data = ds.variables[var_name]
 
-        cell_idx = set()
-        city_to_coords = {}
-        for city in self.get_cities():
-            logging.debug('processing variable %s for city: %s', var_name, city.name)
-            # Not geographic distance, but good enough for
-            # finding a point near a city center from disaggregated data.
-            # city_y must be in the range [-90, 90]
-            city_y = city.geom.y
-            # city_x must be in the range [0,360] in units degrees east
-            # lon units are degrees east, so degrees west maps inversely to 180-360
-            city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
+            cell_idx = set()
+            city_to_coords = {}
+            for city in self.get_cities():
+                self.logger.debug('processing variable %s for city: %s', var_name, city.name)
+                # Not geographic distance, but good enough for
+                # finding a point near a city center from disaggregated data.
+                # city_y must be in the range [-90, 90]
+                city_y = city.geom.y
+                # city_x must be in the range [0,360] in units degrees east
+                # lon units are degrees east, so degrees west maps inversely to 180-360
+                city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
 
-            latidx = (numpy.abs(city_y - latarr)).argmin()
-            lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
-            cell_idx.add((latidx, lonidx))
-            city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
+                latidx = (numpy.abs(city_y - latarr)).argmin()
+                lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
-        # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
-        cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
-                     dict(zip(dates, list(var_data[:,latidx][:,lonidx])))  # Numpy magic
-                     for (latidx, lonidx) in cell_idx}
+                cell_idx.add((latidx, lonidx))
+                city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
+
+            # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
+            cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
+                         dict(zip(dates, list(var_data[:, latidx, lonidx])))  # netcdf slicing
+                         for (latidx, lonidx) in cell_idx}
 
         return {'cities': city_to_coords, 'cells': cell_data}
 
@@ -107,7 +109,7 @@ class Nex2DB(object):
         # Collate the variables into one list keyed by coordinates
         cell_list = {}
         city_coords = {}
-        logger.debug("Collating results")
+        self.logger.debug("Collating results")
         for label, results in variable_data.iteritems():
             for coords, timeseries_data in results['cells'].iteritems():
                 if coords not in cell_list:
@@ -121,7 +123,7 @@ class Nex2DB(object):
             city_coords.update(results['cities'])
 
         # Go through the collated list and create all the relevant datapoints
-        logger.debug("Creating database entries")
+        self.logger.debug("Creating database entries")
 
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
@@ -162,7 +164,7 @@ class Nex2DB(object):
             ClimateData.objects.bulk_create(climatedata_list)
 
         # Go through all the cities and set their map_cell to the appropriate model
-        logger.debug("Updating cities")
+        self.logger.debug("Updating cities")
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
@@ -172,4 +174,4 @@ class Nex2DB(object):
                 city.map_cell = cell_model
                 city.save()
 
-        logging.info('nex2db processing done')
+        self.logger.info('nex2db processing done')
