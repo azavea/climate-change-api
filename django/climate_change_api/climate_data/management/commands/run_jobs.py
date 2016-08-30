@@ -56,7 +56,7 @@ def process_message(message, queue):
 
     # pass to nex2db
     try:
-        Nex2DB().nex2db(variables, datasource)
+        Nex2DB(logger=logger).nex2db(variables, datasource)
     except:
         logger.exception("Failed to process data for model %s scenario %s year %s",
                          model.name, scenario.name, year)
