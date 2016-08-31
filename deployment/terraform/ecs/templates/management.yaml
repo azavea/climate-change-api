@@ -1,5 +1,5 @@
 - volumesFrom: []
-  memory: 6144
+  memory: 2048
   extraHosts: null
   dnsServers: null
   disableNetworking: null
