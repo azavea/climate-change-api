@@ -1,4 +1,6 @@
+#
 # ECS Cluster
+#
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "${var.ecs_cluster_name}-${var.ecs_stack_type}"
 }
@@ -9,8 +11,6 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 resource "aws_ecs_task_definition" "cc_web" {
   family = "cc-web-${var.ecs_stack_type}"
   container_definitions = "${template_file.ecs_web_task.rendered}"
-
-
 }
 
 resource "aws_ecs_task_definition" "cc_management" {
@@ -38,8 +38,9 @@ resource "aws_ecs_service" "cc_web" {
   }
 }
 
+#
 # CloudWatch resources
-
+#
 resource "aws_cloudwatch_metric_alarm" "cpu" {
   alarm_name = "alarm-${aws_ecs_cluster.ecs_cluster.name}-cpu"
   alarm_description = "Elastic container service CPU utilization"
