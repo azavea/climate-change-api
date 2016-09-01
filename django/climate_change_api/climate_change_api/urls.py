@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
     url(r'^accounts/', include('user_management.urls')),
     url(r'^api/', include(router.urls)),
-    url(r'^api/indicators/$',
+    url(r'^api/indicator/$',
         climate_data_views.climate_indicator_list, name='climateindicator-list'),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/indicator/(?P<indicator>.+)/$',
         climate_data_views.climate_indicator, name='climateindicator-get'),
