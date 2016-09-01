@@ -1,13 +1,34 @@
+from collections import OrderedDict
+
 import django.db.models
 from django.db.models.query import QuerySet
 
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from climate_data.models import City, ClimateData, ClimateDataSource, ClimateModel, Scenario
+from climate_data.models import (City,
+                                 ClimateData,
+                                 ClimateDataCell,
+                                 ClimateDataSource,
+                                 ClimateModel,
+                                 Scenario)
+
+
+class ClimateDataCellSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Point"),
+            ("coordinates", [obj.lon, obj.lat])
+        ])
+
+    class Meta:
+        model = ClimateDataCell
 
 
 class CitySerializer(GeoFeatureModelSerializer):
+
+    map_cell = ClimateDataCellSerializer()
 
     class Meta:
         model = City
