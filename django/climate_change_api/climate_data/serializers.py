@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import django.db.models
 from django.db.models.query import QuerySet
 
@@ -14,9 +16,14 @@ from climate_data.models import (City,
 
 class ClimateDataCellSerializer(serializers.ModelSerializer):
 
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Point"),
+            ("coordinates", [obj.lon, obj.lat])
+        ])
+
     class Meta:
         model = ClimateDataCell
-        exclude = ('id',)
 
 
 class CitySerializer(GeoFeatureModelSerializer):
