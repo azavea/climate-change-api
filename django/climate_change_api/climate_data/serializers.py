@@ -4,10 +4,24 @@ from django.db.models.query import QuerySet
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from climate_data.models import City, ClimateData, ClimateDataSource, ClimateModel, Scenario
+from climate_data.models import (City,
+                                 ClimateData,
+                                 ClimateDataCell,
+                                 ClimateDataSource,
+                                 ClimateModel,
+                                 Scenario)
+
+
+class ClimateDataCellSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ClimateDataCell
+        exclude = ('id',)
 
 
 class CitySerializer(GeoFeatureModelSerializer):
+
+    map_cell = ClimateDataCellSerializer()
 
     class Meta:
         model = City
