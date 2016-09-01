@@ -142,39 +142,6 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
     logger.info('Imported in %f s', time() - start_time)
 
 
-def get_imported_grid_cells(models):
-    imported_grid_cells = {model.name: [] for model in models}
-
-    logger.info("Checking existing data...")
-    query = """
-        SELECT
-            climate_data_climatedatacell.lat AS lat,
-            climate_data_climatedatacell.lon AS lon,
-            climate_data_climatemodel.name AS model_name
-        FROM climate_data_climatedata
-        JOIN climate_data_climatedatacell
-            ON climate_data_climatedata.map_cell_id = climate_data_climatedatacell.id
-        JOIN climate_data_climatedatasource
-            ON climate_data_climatedata.data_source_id = climate_data_climatedatasource.id
-        JOIN climate_data_climatemodel
-            ON climate_data_climatedatasource.model_id = climate_data_climatemodel.id
-        WHERE climate_data_climatemodel.name = ANY(%s)
-        GROUP BY climate_data_climatedatacell.id, climate_data_climatemodel.id;
-    """
-
-    with connection.cursor() as cursor:
-        cursor.execute(query, [[model.name for model in models]])
-
-        columns = [col[0] for col in cursor.description]
-        for row in cursor.fetchall():
-            pair = dict(zip(columns, row))
-            model = pair['model_name']
-            cell_modelcoordinates = (pair['lat'], pair['lon'])
-            imported_grid_cells[model].append(cell_modelcoordinates)
-
-        return imported_grid_cells
-
-
 class Command(BaseCommand):
     help = 'Downloads data from a remote instance and imports it locally'
 
@@ -196,7 +163,7 @@ class Command(BaseCommand):
 
         scenario = Scenario.objects.get(name=options['rcp'])
 
-        imported_grid_cells = get_imported_grid_cells(models)
+        imported_grid_cells = {model.name: [] for model in models}
 
         logger.info("Importing cities...")
         remote_cities = get_cities(options['domain'], options['token'])
