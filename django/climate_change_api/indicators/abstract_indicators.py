@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 
 from django.db.models import Avg
@@ -9,6 +10,7 @@ from .serializers import IndicatorSerializer, YearlyIndicatorSerializer
 
 class Indicator(object):
 
+    label = ''
     description = ''
     variables = ClimateData.VARIABLE_CHOICES
     serializer_class = IndicatorSerializer
@@ -36,6 +38,16 @@ class Indicator(object):
             s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
         return convert(cls.__name__)
+
+    @classmethod
+    def to_dict(cls):
+        """ Return a dict representation of the indicator """
+        return OrderedDict([
+            ('name', cls.name()),
+            ('label', cls.label),
+            ('description', cls.description),
+            ('variables', cls.variables),
+        ])
 
     def get_queryset(self):
         """ Get the initial indicator queryset

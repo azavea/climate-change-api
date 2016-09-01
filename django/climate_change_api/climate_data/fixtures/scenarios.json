@@ -3,13 +3,15 @@
     "pk": 1,
     "fields": {
         "name": "RCP45",
-        "description": "Stabilization without overshoot pathway to 4.5 W/m2 at stabilization after 2100"
+        "label": "RCP 4.5",
+        "description": "Stabilization without overshoot pathway to 4.5 W/m2 at stabilization after 2100. See https://www.skepticalscience.com/rcp.php"
     }
 }, {
     "model": "climate_data.Scenario",
     "pk": 2,
     "fields": {
         "name": "RCP85",
-        "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100."
+        "label": "RCP 8.5",
+        "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php"
     }
 }]

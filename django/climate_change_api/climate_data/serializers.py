@@ -120,11 +120,11 @@ class ClimateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClimateModel
-        fields = ('name',)
+        exclude = ('id',)
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scenario
-        fields = ('name', 'description',)
+        exclude = ('id',)

@@ -64,6 +64,7 @@ class ClimateModel(models.Model):
     )
 
     name = models.CharField(max_length=40, unique=True, choices=CHOICES)
+    label = models.CharField(max_length=128, blank=True, null=True)
     base_time = models.DateField(null=True)
 
     def __str__(self):
@@ -77,6 +78,7 @@ class Scenario(models.Model):
 
     """
     name = models.CharField(max_length=48, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
     description = models.CharField(max_length=4096, blank=True, null=True)
 
     def __str__(self):
