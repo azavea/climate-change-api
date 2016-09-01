@@ -38,8 +38,8 @@ class ClimateDataSetupMixin(object):
         self.rcp45 = ScenarioFactory(name='RCP45')
         self.rcp85 = ScenarioFactory(name='RCP85')
 
-        self.model1 = ClimateModelFactory(name=ClimateModel.CHOICES[0][0])
-        self.model2 = ClimateModelFactory(name=ClimateModel.CHOICES[1][0])
+        self.model1 = ClimateModelFactory(name='CCSM4')
+        self.model2 = ClimateModelFactory(name='CanESM2')
 
         self.mapcell = ClimateDataCellFactory(lat=15, lon=240)
 
