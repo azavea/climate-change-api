@@ -230,6 +230,11 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: string
         paramType: query
+      - name: units
+        description: Units in which to return the data. Defaults to units in which variable stored.
+        required: false
+        type: string
+        paramType: query
 
     """
     try:
@@ -250,18 +255,33 @@ def climate_indicator(request, *args, **kwargs):
         model_list = ClimateModel.objects.all()
 
     years_param = request.query_params.get('years', None)
+    units_param = request.query_params.get('units', None)
 
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
         raise ParseError(detail='Must provide a valid indicator')
-    data = IndicatorClass(city, scenario, models=models_param, years=years_param).calculate()
+    indicator = IndicatorClass(city,
+                               scenario,
+                               models=models_param,
+                               years=years_param,
+                               units=units_param)
+
+    if units_param and units_param not in indicator.available_units():
+        raise NotFound(detail='Cannot convert indicator {} to units {}.'.format(indicator_key,
+                                                                                units_param))
+
+    data = indicator.calculate()
+
+    if not units_param:
+        units_param = indicator.default_unit()
 
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('indicator', IndicatorClass.to_dict()),
         ('climate_models', [m.name for m in model_list]),
+        ('units', units_param),
         ('data', data),
     ]))
 
