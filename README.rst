@@ -51,8 +51,14 @@ Django runserver can be found on port 8082. Have the project running, in another
 and view at http://localhost:8082
 
 
+Getting Data
+------------
+
+Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance.
+
+
 Loading Data from NetCDF
-------------------------
+''''''''''''''''''''''''
 
 Run migrations::
 
@@ -81,7 +87,7 @@ Process the job::
 
 
 Loading Data From Staging
--------------------------
+'''''''''''''''''''''''''
 
 Run migrations::
 
