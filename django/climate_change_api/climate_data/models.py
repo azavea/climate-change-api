@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.db.models import SET_NULL
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
@@ -137,7 +138,7 @@ class City(models.Model):
     geom = models.PointField()
     _geog = models.PointField(geography=True)
 
-    map_cell = TinyForeignKey(ClimateDataCell, null=True)
+    map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
