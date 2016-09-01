@@ -41,8 +41,8 @@ class ScenarioFactory(DjangoModelFactory):
 
 class ClimateModelFactory(DjangoModelFactory):
 
-    name = ClimateModel.CHOICES[0][0]
-    label = None
+    name = 'CCSM4'
+    label = 'CCSM4'
     base_time = datetime(2000, 1, 1)
 
     class Meta:

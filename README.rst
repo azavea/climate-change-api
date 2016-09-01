@@ -58,17 +58,18 @@ Run migrations::
 
     ./scripts/console django './manage.py migrate'
 
+
+Load scenario and climate model data::
+
+    ./scripts/console django loaddata scenarios
+    ./scripts/console django loaddata climate-models
+
+
 Load cities::
 
     ./scripts/console django './manage.py import_cities azavea-climate-sandbox geonames_cities_top200_us.geojson'
 
     Alternatively, load geonames_cities1000_us.geojson for more data.
-
-Define a model::
-
-    docker exec -it climatechangeapi_django_1 /bin/bash
-    ./manage.py shell_plus
-    ClimateModel(name='ACCESS1-0').save()
 
 
 Create a data processing job. Note that if a previous job has been run for the same parameters, the `ClimateDataSource` object it created will need to be deleted first::

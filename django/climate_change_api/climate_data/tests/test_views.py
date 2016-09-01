@@ -54,9 +54,9 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
         """ Should allow equality filtering on name """
-        ClimateModelFactory(name=ClimateModel.CHOICES[0][0])
-        ClimateModelFactory(name=ClimateModel.CHOICES[1][0])
-        ClimateModelFactory(name=ClimateModel.CHOICES[2][0])
+        ClimateModelFactory(name='CCSM4')
+        ClimateModelFactory(name='CanESM2')
+        ClimateModelFactory(name='CNRM-CM5')
 
         url = reverse('climatemodel-list')
 
@@ -66,7 +66,7 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
         self.assertEqual(len(response.data), 3)
 
         # Begin tests for filtering
-        response = self.client.get(url, {'name': ClimateModel.CHOICES[0][0]})
+        response = self.client.get(url, {'name': 'CCSM4'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
