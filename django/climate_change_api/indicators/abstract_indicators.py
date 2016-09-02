@@ -124,18 +124,23 @@ class Indicator(object):
         raise NotImplementedError('Indicator subclass must implement convert()')
 
 
-class YearlyIndicator(Indicator):
-
-    serializer_class = YearlyIndicatorSerializer
-
-
-class YearlyAverageTemperatureIndicator(YearlyIndicator):
+class TemperatureUnitsMixin(Indicator):
+    """ Define units for temperature conversion.
+    """
 
     def available_units(self):
         return ('K', 'F')
 
     def default_unit(self):
         return 'K'
+
+
+class YearlyIndicator(Indicator):
+
+    serializer_class = YearlyIndicatorSerializer
+
+
+class YearlyAverageTemperatureIndicator(YearlyIndicator, TemperatureUnitsMixin):
 
     def aggregate(self):
         variable = self.variables[0]
