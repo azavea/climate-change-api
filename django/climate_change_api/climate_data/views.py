@@ -261,25 +261,23 @@ def climate_indicator(request, *args, **kwargs):
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
         raise ParseError(detail='Must provide a valid indicator')
-    indicator = IndicatorClass(city,
-                               scenario,
-                               models=models_param,
-                               years=years_param,
-                               units=units_param)
+    data = IndicatorClass(city,
+                          scenario,
+                          models=models_param,
+                          years=years_param,
+                          units=units_param).calculate()
 
-    if units_param and units_param not in indicator.available_units():
+    if units_param and units_param not in IndicatorClass.available_units():
         raise NotFound(detail='Cannot convert indicator {} to units {}.'.format(indicator_key,
                                                                                 units_param))
 
-    data = indicator.calculate()
-
     if not units_param:
-        units_param = indicator.default_unit()
+        units_param = IndicatorClass.default_unit()
 
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
-        ('indicator', indicator.to_dict()),
+        ('indicator', IndicatorClass.to_dict()),
         ('climate_models', [m.name for m in model_list]),
         ('units', units_param),
         ('data', data),
