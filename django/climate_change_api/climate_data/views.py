@@ -279,7 +279,7 @@ def climate_indicator(request, *args, **kwargs):
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
-        ('indicator', IndicatorClass.to_dict()),
+        ('indicator', indicator.to_dict()),
         ('climate_models', [m.name for m in model_list]),
         ('units', units_param),
         ('data', data),
