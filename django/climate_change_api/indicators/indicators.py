@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import inspect
 import sys
 
@@ -7,6 +6,7 @@ from .abstract_indicators import YearlyAverageTemperatureIndicator
 
 class YearlyAverageMaxTemperature(YearlyAverageTemperatureIndicator):
 
+    label = 'Yearly Average Max Temperature'
     description = ('Aggregated yearly average maximum temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
@@ -14,6 +14,7 @@ class YearlyAverageMaxTemperature(YearlyAverageTemperatureIndicator):
 
 class YearlyAverageMinTemperature(YearlyAverageTemperatureIndicator):
 
+    label = 'Yearly Average Min Temperature'
     description = ('Aggregated yearly average minimum temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
@@ -37,11 +38,7 @@ def list_available_indicators():
     """ List the defined class members of this module as the available indicators """
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
     indicators = [member[1] for member in class_members if member[1].__module__ == __name__]
-    return [OrderedDict([
-                ('name', i.name()),
-                ('description', i.description),
-                ('variables', i.variables),
-            ]) for i in indicators]
+    return [i.to_dict() for i in indicators]
 
 
 def indicator_factory(indicator_name):
