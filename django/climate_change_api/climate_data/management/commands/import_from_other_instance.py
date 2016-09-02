@@ -4,14 +4,17 @@ from itertools import islice
 
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
+from django.core.exceptions import ObjectDoesNotExist
 
-from climate_data.models import (
-    City, Scenario, ClimateModel, ClimateDataSource, ClimateDataCell, ClimateData
-)
+from climate_data.models import (City, Scenario, ClimateModel,
+                                 ClimateDataSource, ClimateDataCell,
+                                 ClimateData)
 
 import requests
+from decimal import Decimal
 
 from time import time, sleep
+from django.db import connection
 
 logger = logging.getLogger('climate_data')
 
@@ -78,49 +81,56 @@ def create_models(models):
     """
     Create the ClimateModels given
     """
-    ClimateModel.objects.bulk_create([
-        ClimateModel(name=name)
-        for name in models
-    ])
+    dbmodels = []
+    for model in models:
+            dbmodel = ClimateModel.objects.get_or_create(name=model)[0]
+            dbmodels.append(dbmodel)
+    return dbmodels
 
-
-def create_city(citydata):
+def import_city(citydata):
     """
-    Create a city and if not already created, it's grid cell from the city dict
+    Create a city and if not already created, its grid cell from the city dict
     downloaded from another instance
     """
-    data_cell = ClimateDataCell.objects.get_or_create(
-        id=citydata['properties']['map_cell'],
-        defaults={
-            'lat': citydata['geometry']['coordinates'][1],
-            'lon': citydata['geometry']['coordinates'][0]
-        }
-    )[0]
-    City(
-        id=citydata['id'],
-        geom=Point(*citydata['geometry']['coordinates']),
-        _geog=Point(*citydata['geometry']['coordinates']),
-        map_cell=data_cell,
-        name=citydata['properties']['name'],
-        admin=citydata['properties']['admin']
-    ).save()
+
+    try:
+        return City.objects.get(
+            name=citydata['properties']['name'],
+            admin=citydata['properties']['admin'],
+        )
+    except ObjectDoesNotExist:
+        logger.info("City does not exist, creating city")
+
+        map_cell_coordinates = citydata['properties']['map_cell']['coordinates']
+        map_cell = ClimateDataCell.objects.get_or_create(
+            lon=map_cell_coordinates[0],
+            lat=map_cell_coordinates[1]
+        )[0]
+
+        city_coordinates = citydata['geometry']['coordinates']
+        return City.objects.create(
+            name=citydata['properties']['name'],
+            admin=citydata['properties']['admin'],
+            geom=Point(*city_coordinates),
+            _geog=Point(*city_coordinates),
+            map_cell=map_cell,
+        )
 
 
-def import_data(data):
+def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
     """
     Import the the output of get_data into the database
     """
+    data = get_data(domain, token, remote_city_id, scenario, model)
+
     start_time = time()
-    map_cell = data['city']['properties']['map_cell']
     assert len(data['climate_models']) == 1
-    model = ClimateModel.objects.get(name=data['climate_models'][0])
-    scenario = Scenario.objects.get(name=data['scenario'])
     for year, yeardata in data['data'].iteritems():
         data_source = ClimateDataSource.objects.get_or_create(model=model,
                                                               scenario=scenario,
                                                               year=int(year))[0]
         ClimateData.objects.bulk_create([
-            ClimateData(map_cell_id=map_cell,
+            ClimateData(map_cell=local_map_cell,
                         data_source=data_source,
                         day_of_year=day,
                         tasmin=tasmin,
@@ -145,20 +155,42 @@ class Command(BaseCommand):
                             help='max amount of cities to import')
 
     def handle(self, *args, **options):
-        models = get_models(options['domain'], options['token'])
-        if len(models) > options['num_models']:
-            models = models[:options['num_models']]
-        create_models(models)
-        imported_grid_cells = []
-        for city in islice(get_cities(options['domain'], options['token']), options['num_cities']):
-            create_city(city)
+        model_names = get_models(options['domain'], options['token'])
+        if len(model_names) > options['num_models']:
+            model_names = model_names[:options['num_models']]
+
+        models = create_models(model_names)
+
+        scenario = Scenario.objects.get(name=options['rcp'])
+
+        imported_grid_cells = {model.name: [] for model in models}
+
+        logger.info("Importing cities...")
+        remote_cities = get_cities(options['domain'], options['token'])
+        for city in islice(remote_cities, options['num_cities']):
             logger.info('Importing city %s, %s',
                         city['properties']['name'],
                         city['properties']['admin'])
-            if city['properties']['map_cell'] not in imported_grid_cells:
-                for model in models:
-                    import_data(get_data(options['domain'], options['token'],
-                                         city['id'],
-                                         options['rcp'],
-                                         model))
-                imported_grid_cells.append(city['properties']['map_cell'])
+
+            created_city = import_city(city)
+            coordinates = (created_city.map_cell.lat, created_city.map_cell.lon)
+            for model in models:
+                if coordinates in imported_grid_cells[model.name]:
+                    logger.info("Skipping %s, data already imported", model.name)
+                    continue
+
+                if ClimateData.objects.filter(
+                        data_source__model=model,
+                        map_cell=created_city.map_cell).exists():
+                    logger.info("Skipping %s, data already imported", model.name)
+                else:
+                    logger.info("Importing %s", model)
+                    import_data(
+                        domain=options['domain'],
+                        token=options['token'],
+                        remote_city_id=city['id'],
+                        local_map_cell=created_city.map_cell,
+                        scenario=scenario,
+                        model=model)
+
+                imported_grid_cells[model.name].append(coordinates)
