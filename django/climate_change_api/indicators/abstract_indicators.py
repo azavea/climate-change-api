@@ -46,27 +46,28 @@ class Indicator(object):
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
         return convert(cls.__name__)
 
-    def to_dict(self):
+    @classmethod
+    def to_dict(cls):
         """ Return a dict representation of the indicator """
         return OrderedDict([
-            ('name', self.name()),
-            ('label', self.label),
-            ('description', self.description),
-            ('variables', self.variables),
-            ('avalialbe_units', self.available_units()),
-            ('default_unit', self.default_unit()),
+            ('name', cls.name()),
+            ('label', cls.label),
+            ('description', cls.description),
+            ('variables', cls.variables),
+            ('avaliable_units', cls.available_units()),
+            ('default_unit', cls.default_unit()),
         ])
 
-    @property
-    def available_units(self):
+    @classmethod
+    def available_units(cls):
         """ Provide the units in which this indicator may return its values as upper-case strings.
         Must contain the string returned by `default_unit()`.
         @returns tuple of strings
         """
         raise NotImplementedError('Indicator subclass must implement available_units()')
 
-    @property
-    def default_unit(self):
+    @classmethod
+    def default_unit(cls):
         """ @returns default unit for indicator values
 
         This method should return an upper-case string contained in the tuple returned by
@@ -93,11 +94,13 @@ class Indicator(object):
         return self.queryset
 
     def calculate(self):
+        # reference the subclass of this abstract parent class
+        cls = type(self)
         results = self.aggregate()
         if self.units:
-            if self.units not in self.available_units():
+            if self.units not in cls.available_units():
                 raise ValueError('Indicator cannot be converted to the unit requested')
-            elif self.units.upper() != self.default_unit().upper():
+            elif self.units.upper() != cls.default_unit().upper():
                 results = self.convert(results, self.units.upper())
         return self.serializer.to_representation(results)
 
@@ -127,10 +130,12 @@ class TemperatureUnitsMixin(Indicator):
     """ Define units for temperature conversion.
     """
 
-    def available_units(self):
+    @classmethod
+    def available_units(cls):
         return ('K', 'F')
 
-    def default_unit(self):
+    @classmethod
+    def default_unit(cls):
         return 'K'
 
 
