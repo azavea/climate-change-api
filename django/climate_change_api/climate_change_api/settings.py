@@ -157,6 +157,22 @@ DATABASES = {
 }
 
 
+# Cache
+# https://docs.djangoproject.com/en/1.9/ref/settings/#caches
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+    },
+    # Use a custom separate cache for custom DRF throttling classes, since these
+    # don't require a heavyweight cache
+    'api_throttling': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'api_throttling'
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 

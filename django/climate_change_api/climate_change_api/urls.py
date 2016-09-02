@@ -22,6 +22,7 @@ from django.views.generic import RedirectView
 from rest_framework import routers
 
 from climate_data import views as climate_data_views
+from user_management.views import ClimateAPIObtainAuthToken
 
 
 router = routers.DefaultRouter()
@@ -40,6 +41,7 @@ urlpatterns = [
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',
         climate_data_views.climate_data_list, name='climatedata-list'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-token-auth/', ClimateAPIObtainAuthToken.as_view()),
     url(r'^admin/', admin.site.urls),
 
     # 3rd party

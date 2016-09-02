@@ -5,19 +5,21 @@ by emailing an HMAC-verified timestamped activation token to the user
 on signup.
 
 """
-
-from registration.backends.hmac.views import RegistrationView as BaseRegistrationView
-from user_management.forms import UserForm, UserProfileForm
-from user_management.models import UserProfile
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from registration.backends.hmac.views import RegistrationView as BaseRegistrationView
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+
+from user_management.forms import UserForm, UserProfileForm
+from user_management.models import UserProfile
+from user_management.throttling import ObtainAuthTokenThrottle
 
 
 class RegistrationView(BaseRegistrationView):
@@ -71,7 +73,7 @@ class UserProfileView(LoginRequiredMixin, View):
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
 
     def new_token(self, request):
-        """ Generate new auth token"""
+        """ Generate new auth token from within the profile page"""
         if request.method not in SAFE_METHODS:
             user = request.user
             if user.auth_token:
@@ -79,3 +81,9 @@ class UserProfileView(LoginRequiredMixin, View):
             user.auth_token = Token.objects.create(user=user)
             user.auth_token.save()
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
+
+
+class ClimateAPIObtainAuthToken(ObtainAuthToken):
+    """ Anonymous endpoint for users to request tokens from for authentication """
+
+    throttle_classes = (ObtainAuthTokenThrottle,)
