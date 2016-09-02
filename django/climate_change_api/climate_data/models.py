@@ -38,32 +38,8 @@ class ClimateModel(models.Model):
     to make sure that table, which will store a large amount of rows, stays
     as small as possible.
     """
-
-    CHOICES = (
-        ('ACCESS1-0', 'ACCESS1-0'),
-        ('BNU-ESM', 'BNU-ESM'),
-        ('CCSM4', 'CCSM4'),
-        ('CESM1-BGC', 'CESM1-BGC'),
-        ('CNRM-CM5', 'CNRM-CM5'),
-        ('CSIRO-Mk3-6-0', 'CSIRO-Mk3-6-0'),
-        ('CanESM2', 'CanESM2'),
-        ('GFDL-CM3', 'GFDL-CM3'),
-        ('GFDL-ESM2G', 'GFDL-ESM2G'),
-        ('GFDL-ESM2M', 'GFDL-ESM2M'),
-        ('IPSL-CM5A-LR', 'IPSL-CM5A-LR'),
-        ('IPSL-CM5A-MR', 'IPSL-CM5A-MR'),
-        ('MIROC-ESM-CHEM', 'MIROC-ESM-CHEM'),
-        ('MIROC-ESM', 'MIROC-ESM'),
-        ('MIROC5', 'MIROC5'),
-        ('MPI-ESM-LR', 'MPI-ESM-LR'),
-        ('MPI-ESM-MR', 'MPI-ESM-MR'),
-        ('MRI-CGCM3', 'MRI-CGCM3'),
-        ('NorESM1-M', 'NorESM1-M'),
-        ('bcc-csm1-1', 'bcc-csm1-1'),
-        ('inmcm4', 'inmcm4'),
-    )
-
-    name = models.CharField(max_length=40, unique=True, choices=CHOICES)
+    name = models.CharField(max_length=40, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
     base_time = models.DateField(null=True)
 
     def __str__(self):
@@ -77,6 +53,7 @@ class Scenario(models.Model):
 
     """
     name = models.CharField(max_length=48, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
     description = models.CharField(max_length=4096, blank=True, null=True)
 
     def __str__(self):

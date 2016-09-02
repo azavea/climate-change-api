@@ -46,7 +46,7 @@ class IndicatorTests(ClimateDataSetupMixin, object):
     def test_models_filter(self):
         indicator = indicators.YearlyAverageMaxTemperature(self.city1,
                                                            self.rcp45,
-                                                           models=ClimateModel.CHOICES[0][0])
+                                                           models='CCSM4')
         data = indicator.calculate()
         self.assertEqual(data, self.test_models_filter_equals)
 
