@@ -46,16 +46,15 @@ class Indicator(object):
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
         return convert(cls.__name__)
 
-    @classmethod
-    def to_dict(cls):
+    def to_dict(self):
         """ Return a dict representation of the indicator """
         return OrderedDict([
-            ('name', cls.name()),
-            ('label', cls.label),
-            ('description', cls.description),
-            ('variables', cls.variables),
-	    ('avalialbe_units', cls.available_units()),
-            ('default_unit', cls.default_unit()),
+            ('name', self.name()),
+            ('label', self.label),
+            ('description', self.description),
+            ('variables', self.variables),
+            ('avalialbe_units', self.available_units()),
+            ('default_unit', self.default_unit()),
         ])
 
     @property
