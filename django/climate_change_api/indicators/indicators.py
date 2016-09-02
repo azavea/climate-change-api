@@ -4,7 +4,8 @@ import sys
 from django.db import connection
 from django.db.models import Avg, Max, Min, Sum
 
-from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator, int_avg)
+from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
+                                  DailyRawIndicator, int_avg)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
                               DaysUnitsMixin, CountUnitsMixin)
 
@@ -127,6 +128,25 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
         for yr in counts:
             results[yr] = int_avg([m['streaks'] for m in counts[yr].values()])
         return results
+
+
+class DailyMinTemperature(TemperatureUnitsMixin, DailyRawIndicator):
+    label = 'Daily Min Temperature'
+    description = ('Daily minimum temperature averaged across all requested models')
+    variables = ('tasmin',)
+
+
+class DailyMaxTemperature(TemperatureUnitsMixin, DailyRawIndicator):
+    label = 'Daily Max Temperature'
+    description = ('Daily maxmimum temperature averaged across all requested models')
+    variables = ('tasmax',)
+
+
+class DailyPrecipitation(PrecipUnitsMixin, DailyRawIndicator):
+    label = 'Daily Precipitation'
+    description = ('Daily precipitation averaged across all requested models')
+    variables = ('pr',)
+
 
 
 def list_available_indicators():
