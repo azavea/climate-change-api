@@ -151,3 +151,4 @@ class ClimateData(models.Model):
 
     class Meta:
         unique_together = ('map_cell', 'data_source', 'day_of_year')
+        index_together = ('map_cell', 'data_source')

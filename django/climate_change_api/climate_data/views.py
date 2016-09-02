@@ -167,15 +167,13 @@ def climate_data_list(request, *args, **kwargs):
     except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-    queryset = ClimateData.objects.all()
-    queryset = queryset.filter(map_cell=city.map_cell).filter(data_source__scenario=scenario)
+    queryset = ClimateData.objects.filter(map_cell=city.map_cell, data_source__scenario=scenario)
 
     # Get valid model params list to use in response
     models_param = request.query_params.get('models', None)
+    model_list = ClimateModel.objects.all().only('name')
     if models_param:
-        model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
-    else:
-        model_list = ClimateModel.objects.all()
+        model_list = model_list.filter(name__in=models_param.split(','))
 
     # Get valid variable params list to use in response & serializer context
     variables = request.query_params.get('variables', None)
@@ -183,7 +181,7 @@ def climate_data_list(request, *args, **kwargs):
 
     # Get valid aggregation param
     AGGREGATION_CHOICES = ('avg', 'min', 'max',)
-    aggregation = request.query_params.get('agg', '')
+    aggregation = request.query_params.get('agg', 'avg')
     aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
 
     # Filter on the ClimateData filter set

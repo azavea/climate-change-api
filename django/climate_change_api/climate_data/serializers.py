@@ -1,7 +1,9 @@
 from collections import OrderedDict
 
 import django.db.models
+import logging
 from django.db.models.query import QuerySet
+from django.db import connection
 
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
@@ -25,6 +27,7 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClimateDataCell
 
+logger = logging.getLogger(__name__)
 
 class CitySerializer(GeoFeatureModelSerializer):
 
@@ -92,18 +95,25 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         aggregations = {variable: aggregation_function(variable)
                         for variable in self._context['variables']}
-        results = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
+        queryset = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
+
+        query = str(queryset.query)
+        cursor = connection.cursor()
+        cursor.execute(query)
+
         output = {}
-        for result in results:
-            year = result['data_source__year']
-            day_of_year = result['day_of_year']
+        columns = [col[0] for col in cursor.description]
+        for row in cursor.fetchall():
+            result = dict(zip(columns, row))
+
+            year = result['year']
             if year not in output:
-                output[year] = {}
+                output[year] = {var: [None] * 366 for var in self._context['variables']}
             year_data = output[year]
             for variable in self._context['variables']:
-                if variable not in year_data:
-                    year_data[variable] = [None] * 366
-                year_data[variable][day_of_year - 1] = result[variable]
+                # Day of year starts at 1, so subtract 1 to get the array index
+                day_index = result['day_of_year'] - 1
+                year_data[variable][day_index] = result[variable]
         return output
 
     def to_internal_value(self, data):

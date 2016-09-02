@@ -5,7 +5,7 @@ from django.db.models import Q
 import django_filters
 from rest_framework import filters
 
-from climate_data.models import ClimateData
+from climate_data.models import ClimateData, ClimateModel
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,10 @@ class ClimateDataFilterSet(filters.FilterSet):
 
         """
         if value:
-            queryset = queryset.filter(data_source__model__name__in=value.split(','))
+            # Load the models first and then filter on that to avoid scanning
+            #  by model names in the final query.
+            models = [m.id for m in ClimateModel.objects.filter(name__in=value.split(','))]
+            queryset = queryset.filter(data_source__model__id__in=models)
         return queryset
 
     def filter_years(self, queryset, value):
