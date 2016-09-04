@@ -1,37 +1,52 @@
 import inspect
 import sys
 
-from .abstract_indicators import YearlyAverageTemperatureIndicator
+from django.db import connection
+from django.db.models import Avg, Max, Min, Sum
+
+from .abstract_indicators import YearlyAggregationIndicator
+from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
+                              DaysUnitsMixin, CountUnitsMixin)
 
 
-class YearlyAverageMaxTemperature(YearlyAverageTemperatureIndicator):
-
-    label = 'Yearly Average Max Temperature'
-    description = ('Aggregated yearly average maximum temperature, generated from daily data ' +
+class YearlyAverageHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Average High Temperature'
+    description = ('Aggregated yearly average high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
+    agg_function = Avg
 
 
-class YearlyAverageMinTemperature(YearlyAverageTemperatureIndicator):
-
-    label = 'Yearly Average Min Temperature'
-    description = ('Aggregated yearly average minimum temperature, generated from daily data ' +
+class YearlyAverageLowTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Average Low Temperature'
+    description = ('Aggregated yearly average low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
+    agg_function = Avg
 
 
-# class YearlyFrostDays(YearlyIndicator):
-#     """ TODO: Fix this indicator, its busted. It requires aggregating this aggregation """
+class YearlyMaxHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Maximum High Temperature'
+    description = ('Yearly maximum high temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmax',)
+    agg_function = Max
 
-#     description = ('Number of days per year in which the minimum daily temperature is ' +
-#                    'less than the melting point of water (273.15K)')
-#     variables = ('tasmin',)
 
-#     def aggregate(self):
-#         variable = self.variables[0]
-#         return (self.queryset.filter(tasmin__lt=273.15)
-#                              .values('data_source__year', 'data_source__model')
-#                              .annotate(value=Count(variable)))
+class YearlyMinLowTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Minimum Low Temperature'
+    description = ('Yearly minimum low temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmin',)
+    agg_function = Min
+
+
+class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
+    description = 'Yearly total precipitation'
+    variables = ('pr',)
+    agg_function = Sum
+
+
 
 
 def list_available_indicators():
