@@ -31,6 +31,30 @@ class ClimateDataSetupMixin(object):
         pass
     ```
 
+    Produces this data, all in one map cell:
+    {
+        'rcp45': {
+            'model1': {
+                '2000': [{'tasmax': 10, 'tasmin': 10, 'pr': 10}],
+                '2001': [{'tasmax': 10, 'tasmin': 10, 'pr': 10}],
+                '2002': [{'tasmax': 10, 'tasmin': 10, 'pr': 10}],
+                '2003': [{'tasmax': 10, 'tasmin': 10, 'pr': 0}],
+            },
+            'model2': {
+                '2000': [{'tasmax': 20, 'tasmin': 20, 'pr': 20}],
+                '2001': [{'tasmax': 20, 'tasmin': 20, 'pr': 20}],
+            },
+        },
+        'rcp85': {
+            'model1': {
+                '2000': [{'tasmax': 30, 'tasmin': 30, 'pr': 30}],
+            },
+            'model2': {
+                '2000': [{'tasmax': 40, 'tasmin': 40, 'pr': 40}],
+            },
+        }
+    }
+
     """
     def setUp(self):
         super(ClimateDataSetupMixin, self).setUp()
@@ -81,7 +105,7 @@ class ClimateDataSetupMixin(object):
                            tasmax=10, tasmin=10, pr=10)
 
         ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2003, day_of_year=1,
-                           tasmax=10, tasmin=10, pr=10)
+                           tasmax=10, tasmin=10, pr=0)
 
         ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s2_m1_2000, day_of_year=1,
                            tasmax=30, tasmin=30, pr=30)

@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import re
 
-from django.db.models import Avg
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
@@ -85,9 +84,8 @@ class Indicator(object):
     def aggregate(self):
         """ Calculate the indicator aggregation
 
-        This method should use self.queryset to calculate the indicator returning a dict
-        that matches the form returned by the Django QuerySet annotate method
-
+        This method should use self.queryset to calculate the indicator returning a list of dicts
+        that matches the form returned by the Django QuerySet `values` method
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
@@ -111,16 +109,15 @@ class Indicator(object):
 
 
 class YearlyIndicator(Indicator):
-
+    """ Base class for yearly indicators. """
     serializer_class = YearlyIndicatorSerializer
 
+    def get_values_qs(self):
+        return self.queryset.values('data_source__year', 'data_source__model')
 
-class YearlyAverageTemperatureIndicator(YearlyIndicator, TemperatureUnitsMixin):
 
+class YearlyAggregationIndicator(YearlyIndicator):
     def aggregate(self):
-        variable = self.variables[0]
-        return (self.queryset.values('data_source__year')
-                             .annotate(value=Avg(variable)))
+        return self.get_values_qs().annotate(value=self.agg_function(self.variables[0]))
 
 
-        return results

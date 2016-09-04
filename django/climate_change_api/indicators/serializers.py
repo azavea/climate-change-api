@@ -1,4 +1,12 @@
 
+def float_avg(values):
+    return float(sum(values)) / len(values)
+
+
+def int_avg(values):
+    return int(round(float_avg(values)))
+
+
 class IndicatorSerializer(object):
     """ Serialize a django queryset result to a list of dictionaries
     of the form:
@@ -18,9 +26,13 @@ class IndicatorSerializer(object):
 
 
 class YearlyIndicatorSerializer(IndicatorSerializer):
+    """
+    Reduce year/model query results to yearly average values across models, using floating
+    point values.
+    """
+    def to_representation(self, aggregations):
+        results = {}
+        for result in aggregations:
+            results.setdefault(result['data_source__year'], []).append(result['value'])
+        return {yr: float_avg(values) for (yr, values) in results.items()}
 
-    def to_representation(self, results):
-        output = {}
-        for result in results:
-            output[result['data_source__year']] = result['value']
-        return output
