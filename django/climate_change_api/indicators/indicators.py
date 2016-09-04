@@ -4,10 +4,9 @@ import sys
 from django.db import connection
 from django.db.models import Avg, Max, Min, Sum
 
-from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator)
+from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator, int_avg)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
                               DaysUnitsMixin, CountUnitsMixin)
-from .serializers import int_avg
 
 
 class YearlyAverageHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):

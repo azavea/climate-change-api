@@ -5,8 +5,15 @@ from django.db.models import Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .serializers import (IndicatorSerializer, YearlyIndicatorSerializer,
-                          YearlyIntegerIndicatorSerializer)
+from .serializers import IndicatorSerializer
+
+
+def float_avg(values):
+    return float(sum(values)) / len(values)
+
+
+def int_avg(values):
+    return int(round(float_avg(values)))
 
 
 class Indicator(object):
@@ -90,38 +97,66 @@ class Indicator(object):
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
-    def convert(self, results):
+    def convert(self, aggregations):
         """ Convert aggregated results to the requested unit.
 
-        @param results Dict returned by aggregate method
+        @param aggregations list-of-dicts returned by aggregate method
         @returns Dict in same format at results parameter, with values converted to `self.units`
         """
         if self.units == self.storage_units:
-            return results
+            return aggregations
         converter = self.conversions[self.storage_units][self.units]
-        for item in results:
+        for item in aggregations:
             item['value'] = converter(item['value'])
-        return results
+        return aggregations
+
+    def compose_results(self, aggregations):
+        """ Combine models and compose results
+
+        Given the results of `aggregate`, should produce a dictionary of the form:
+        {
+            'year': value
+        }
+        in the case of yearly aggregated indicators, and
+        {
+            'year': [jan_value, feb_value,...,dec_value]
+        }
+        in the case of monthly aggregated indicators
+        """
+        raise NotImplementedError('Indicator subclass must implement compose_results()')
 
     def calculate(self):
-        results = self.aggregate()
-        results = self.convert(results)
+        aggregations = self.aggregate()
+        aggregations = self.convert(aggregations)
+        results = self.compose_results(aggregations)
         return self.serializer.to_representation(results)
 
 
 class YearlyIndicator(Indicator):
     """ Base class for yearly indicators. """
-    serializer_class = YearlyIndicatorSerializer
 
-    def get_values_qs(self):
-        return self.queryset.values('data_source__year', 'data_source__model')
+    def compose_results(self, aggregations):
+        """ Combine models and compose results
+
+        Reduces year/model query results to yearly average values across models, using floating
+        point values.
+        """
+        results = {}
+        for result in aggregations:
+            results.setdefault(result['data_source__year'], []).append(result['value'])
+        return {yr: float_avg(values) for (yr, values) in results.items()}
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
     def aggregate(self):
-        return self.get_values_qs().annotate(value=self.agg_function(self.variables[0]))
+        return (self.queryset.values('data_source__year', 'data_source__model')
+                             .annotate(value=self.agg_function(self.variables[0])))
 
 
 class YearlyCountIndicator(YearlyAggregationIndicator):
-    serializer_class = YearlyIntegerIndicatorSerializer
     agg_function = Count
+
+    def compose_results(self, aggregations):
+        """ Overriden to return integer values for averages across models """
+        results = super(YearlyCountIndicator, self).compose_results(aggregations)
+        return {yr: int(round(val)) for (yr, val) in results.items()}
