@@ -1,11 +1,12 @@
 from collections import OrderedDict
 import re
 
+from django.db.models import Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .serializers import IndicatorSerializer, YearlyIndicatorSerializer
-from .unit_converters import TemperatureUnitsMixin
+from .serializers import (IndicatorSerializer, YearlyIndicatorSerializer,
+                          YearlyIntegerIndicatorSerializer)
 
 
 class Indicator(object):
@@ -121,3 +122,6 @@ class YearlyAggregationIndicator(YearlyIndicator):
         return self.get_values_qs().annotate(value=self.agg_function(self.variables[0]))
 
 
+class YearlyCountIndicator(YearlyAggregationIndicator):
+    serializer_class = YearlyIntegerIndicatorSerializer
+    agg_function = Count

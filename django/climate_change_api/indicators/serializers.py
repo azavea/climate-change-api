@@ -36,3 +36,13 @@ class YearlyIndicatorSerializer(IndicatorSerializer):
             results.setdefault(result['data_source__year'], []).append(result['value'])
         return {yr: float_avg(values) for (yr, values) in results.items()}
 
+
+class YearlyIntegerIndicatorSerializer(YearlyIndicatorSerializer):
+    """
+    Reduce year/model query results to yearly average values across models, returning the closest
+    integer.
+    For use with counting-type indicators for which floating point answers wouldn't make sense.
+    """
+    def to_representation(self, aggregations):
+        results = super(YearlyIntegerIndicatorSerializer, self).to_representation(aggregations)
+        return {yr: int(round(val)) for (yr, val) in results.items()}

@@ -112,3 +112,29 @@ class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     test_years_filter_equals = {2001: 15*s2d, 2002: 10*s2d}
     test_models_filter_equals = {2000: 10*s2d, 2001: 10*s2d, 2002: 10*s2d, 2003: 0}
 
+
+class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyFrostDays
+    indicator_name = 'yearly_frost_days'
+    test_indicator_rcp85_equals = {2000: 1}
+    test_indicator_rcp45_equals = {2000: 1, 2001: 1, 2002: 1, 2003: 1}
+    test_years_filter_equals = {2001: 1, 2002: 1}
+    test_models_filter_equals = {2000: 1, 2001: 1, 2002: 1, 2003: 1}
+
+
+class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyMaxConsecutiveDryDays
+    indicator_name = 'yearly_max_consecutive_dry_days'
+    test_indicator_rcp85_equals = {2000: 0}
+    test_indicator_rcp45_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 1}
+    test_years_filter_equals = {2001: 0, 2002: 0}
+    test_models_filter_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 1}
+
+
+class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyDrySpells
+    indicator_name = 'yearly_dry_spells'
+    test_indicator_rcp85_equals = {2000: 0}
+    test_indicator_rcp45_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 0}
+    test_years_filter_equals = {2001: 0, 2002: 0}
+    test_models_filter_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 0}
