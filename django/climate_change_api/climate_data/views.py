@@ -267,12 +267,12 @@ def climate_indicator(request, *args, **kwargs):
                           years=years_param,
                           units=units_param).calculate()
 
-    if units_param and units_param not in IndicatorClass.available_units():
+    if units_param and units_param not in IndicatorClass.available_units:
         raise NotFound(detail='Cannot convert indicator {} to units {}.'.format(indicator_key,
                                                                                 units_param))
 
     if not units_param:
-        units_param = IndicatorClass.default_unit()
+        units_param = IndicatorClass.default_units
 
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
