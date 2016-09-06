@@ -1,11 +1,4 @@
 
-
-def kelvin_to_fahrenheit(value):
-    """ Convenience method to handle converting temperatures to degrees Fahrenheit.
-    """
-    return value * 1.8 - 459.67
-
-
 class TemperatureUnitsMixin(object):
     """ Define units for temperature conversion.
     """
@@ -22,6 +15,13 @@ class TemperatureUnitsMixin(object):
 
 
 class PrecipUnitsMixin(object):
+    """ Define units for precipitation
+
+    The units are rates, so cumulative totals can be had either by averaging the rates then
+    converting to the desired interval (i.e. average kg*m^2/s -> kg*m^2/year) or by converting
+    to an interval and summing all values for that inveral across the desired interval
+    (i.e. convert each day's rate to kg*m^2/day and sum across the days in the month or year)
+    """
     available_units = ('kg*m^2/s', 'kg*m^2/day')
     storage_units = 'kg*m^2/s'
     default_units = 'kg*m^2/day'
