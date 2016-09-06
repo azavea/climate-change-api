@@ -1,17 +1,19 @@
 from collections import OrderedDict
 import re
 
-from django.db.models import Avg
+from django.db.models import Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .serializers import IndicatorSerializer, YearlyIndicatorSerializer
+from .serializers import IndicatorSerializer
 
 
-def kelvin_to_fahrenheit(value):
-    """ Convenience method to handle converting temperatures to degrees Fahrenheit.
-    """
-    return value * 1.8 - 459.67
+def float_avg(values):
+    return float(sum(values)) / len(values)
+
+
+def int_avg(values):
+    return int(round(float_avg(values)))
 
 
 class Indicator(object):
@@ -19,7 +21,14 @@ class Indicator(object):
     label = ''
     description = ''
     variables = ClimateData.VARIABLE_CHOICES
+    filters = None
     serializer_class = IndicatorSerializer
+
+    # Subclasses should use a units mixin from 'unit_converters' to define these units
+    # attributes and any necessary conversion functions
+    storage_units = None
+    default_units = None
+    available_units = (None,)
 
     def __init__(self, city, scenario, models=None, years=None, units=None):
         if not city:
@@ -31,7 +40,14 @@ class Indicator(object):
         self.scenario = scenario
         self.models = models
         self.years = years
-        self.units = units
+
+        # Validate and set desired units
+        if units is None:
+            self.units = self.default_units
+        elif units not in self.available_units:
+            raise ValueError('Cannot convert to requested units')
+        else:
+            self.units = units
 
         self.queryset = self.get_queryset()
         self.queryset = self.filter_objects()
@@ -54,26 +70,9 @@ class Indicator(object):
             ('label', cls.label),
             ('description', cls.description),
             ('variables', cls.variables),
-            ('avaliable_units', cls.available_units()),
-            ('default_unit', cls.default_unit()),
+            ('avaliable_units', cls.available_units),
+            ('default_units', cls.default_units),
         ])
-
-    @classmethod
-    def available_units(cls):
-        """ Provide the units in which this indicator may return its values as upper-case strings.
-        Must contain the string returned by `default_unit()`.
-        @returns tuple of strings
-        """
-        raise NotImplementedError('Indicator subclass must implement available_units()')
-
-    @classmethod
-    def default_unit(cls):
-        """ @returns default unit for indicator values
-
-        This method should return an upper-case string contained in the tuple returned by
-        `available_units()`. If requested unit is the default unit, no conversion will be performed.
-        """
-        raise NotImplementedError('Indicator subclass must implement default_unit()')
 
     def get_queryset(self):
         """ Get the initial indicator queryset
@@ -91,71 +90,79 @@ class Indicator(object):
 
     def filter_objects(self):
         """ A subclass can override this to further filter the dataset before calling calculate """
-        return self.queryset
-
-    def calculate(self):
-        # reference the subclass of this abstract parent class
-        cls = type(self)
-        results = self.aggregate()
-        if self.units:
-            if self.units not in cls.available_units():
-                raise ValueError('Indicator cannot be converted to the unit requested')
-            elif self.units.upper() != cls.default_unit().upper():
-                results = self.convert(results, self.units.upper())
-        return self.serializer.to_representation(results)
+        if self.filters is not None:
+            return self.queryset.filter(**self.filters)
+        else:
+            return self.queryset
 
     def aggregate(self):
         """ Calculate the indicator aggregation
 
-        This method should use self.queryset to calculate the indicator returning a dict
-        that matches the form returned by the Django QuerySet annotate method
-
+        This method should use self.queryset to calculate the indicator returning a list of dicts
+        that matches the form returned by the Django QuerySet `values` method
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
-    def convert(self, results, units):
+    def convert(self, aggregations):
         """ Convert aggregated results to the requested unit.
 
-        This method must handle converting from `default_unit()` to each of the other units listed
-        in `available_units()`.
-
-        @param results Dict returned by aggregate method
-        @param units String of unit to convert into. Must be contained in `available_units()`.
-        @returns Dict in same format at results parameter, with converted values
+        @param aggregations list-of-dicts returned by aggregate method
+        @returns Dict in same format at results parameter, with values converted to `self.units`
         """
-        raise NotImplementedError('Indicator subclass must implement convert()')
+        if self.units == self.storage_units:
+            return aggregations
+        converter = self.conversions[self.storage_units][self.units]
+        for item in aggregations:
+            item['value'] = converter(item['value'])
+        return aggregations
 
+    def compose_results(self, aggregations):
+        """ Combine models and compose results
 
-class TemperatureUnitsMixin(Indicator):
-    """ Define units for temperature conversion.
-    """
+        Given the results of `aggregate`, should produce a dictionary of the form:
+        {
+            'year': value
+        }
+        in the case of yearly aggregated indicators, and
+        {
+            'year': [jan_value, feb_value,...,dec_value]
+        }
+        in the case of monthly aggregated indicators
+        """
+        raise NotImplementedError('Indicator subclass must implement compose_results()')
 
-    @classmethod
-    def available_units(cls):
-        return ('K', 'F')
-
-    @classmethod
-    def default_unit(cls):
-        return 'K'
+    def calculate(self):
+        aggregations = self.aggregate()
+        aggregations = self.convert(aggregations)
+        results = self.compose_results(aggregations)
+        return self.serializer.to_representation(results)
 
 
 class YearlyIndicator(Indicator):
+    """ Base class for yearly indicators. """
 
-    serializer_class = YearlyIndicatorSerializer
+    def compose_results(self, aggregations):
+        """ Combine models and compose results
+
+        Reduces year/model query results to yearly average values across models, using floating
+        point values.
+        """
+        results = {}
+        for result in aggregations:
+            results.setdefault(result['data_source__year'], []).append(result['value'])
+        return {yr: float_avg(values) for (yr, values) in results.items()}
 
 
-class YearlyAverageTemperatureIndicator(YearlyIndicator, TemperatureUnitsMixin):
-
+class YearlyAggregationIndicator(YearlyIndicator):
     def aggregate(self):
-        variable = self.variables[0]
-        return (self.queryset.values('data_source__year')
-                             .annotate(value=Avg(variable)))
+        return (self.queryset.values('data_source__year', 'data_source__model')
+                             .annotate(value=self.agg_function(self.variables[0])))
 
-    def convert(self, results, units):
-        if units == 'F':
-            for year in results:
-                year['value'] = kelvin_to_fahrenheit(year['value'])
-        else:
-            raise ValueError('Cannot convert YearlyAverageTemperatureIndicator to requested units')
 
-        return results
+class YearlyCountIndicator(YearlyAggregationIndicator):
+    agg_function = Count
+
+    def compose_results(self, aggregations):
+        """ Overriden to return integer values for averages across models """
+        results = super(YearlyCountIndicator, self).compose_results(aggregations)
+        return {yr: int(round(val)) for (yr, val) in results.items()}
