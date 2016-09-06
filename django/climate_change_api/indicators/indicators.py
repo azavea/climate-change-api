@@ -42,12 +42,14 @@ class YearlyMinLowTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator)
 
 
 class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Total Precipitation'
     description = 'Yearly total precipitation'
     variables = ('pr',)
     agg_function = Sum
 
 
 class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Frost Days'
     description = ('Number of days per year in which the minimum daily temperature is ' +
                    'less than the melting point of water (273.15K)')
     variables = ('tasmin',)
@@ -55,6 +57,7 @@ class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
 
 
 class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation per year')
     variables = ('pr',)
 
@@ -96,6 +99,7 @@ class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
 
 
 class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Dry Spells'
     description = ('Total number of times per year that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
