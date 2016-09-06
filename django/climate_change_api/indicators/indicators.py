@@ -138,7 +138,7 @@ class DailyMinTemperature(TemperatureUnitsMixin, DailyRawIndicator):
 
 class DailyMaxTemperature(TemperatureUnitsMixin, DailyRawIndicator):
     label = 'Daily Max Temperature'
-    description = ('Daily maxmimum temperature averaged across all requested models')
+    description = ('Daily maximum temperature averaged across all requested models')
     variables = ('tasmax',)
 
 
