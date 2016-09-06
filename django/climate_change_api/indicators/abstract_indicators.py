@@ -24,6 +24,12 @@ class Indicator(object):
     filters = None
     serializer_class = IndicatorSerializer
 
+    # Subclasses should use a units mixin from 'unit_converters' to define these units
+    # attributes and any necessary conversion functions
+    storage_units = None
+    default_units = None
+    available_units = (None,)
+
     def __init__(self, city, scenario, models=None, years=None, units=None):
         if not city:
             raise ValueError('Indicator constructor requires a city instance')
