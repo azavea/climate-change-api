@@ -8,15 +8,6 @@ from climate_data.filters import ClimateDataFilterSet
 from .serializers import (IndicatorSerializer,
                           DailyIndicatorSerializer)
 
-
-def float_min(values):
-    return float(min(values))
-
-
-def float_max(values):
-    return float(max(values))
-
-
 def float_avg(values):
     return float(sum(values)) / len(values)
 
@@ -160,7 +151,7 @@ class YearlyIndicator(Indicator):
         results = {}
         for result in aggregations:
             results.setdefault(result['data_source__year'], []).append(result['value'])
-        return {yr: {"avg": float_avg(values), "min": float_min(values), "max": float_max(values)} for (yr, values) in results.items()}
+        return {yr: {'avg': float_avg(values), 'min': min(values), 'max': max(values)} for (yr, values) in results.items()}
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
@@ -175,7 +166,7 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
     def compose_results(self, aggregations):
         """ Overriden to return integer values for averages across models """
         results = super(YearlyCountIndicator, self).compose_results(aggregations)
-        return {yr: int(round(val)) for (yr, val) in results.items()}
+        return {yr: int(round(val['avg'])) for (yr, val) in results.items()}
 
 
 class DailyIndicator(Indicator):

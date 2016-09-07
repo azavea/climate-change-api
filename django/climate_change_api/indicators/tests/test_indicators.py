@@ -70,56 +70,89 @@ class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.YearlyAverageHighTemperature
     indicator_name = 'yearly_average_high_temperature'
     units = 'K'
-    test_indicator_rcp85_equals = {2000: 35.0}
-    test_indicator_rcp45_equals = {2000: 15.0, 2001: 15.0, 2002: 10.0, 2003: 10.0}
-    test_years_filter_equals = {2001: 15.0, 2002: 10.0}
-    test_models_filter_equals = {2000: 10.0, 2001: 10.0, 2002: 10.0, 2003: 10.0}
-    test_units_fahrenheit_equals = {2000: -396.67}
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
 class YearlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.YearlyAverageLowTemperature
     indicator_name = 'yearly_average_low_temperature'
     units = 'K'
-    test_indicator_rcp85_equals = {2000: 35.0}
-    test_indicator_rcp45_equals = {2000: 15.0, 2001: 15.0, 2002: 10.0, 2003: 10.0}
-    test_years_filter_equals = {2001: 15.0, 2002: 10.0}
-    test_models_filter_equals = {2000: 10.0, 2001: 10.0, 2002: 10.0, 2003: 10.0}
-    test_units_fahrenheit_equals = {2000: -396.67}
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
 class YearlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.YearlyMaxHighTemperature
     indicator_name = 'yearly_max_high_temperature'
     units = 'K'
-    test_indicator_rcp85_equals = {2000: 35.0}
-    test_indicator_rcp45_equals = {2000: 15.0, 2001: 15.0, 2002: 10.0, 2003: 10.0}
-    test_years_filter_equals = {2001: 15.0, 2002: 10.0}
-    test_models_filter_equals = {2000: 10.0, 2001: 10.0, 2002: 10.0, 2003: 10.0}
-    test_units_fahrenheit_equals = {2000: -396.67}
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
 class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.YearlyMinLowTemperature
     indicator_name = 'yearly_min_low_temperature'
     units = 'K'
-    test_indicator_rcp85_equals = {2000: 35.0}
-    test_indicator_rcp45_equals = {2000: 15.0, 2001: 15.0, 2002: 10.0, 2003: 10.0}
-    test_years_filter_equals = {2001: 15.0, 2002: 10.0}
-    test_models_filter_equals = {2000: 10.0, 2001: 10.0, 2002: 10.0, 2003: 10.0}
-    test_units_fahrenheit_equals = {2000: -396.67}
-
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     s2d = 60*60*24.0  # seconds to days unit conversion
 
     indicator_class = indicators.YearlyTotalPrecipitation
     indicator_name = 'yearly_total_precipitation'
-    test_indicator_rcp85_equals = {2000: 35*s2d}
-    test_indicator_rcp45_equals = {2000: 15*s2d, 2001: 15*s2d, 2002: 10*s2d, 2003: 0}
-    test_years_filter_equals = {2001: 15*s2d, 2002: 10*s2d}
-    test_models_filter_equals = {2000: 10*s2d, 2001: 10*s2d, 2002: 10*s2d, 2003: 0}
-
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0*s2d, 'min': 30.0*s2d, 'max': 40.0*s2d}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
+                                   2001: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
+                                   2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+                                   2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_years_filter_equals = {2001: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
+                                2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d}}
+    test_models_filter_equals = {2000: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+                                 2001: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+                                 2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+                                 2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
 
 class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyFrostDays
