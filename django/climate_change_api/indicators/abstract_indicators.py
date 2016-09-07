@@ -1,11 +1,12 @@
 from collections import OrderedDict
 import re
 
-from django.db.models import Count
+from django.db.models import Avg, Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .serializers import IndicatorSerializer
+from .serializers import (IndicatorSerializer,
+                          DailyIndicatorSerializer)
 
 
 def float_avg(values):
@@ -83,7 +84,7 @@ class Indicator(object):
         """
         filter_set = ClimateDataFilterSet()
         queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
-                                       .filter(data_source__scenario=self.scenario))
+                    .filter(data_source__scenario=self.scenario))
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
         return queryset
@@ -103,7 +104,7 @@ class Indicator(object):
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
-    def convert(self, aggregations):
+    def convert_units(self, aggregations):
         """ Convert aggregated results to the requested unit.
 
         @param aggregations list-of-dicts returned by aggregate method
@@ -113,7 +114,8 @@ class Indicator(object):
             return aggregations
         converter = self.conversions[self.storage_units][self.units]
         for item in aggregations:
-            item['value'] = converter(item['value'])
+            if item['value'] is not None:
+                item['value'] = converter(item['value'])
         return aggregations
 
     def compose_results(self, aggregations):
@@ -133,7 +135,7 @@ class Indicator(object):
 
     def calculate(self):
         aggregations = self.aggregate()
-        aggregations = self.convert(aggregations)
+        aggregations = self.convert_units(aggregations)
         results = self.compose_results(aggregations)
         return self.serializer.to_representation(results)
 
@@ -166,3 +168,18 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
         """ Overriden to return integer values for averages across models """
         results = super(YearlyCountIndicator, self).compose_results(aggregations)
         return {yr: int(round(val)) for (yr, val) in results.items()}
+
+
+class DailyIndicator(Indicator):
+    serializer_class = DailyIndicatorSerializer
+
+
+class DailyRawIndicator(DailyIndicator):
+    def aggregate(self):
+        variable = self.variables[0]
+        return (self.queryset.values('data_source__year', 'day_of_year')
+                .annotate(value=Avg(variable))
+                .order_by('data_source__year', 'day_of_year'))
+
+    def compose_results(self, aggregations):
+        return aggregations
