@@ -51,8 +51,8 @@ class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
 
 class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Frost Days'
-    description = ('Number of days per year in which the minimum daily temperature is ' +
-                   'less than the melting point of water (273.15K)')
+    description = ('Number of days per year in which the daily low temperature is ' +
+                   'below the melting point of water')
     variables = ('tasmin',)
     filters = {'tasmin__lt': 273.15}
 
@@ -130,15 +130,15 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
         return results
 
 
-class DailyMinTemperature(TemperatureUnitsMixin, DailyRawIndicator):
-    label = 'Daily Min Temperature'
-    description = ('Daily minimum temperature averaged across all requested models')
+class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
+    label = 'Daily Low Temperature'
+    description = ('Daily low temperature averaged across all requested models')
     variables = ('tasmin',)
 
 
-class DailyMaxTemperature(TemperatureUnitsMixin, DailyRawIndicator):
-    label = 'Daily Max Temperature'
-    description = ('Daily maximum temperature averaged across all requested models')
+class DailyHighTemperature(TemperatureUnitsMixin, DailyRawIndicator):
+    label = 'Daily High Temperature'
+    description = ('Daily high temperature averaged across all requested models')
     variables = ('tasmax',)
 
 
@@ -146,7 +146,6 @@ class DailyPrecipitation(PrecipUnitsMixin, DailyRawIndicator):
     label = 'Daily Precipitation'
     description = ('Daily precipitation averaged across all requested models')
     variables = ('pr',)
-
 
 
 def list_available_indicators():
