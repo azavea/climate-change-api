@@ -9,6 +9,14 @@ from .serializers import (IndicatorSerializer,
                           DailyIndicatorSerializer)
 
 
+def float_min(values):
+    return float(min(values))
+
+
+def float_max(values):
+    return float(max(values))
+
+
 def float_avg(values):
     return float(sum(values)) / len(values)
 
@@ -152,7 +160,7 @@ class YearlyIndicator(Indicator):
         results = {}
         for result in aggregations:
             results.setdefault(result['data_source__year'], []).append(result['value'])
-        return {yr: float_avg(values) for (yr, values) in results.items()}
+        return {yr: {"avg": float_avg(values), "min": float_min(values), "max": float_max(values)} for (yr, values) in results.items()}
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
