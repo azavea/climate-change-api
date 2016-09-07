@@ -84,7 +84,7 @@ class Indicator(object):
         """
         filter_set = ClimateDataFilterSet()
         queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
-                                       .filter(data_source__scenario=self.scenario))
+                    .filter(data_source__scenario=self.scenario).order_by('data_source__year', 'day_of_year'))
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
         return queryset
@@ -104,7 +104,7 @@ class Indicator(object):
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
-    def convert(self, aggregations):
+    def convert_units(self, aggregations):
         """ Convert aggregated results to the requested unit.
 
         @param aggregations list-of-dicts returned by aggregate method
@@ -135,7 +135,7 @@ class Indicator(object):
 
     def calculate(self):
         aggregations = self.aggregate()
-        aggregations = self.convert(aggregations)
+        aggregations = self.convert_units(aggregations)
         results = self.compose_results(aggregations)
         return self.serializer.to_representation(results)
 
@@ -178,7 +178,7 @@ class DailyRawIndicator(DailyIndicator):
     def aggregate(self):
         variable = self.variables[0]
         return (self.queryset.values('data_source__year', 'day_of_year')
-                             .annotate(value=Avg(variable)))
+                .annotate(value=Avg(variable)))
 
     def compose_results(self, aggregations):
         return aggregations
