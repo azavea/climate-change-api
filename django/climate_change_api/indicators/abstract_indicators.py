@@ -42,13 +42,10 @@ class Indicator(object):
         self.models = models
         self.years = years
 
-        # Validate and set desired units
-        if units is None:
-            self.units = self.default_units
-        elif units not in self.available_units:
-            raise ValueError('Cannot convert to requested units')
-        else:
-            self.units = units
+        # Set and validate desired units
+        self.units = units if units is not None else self.default_units
+        if self.units not in self.available_units:
+            raise ValueError('Cannot convert to requested units ({})'.format(self.units))
 
         self.queryset = self.get_queryset()
         self.queryset = self.filter_objects()
