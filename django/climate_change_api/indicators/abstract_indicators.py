@@ -84,7 +84,7 @@ class Indicator(object):
         """
         filter_set = ClimateDataFilterSet()
         queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
-                    .filter(data_source__scenario=self.scenario).order_by('data_source__year', 'day_of_year'))
+                    .filter(data_source__scenario=self.scenario))
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
         return queryset
@@ -178,7 +178,8 @@ class DailyRawIndicator(DailyIndicator):
     def aggregate(self):
         variable = self.variables[0]
         return (self.queryset.values('data_source__year', 'day_of_year')
-                .annotate(value=Avg(variable)))
+                .annotate(value=Avg(variable))
+                .order_by('data_source__year', 'day_of_year'))
 
     def compose_results(self, aggregations):
         return aggregations
