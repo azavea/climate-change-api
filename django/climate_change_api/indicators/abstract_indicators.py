@@ -8,6 +8,7 @@ from climate_data.filters import ClimateDataFilterSet
 from .serializers import (IndicatorSerializer,
                           DailyIndicatorSerializer)
 
+
 def float_avg(values):
     return float(sum(values)) / len(values)
 
@@ -145,8 +146,8 @@ class YearlyIndicator(Indicator):
     def compose_results(self, aggregations):
         """ Combine models and compose results
 
-        Reduces year/model query results to yearly average values across models, using floating
-        point values.
+        Reduces year/model query results to yearly average, min, and max values across models,
+        using floating point values.
         """
         results = {}
         for result in aggregations:
