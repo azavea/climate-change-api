@@ -11,10 +11,8 @@ from climate_data.models import (City, Scenario, ClimateModel,
                                  ClimateData)
 
 import requests
-from decimal import Decimal
 
 from time import time, sleep
-from django.db import connection
 
 logger = logging.getLogger('climate_data')
 
@@ -87,6 +85,7 @@ def create_models(models):
             dbmodels.append(dbmodel)
     return dbmodels
 
+
 def import_city(citydata):
     """
     Create a city and if not already created, its grid cell from the city dict
@@ -94,18 +93,18 @@ def import_city(citydata):
     """
 
     try:
-        return City.objects.get(
+        city = City.objects.get(
             name=citydata['properties']['name'],
             admin=citydata['properties']['admin'],
         )
+        if not city.map_cell:
+            city.map_cell = import_map_cell(citydata['properties']['map_cell'])
+            city.save()
+        return city
     except ObjectDoesNotExist:
         logger.info("City does not exist, creating city")
 
-        map_cell_coordinates = citydata['properties']['map_cell']['coordinates']
-        map_cell = ClimateDataCell.objects.get_or_create(
-            lon=map_cell_coordinates[0],
-            lat=map_cell_coordinates[1]
-        )[0]
+        map_cell = import_map_cell(citydata['properties']['map_cell'])
 
         city_coordinates = citydata['geometry']['coordinates']
         return City.objects.create(
@@ -117,6 +116,14 @@ def import_city(citydata):
         )
 
 
+def import_map_cell(mapcelldata):
+    map_cell_coordinates = mapcelldata['coordinates']
+    return ClimateDataCell.objects.get_or_create(
+        lon=map_cell_coordinates[0],
+        lat=map_cell_coordinates[1]
+    )[0]
+
+
 def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
     """
     Import the the output of get_data into the database
@@ -126,19 +133,29 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
     start_time = time()
     assert len(data['climate_models']) == 1
     for year, yeardata in data['data'].iteritems():
-        data_source = ClimateDataSource.objects.get_or_create(model=model,
-                                                              scenario=scenario,
-                                                              year=int(year))[0]
-        ClimateData.objects.bulk_create([
-            ClimateData(map_cell=local_map_cell,
-                        data_source=data_source,
-                        day_of_year=day,
-                        tasmin=tasmin,
-                        tasmax=tasmax,
-                        pr=pr)
-            for day, (tasmin, tasmax, pr) in enumerate(zip(yeardata['tasmin'],
-                                                           yeardata['tasmax'],
-                                                           yeardata['pr']), start=1)])
+        data_source = ClimateDataSource.objects.get_or_create(
+            model=model,
+            scenario=scenario,
+            year=int(year))[0]
+
+        # Build a generator for (day_of_year, (tasmin, tasmax, pr))
+        date_value_tuples = enumerate(zip(*(yeardata[v] for v in ('tasmin', 'tasmax', 'pr'))), start=1)
+
+        # Exclude any data points that have no value for any of the values
+        filtered_list = ((day, values) for (day, values) in date_value_tuples if any(values))
+
+        # Create a generator that produces a ClimateData object for each data point
+        climate_data_list = (ClimateData(map_cell=local_map_cell,
+                                         data_source=data_source,
+                                         day_of_year=day,
+                                         tasmin=tasmin,
+                                         tasmax=tasmax,
+                                         pr=pr)
+                             for day, (tasmin, tasmax, pr) in filtered_list)
+
+        # Pass the generator to bulk_create
+        ClimateData.objects.bulk_create(climate_data_list)
+
     logger.info('Imported in %f s', time() - start_time)
 
 
