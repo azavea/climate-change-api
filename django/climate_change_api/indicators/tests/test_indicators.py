@@ -139,20 +139,19 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
-    s2d = 60*60*24.0  # seconds to days unit conversion
-
     indicator_class = indicators.YearlyTotalPrecipitation
     indicator_name = 'yearly_total_precipitation'
-    test_indicator_rcp85_equals = {2000: {'avg': 35.0*s2d, 'min': 30.0*s2d, 'max': 40.0*s2d}}
-    test_indicator_rcp45_equals = {2000: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
-                                   2001: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
-                                   2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+    units = 'kg*m^2/s'
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
                                    2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
-    test_years_filter_equals = {2001: {'max': 20.0*s2d, 'avg': 15.0*s2d, 'min': 10.0*s2d},
-                                2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d}}
-    test_models_filter_equals = {2000: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
-                                 2001: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
-                                 2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
                                  2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
 
 

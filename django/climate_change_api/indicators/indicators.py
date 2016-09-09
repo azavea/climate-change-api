@@ -46,7 +46,8 @@ class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
     label = 'Yearly Total Precipitation'
     description = 'Yearly total precipitation'
     variables = ('pr',)
-    agg_function = Sum
+    agg_function = Avg
+    default_units = 'in/year'
 
 
 class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
