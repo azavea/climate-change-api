@@ -62,11 +62,11 @@ class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
     description = ('Maximum number of consecutive days with no precipitation per year')
     variables = ('pr',)
 
-    def calculate(self):
+    def aggregate(self):
         """
         Uses a query to partition the data series into consecutive days with the same amount of
         precip and return all streaks sorted by year, model, streak length. Then picks the longest
-        where the amount is zero for each year and model, then averages across models.
+        where the amount is zero for each year and model.
 
         Starts from the existing queryset with year/model/etc filters already applied.
 
@@ -84,18 +84,22 @@ class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
                   FROM ({base_query}) orig_query) groups
             GROUP BY year, model_id, grp, pr
         """.format(base_query=base_query)
+        # First run the query and get a list of dicts with one result per sequence
         with connection.cursor() as cursor:
             cursor.execute(query, base_query_params)
             columns = [col[0] for col in cursor.description]
             sequences = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        # Then run through the results to get the longest sequence for each model for each year
         longest = {}
         for seq in sequences:
             year = longest.setdefault(seq['data_source__year'], {})
             year.setdefault(seq['data_source__model'], 0)
             if seq['pr'] == 0 and seq['length'] > year[seq['data_source__model']]:
                 year[seq['data_source__model']] = seq['length']
-        results = {yr: int_avg([length for length in models.values()])
-                   for (yr, models) in longest.items()}
+        # Then convert back to the format that aggregate is supposed to return so that subsequent
+        # steps will work
+        results = [{'data_source__year': yr, 'data_source__model': model, 'value': value}
+                   for yr in longest for (model, value) in longest[yr].items()]
         return results
 
 
@@ -105,7 +109,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
                    'days without precipitation')
     variables = ('pr',)
 
-    def calculate(self):
+    def aggregate(self):
         """ Since filtering for precip in the query means we get no data for a year/model if
         there were zero dry days, this pulls all relevant data and does the filtering and
         counting in code.
@@ -113,6 +117,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
         days = (self.queryset.order_by('data_source__year', 'data_source__model', 'day_of_year')
                              .values('data_source__year', 'data_source__model', 'day_of_year', 'pr')
                 )
+        # Loop through the results and add up dry spells by year and model
         counts = {}
         for day in days:
             year = counts.setdefault(day['data_source__year'], {})
@@ -124,9 +129,9 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
                 model['dry_days'] += 1
             if model['dry_days'] == 5:
                 model['streaks'] += 1
-        results = {}
-        for yr in counts:
-            results[yr] = int_avg([m['streaks'] for m in counts[yr].values()])
+        # Convert the answers to the required return format
+        results = [{'data_source__year': yr, 'data_source__model': md, 'value': value['streaks']}
+                   for yr in counts for (md, value) in counts[yr].items()]
         return results
 
 
