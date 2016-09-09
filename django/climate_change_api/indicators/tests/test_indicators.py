@@ -137,6 +137,7 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
                                  2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
     test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
+
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     s2d = 60*60*24.0  # seconds to days unit conversion
 
@@ -154,28 +155,50 @@ class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
                                  2002: {'avg': 10.0*s2d, 'max': 10.0*s2d, 'min': 10.0*s2d},
                                  2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
 
+
 class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyFrostDays
     indicator_name = 'yearly_frost_days'
-    test_indicator_rcp85_equals = {2000: 1}
-    test_indicator_rcp45_equals = {2000: 1, 2001: 1, 2002: 1, 2003: 1}
-    test_years_filter_equals = {2001: 1, 2002: 1}
-    test_models_filter_equals = {2000: 1, 2001: 1, 2002: 1, 2003: 1}
+    test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
+                                   2001: {'avg': 1, 'min': 1, 'max': 1},
+                                   2002: {'avg': 1, 'min': 1, 'max': 1},
+                                   2003: {'avg': 1, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {2001: {'avg': 1, 'min': 1, 'max': 1},
+                                2002: {'avg': 1, 'min': 1, 'max': 1}}
+    test_models_filter_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
+                                 2001: {'avg': 1, 'min': 1, 'max': 1},
+                                 2002: {'avg': 1, 'min': 1, 'max': 1},
+                                 2003: {'avg': 1, 'min': 1, 'max': 1}}
 
 
 class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyMaxConsecutiveDryDays
     indicator_name = 'yearly_max_consecutive_dry_days'
-    test_indicator_rcp85_equals = {2000: 0}
-    test_indicator_rcp45_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 1}
-    test_years_filter_equals = {2001: 0, 2002: 0}
-    test_models_filter_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 1}
+    test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                   2001: {'avg': 0, 'min': 0, 'max': 0},
+                                   2002: {'avg': 0, 'min': 0, 'max': 0},
+                                   2003: {'avg': 1, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {2001: {'avg': 0, 'min': 0, 'max': 0},
+                                2002: {'avg': 0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                 2001: {'avg': 0, 'min': 0, 'max': 0},
+                                 2002: {'avg': 0, 'min': 0, 'max': 0},
+                                 2003: {'avg': 1, 'min': 1, 'max': 1}}
 
 
 class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyDrySpells
     indicator_name = 'yearly_dry_spells'
-    test_indicator_rcp85_equals = {2000: 0}
-    test_indicator_rcp45_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 0}
-    test_years_filter_equals = {2001: 0, 2002: 0}
-    test_models_filter_equals = {2000: 0, 2001: 0, 2002: 0, 2003: 0}
+    test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                   2001: {'avg': 0, 'min': 0, 'max': 0},
+                                   2002: {'avg': 0, 'min': 0, 'max': 0},
+                                   2003: {'avg': 0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {2001: {'avg': 0, 'min': 0, 'max': 0},
+                                2002: {'avg': 0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                 2001: {'avg': 0, 'min': 0, 'max': 0},
+                                 2002: {'avg': 0, 'min': 0, 'max': 0},
+                                 2003: {'avg': 0, 'min': 0, 'max': 0}}

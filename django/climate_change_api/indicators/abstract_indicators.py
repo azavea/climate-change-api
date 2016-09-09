@@ -152,7 +152,8 @@ class YearlyIndicator(Indicator):
         results = {}
         for result in aggregations:
             results.setdefault(result['data_source__year'], []).append(result['value'])
-        return {yr: {'avg': float_avg(values), 'min': min(values), 'max': max(values)} for (yr, values) in results.items()}
+        return {yr: {'avg': float_avg(values), 'min': min(values), 'max': max(values)}
+                for (yr, values) in results.items()}
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
@@ -167,7 +168,9 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
     def compose_results(self, aggregations):
         """ Overriden to return integer values for averages across models """
         results = super(YearlyCountIndicator, self).compose_results(aggregations)
-        return {yr: int(round(val['avg'])) for (yr, val) in results.items()}
+        for (yr, vals) in results.items():
+            vals['avg'] = int(round(vals['avg']))
+        return results
 
 
 class DailyIndicator(Indicator):
