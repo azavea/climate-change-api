@@ -99,8 +99,10 @@ class Indicator(object):
     def aggregate(self):
         """ Calculate the indicator aggregation
 
-        This method should use self.queryset to calculate the indicator returning a list of dicts
-        that matches the form returned by the Django QuerySet `values` method
+        This method should use self.queryset to calculate the indicator, returning a list of dicts
+        that matches the form returned by the Django QuerySet `values` method and includes the
+        target value under the 'value' key.
+        e.g. { 'data_source__year': 2077, 'data_source__model': 4, 'value': 74.59}
         """
         raise NotImplementedError('Indicator subclass must implement aggregate()')
 
@@ -108,7 +110,8 @@ class Indicator(object):
         """ Convert aggregated results to the requested unit.
 
         @param aggregations list-of-dicts returned by aggregate method
-        @returns Dict in same format at results parameter, with values converted to `self.units`
+        @returns Dict in same format as the aggregations parameter, with values converted
+                 to `self.units`
         """
         if self.units == self.storage_units:
             return aggregations
@@ -123,11 +126,14 @@ class Indicator(object):
 
         Given the results of `aggregate`, should produce a dictionary of the form:
         {
-            'year': value
+            'year': {'avg': value, 'min': value, 'max': value}
         }
         in the case of yearly aggregated indicators, and
         {
-            'year': [jan_value, feb_value,...,dec_value]
+            'year': {
+                'avg': [jan_value, feb_value,...,dec_value],
+                'min': [jan_value, feb_value,...,dec_value],
+                'max': [jan_value, feb_value,...,dec_value]
         }
         in the case of monthly aggregated indicators
         """
@@ -146,13 +152,14 @@ class YearlyIndicator(Indicator):
     def compose_results(self, aggregations):
         """ Combine models and compose results
 
-        Reduces year/model query results to yearly average values across models, using floating
-        point values.
+        Reduces year/model query results to yearly average, min, and max values across models,
+        using floating point values.
         """
         results = {}
         for result in aggregations:
             results.setdefault(result['data_source__year'], []).append(result['value'])
-        return {yr: float_avg(values) for (yr, values) in results.items()}
+        return {yr: {'avg': float_avg(values), 'min': min(values), 'max': max(values)}
+                for (yr, values) in results.items()}
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
@@ -167,7 +174,9 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
     def compose_results(self, aggregations):
         """ Overriden to return integer values for averages across models """
         results = super(YearlyCountIndicator, self).compose_results(aggregations)
-        return {yr: int(round(val)) for (yr, val) in results.items()}
+        for (yr, vals) in results.items():
+            vals['avg'] = int(round(vals['avg']))
+        return results
 
 
 class DailyIndicator(Indicator):
