@@ -70,7 +70,7 @@ class Indicator(object):
             ('description', cls.description),
             ('time_aggregation', cls.time_aggregation),
             ('variables', cls.variables),
-            ('avaliable_units', cls.available_units),
+            ('available_units', cls.available_units),
             ('default_units', cls.default_units),
         ])
 
