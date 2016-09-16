@@ -21,6 +21,7 @@ class Indicator(object):
 
     label = ''
     description = ''
+    time_aggregation = None     # One of 'daily'|'monthly'|'yearly'
     variables = ClimateData.VARIABLE_CHOICES
     filters = None
     serializer_class = IndicatorSerializer
@@ -67,8 +68,9 @@ class Indicator(object):
             ('name', cls.name()),
             ('label', cls.label),
             ('description', cls.description),
+            ('time_aggregation', cls.time_aggregation),
             ('variables', cls.variables),
-            ('avaliable_units', cls.available_units),
+            ('available_units', cls.available_units),
             ('default_units', cls.default_units),
         ])
 
@@ -146,6 +148,8 @@ class Indicator(object):
 class YearlyIndicator(Indicator):
     """ Base class for yearly indicators. """
 
+    time_aggregation = 'yearly'
+
     def compose_results(self, aggregations):
         """ Combine models and compose results
 
@@ -178,6 +182,7 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
 
 class DailyIndicator(Indicator):
     serializer_class = DailyIndicatorSerializer
+    time_aggregation = 'daily'
 
 
 class DailyRawIndicator(DailyIndicator):
