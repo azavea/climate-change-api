@@ -50,8 +50,8 @@ class Command(BaseCommand):
         else:
             model_ids = map(get_model_id_from_name, options['models'].split(','))
         if options['years'] == 'all':
-            years = (map(str, range(1950, 2005) if options['rcp'] == 'historical'
-                     else map(str, range(2006, 2100))))
+            years = (map(str, range(1950, 2006) if options['rcp'] == 'historical'
+                     else map(str, range(2006, 2101))))
         else:
             years = options['years'].split(',')
         for year in years:
