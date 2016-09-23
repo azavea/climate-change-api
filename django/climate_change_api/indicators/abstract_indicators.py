@@ -1,12 +1,12 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import re
+from datetime import date, timedelta
 
-from django.db.models import Avg, Count
+from django.db.models import F, Avg, Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .serializers import (IndicatorSerializer,
-                          DailyIndicatorSerializer)
+from .serializers import IndicatorSerializer
 
 
 def float_avg(values):
@@ -125,23 +125,36 @@ class Indicator(object):
 
         Given the results of `aggregate`, should produce a dictionary of the form:
         {
-            'year': {'avg': value, 'min': value, 'max': value}
+            'time_repr': {'avg': value, 'min': value, 'max': value}
         }
-        in the case of yearly aggregated indicators, and
+
+        Where 'time_repr' is the date in a hyphen-deliminated ISO-8601 format for
+        the appropriate aggregation level. Specifically, one of the following:
+        * YYYY for yearly data
+        * YYYY-MM for monthly data
+        * YYYY-MM-DD for daily data
+
+        _Do not_ use YYYYMMDD
+
+        For example, a yearly indicator could be presented as:
         {
-            'year': {
-                'avg': [jan_value, feb_value,...,dec_value],
-                'min': [jan_value, feb_value,...,dec_value],
-                'max': [jan_value, feb_value,...,dec_value]
+            '2050': {'avg': value, 'min': value, 'max': value}
         }
-        in the case of monthly aggregated indicators
+
+        And a monthly indicator as:
+        {
+            '2050-03': {'avg': value, 'min': value, 'max': value}
+        }
+
         """
-        raise NotImplementedError('Indicator subclass must implement compose_results()')
+        return {key: {'avg': float_avg(values), 'min': min(values), 'max': max(values)}
+                for (key, values) in aggregations.iteritems()}
 
     def calculate(self):
         aggregations = self.aggregate()
         aggregations = self.convert_units(aggregations)
-        results = self.compose_results(aggregations)
+        collations = self.collate_results(aggregations)
+        results = self.compose_results(collations)
         return self.serializer.to_representation(results)
 
 
@@ -150,17 +163,11 @@ class YearlyIndicator(Indicator):
 
     time_aggregation = 'yearly'
 
-    def compose_results(self, aggregations):
-        """ Combine models and compose results
-
-        Reduces year/model query results to yearly average, min, and max values across models,
-        using floating point values.
-        """
-        results = {}
+    def collate_results(self, aggregations):
+        results = defaultdict(list)
         for result in aggregations:
-            results.setdefault(result['data_source__year'], []).append(result['value'])
-        return {yr: {'avg': float_avg(values), 'min': min(values), 'max': max(values)}
-                for (yr, values) in results.items()}
+            results[result['data_source__year']].append(result['value'])
+        return results
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
@@ -181,16 +188,25 @@ class YearlyCountIndicator(YearlyAggregationIndicator):
 
 
 class DailyIndicator(Indicator):
-    serializer_class = DailyIndicatorSerializer
     time_aggregation = 'daily'
+
+    def collate_results(self, aggregations):
+        # Convert the timeseries data into a more easily digestible tuple format
+        # The list is already sorted, so we can just maintain the original order
+        tuple_list = ((d['data_source__year'], d['day_of_year'], d['value'])
+                     for d in aggregations if d['value'])
+
+        results = defaultdict(list)
+        for (year, day_of_year, value) in tuple_list:
+            # Convert year and day_of_year to a Python date object
+            day = date(year, 1, 1) + timedelta(days=day_of_year-1)
+            results[day.isoformat()].append(value)
+        return results
 
 
 class DailyRawIndicator(DailyIndicator):
     def aggregate(self):
         variable = self.variables[0]
         return (self.queryset.values('data_source__year', 'day_of_year')
-                .annotate(value=Avg(variable))
+                .annotate(value=F(variable))
                 .order_by('data_source__year', 'day_of_year'))
-
-    def compose_results(self, aggregations):
-        return aggregations
