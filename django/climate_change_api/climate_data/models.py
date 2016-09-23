@@ -171,9 +171,9 @@ class HistoricAverageClimateData(models.Model):
     month_day = models.CharField(null=False, blank=False, max_length=5)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')
+                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA
     tasmax = models.FloatField(null=True,
-                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')
+                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA
     pr = models.FloatField(null=True,
                            help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA
 
