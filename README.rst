@@ -110,14 +110,14 @@ Import data (10 models, 100 cities)::
 Loading Computed Historic Aggregated Data
 '''''''''''''''''''''''''''''''''''''''''
 
-Some indicators rely on comparison to aggregated values computed from historic observations.
+Some indicators rely on comparison to aggregated values computed from historic observations. Because the aggregated data is based on historic readings and requires processing a large amount data to generate a relatively small result, these historic observations have been pre-computed and stored in a Django fixture.
 
 To load pre-computed historic aggregated values from the fixture::
 
     ./scripts/console django loaddata historic_averages
 
-To rebuild the fixture of computed historic aggreated values, first load cities into the database.
-Then run the manageent command to query for historic data from a remote server, aggregate the values,
+To rebuild the fixture of computed historic aggregated values, first load cities into the database.
+Then run the management command to query for historic data from a remote server, aggregate the values,
 and load them into the HistoricAverageClimateData model. Note that this will first delete any
 existing HistoricAverageClimateData objects from the local database::
 
