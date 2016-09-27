@@ -302,3 +302,6 @@ if DEBUG:
     SQS_IMPORT_QUEUE_ATTRIBUTES = {
         'VisibilityTimeout': str(3600)
     }
+
+
+AUTH_USER_MODEL = 'user_management.ClimateUser'
