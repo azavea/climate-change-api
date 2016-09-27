@@ -1,21 +1,18 @@
-from django.contrib.auth.models import User
-
 from factory.django import DjangoModelFactory
 
-from user_management.models import UserProfile
+from user_management.models import UserProfile, ClimateUser
 
 
 class UserFactory(DjangoModelFactory):
 
-    username = 'Panda'
     first_name = 'Hei'
     last_name = 'Bai'
     email = 'panda@wwf.org'
     password = 'iucnendangered'
 
     class Meta:
-        model = User
-        django_get_or_create = ('username', )
+        model = ClimateUser
+        django_get_or_create = ('email', )
 
 
 class UserProfileFactory(DjangoModelFactory):
