@@ -43,7 +43,6 @@ class UserProfileView(LoginRequiredMixin, View):
         self.initial = {
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'email': user.email,
             'organization': user.userprofile.organization
         }
         return self.initial
@@ -63,7 +62,6 @@ class UserProfileView(LoginRequiredMixin, View):
         self.form = UserProfileForm(request._post, initial=self.initial)
         if self.form.is_valid():
             # Save changes to user, token, userprofile models
-            user.email = self.form.cleaned_data.get('email')
             user.first_name = self.form.cleaned_data.get('first_name')
             user.last_name = self.form.cleaned_data.get('last_name')
             user.userprofile.organization = self.form.cleaned_data.get('organization')
