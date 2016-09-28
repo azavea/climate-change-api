@@ -1,19 +1,18 @@
 import logging
 
+from urllib import urlencode
+import numpy as np
+
 from django.core.management.base import BaseCommand
-from django.core.exceptions import ObjectDoesNotExist
 
 from climate_data.management.commands.import_from_other_instance import get_cities, make_request
-from climate_data.models import City, HistoricAverageClimateData
-
-import requests
-
-from time import time, sleep
+from climate_data.models import City, HistoricAverageClimateData, ClimateDataBaseline, ClimateModel
 
 logger = logging.getLogger('climate_data')
 
 CITY_URL = 'https://{domain}/api/city/?format=json'
 INDICATOR_URL = 'https://{domain}/api/climate-data/{city}/historical/indicator/{indicator}/?years=1961:1990&units={units}&format=json'  # NOQA
+RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 
 INDICATORS = [
     {
@@ -29,6 +28,7 @@ INDICATORS = [
         'units': 'kg*m^2/s'
     }
 ]
+MODELS = ClimateModel.objects.all()
 
 
 def get_historic_data(domain, token, city_id, indicator):
@@ -40,6 +40,56 @@ def get_historic_data(domain, token, city_id, indicator):
                                city=city_id,
                                units=indicator['units'])
     return make_request(url, token)
+
+
+def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
+    """
+    Gets the historic data for a city from a climate-change-api instance
+    """
+    url = RAWDATA_URL.format(domain=domain,
+                             city=city_id)
+    params = {}
+    if model:
+        params['models'] = model
+    if variable:
+        params['variables'] = variable
+    if params:
+        url = '{}?{}'.format(url, urlencode(params))
+
+    return make_request(url, token)
+
+
+def get_precipitation_baseline(domain, token, city, model):
+    response = get_historic_raw_data(domain, token, city, model.name, 'pr')
+    data = response['data']
+
+    # Use a generator to extract the precip data from each year
+    precip = (year['pr'] for year in data.values())
+
+    # Flatten the list-of-lists into a single list of straight values
+    flat_precip = (v for years_data in precip for v in years_data)
+
+    # Remove any readings with no precipitation that day
+    rainfall = (v for v in flat_precip if v > 0)
+
+    # Calculate the 99th percentile of the data
+    return np.percentile(list(rainfall), 99)
+
+
+def record_precipitation_baselines(domain, token, local_city, remote_city_id):
+    if ClimateDataBaseline.objects.filter(map_cell=local_city.map_cell).exists():
+        return
+
+    # We received a list of data by year, but we want pure numbers
+    # Flatten the lists into a single master list
+
+    precip_99ps = (get_precipitation_baseline(domain, token, remote_city_id, model) for model in MODELS)
+
+    baseline = ClimateDataBaseline(
+        map_cell=local_city.map_cell,
+        precip_99p=np.mean(list(precip_99ps))
+    )
+    baseline.save()
 
 
 class Command(BaseCommand):
@@ -67,6 +117,8 @@ class Command(BaseCommand):
                             city['properties']['name'],
                             city['properties']['admin'])
                 continue
+
+            record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
 
             # map of each MM-DD to indicator to aggregated reading for this city
             city_data = {}

@@ -29,6 +29,11 @@ class TinyForeignKey(models.ForeignKey):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
+class TinyOneToOne(models.OneToOneField):
+    def db_type(self, connection):
+        return models.SmallIntegerField().db_type(connection=connection)
+
+
 class ClimateModel(models.Model):
     """
     Model representing a climate model
@@ -104,6 +109,13 @@ class ClimateDataCell(models.Model):
 
     class Meta:
         unique_together = ('lat', 'lon')
+
+
+class ClimateDataBaseline(models.Model):
+    map_cell = TinyOneToOne(ClimateDataCell, null=False, related_name='baseline')
+
+    precip_99p = models.FloatField(null=True,
+                               help_text='99th percentile historic precipitation by day')
 
 
 class City(models.Model):
