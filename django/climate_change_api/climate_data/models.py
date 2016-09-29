@@ -64,6 +64,9 @@ class Scenario(models.Model):
     def __str__(self):
         return self.name
 
+    def natural_key(self):
+        return (self.name,)
+
 
 class CityManager(models.Manager):
     def nearest(self, point, limit=1):
@@ -93,6 +96,9 @@ class CityManager(models.Manager):
         }
         return list(self.raw(query, params))
 
+    def get_by_natural_key(self, name, admin):
+        return self.get(name=name, admin=admin)
+
 
 class ClimateDataSource(models.Model):
     model = models.ForeignKey(ClimateModel)
@@ -102,20 +108,36 @@ class ClimateDataSource(models.Model):
     class Meta:
         unique_together = ('model', 'scenario', 'year')
 
+    def natural_key(self):
+        return (self.model, self.scenario, self.year)
+
+
+class ClimateDataCellManager(models.Manager):
+    def get_by_natural_key(self, lat, lon):
+        return self.get(lat=lat, lon=lon)
+
 
 class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=6, decimal_places=3)
     lon = models.DecimalField(max_digits=6, decimal_places=3)
 
+    objects = ClimateDataCellManager()
+
     class Meta:
         unique_together = ('lat', 'lon')
+
+    def natural_key(self):
+        return (self.lat, self.lon)
 
 
 class ClimateDataBaseline(models.Model):
     map_cell = TinyOneToOne(ClimateDataCell, null=False, related_name='baseline')
 
     precip_99p = models.FloatField(null=True,
-                               help_text='99th percentile historic precipitation by day')
+                                   help_text='99th percentile historic precipitation by day')
+
+    def natural_key(self):
+        return (self.map_cell,)
 
 
 class City(models.Model):
@@ -139,6 +161,9 @@ class City(models.Model):
 
     class Meta:
         unique_together = ('name', 'admin')
+
+    def natural_key(self):
+        return (self.name, self.admin)
 
     def save(self, *args, **kwargs):
         """ Override save to keep the geography field up to date """
@@ -164,6 +189,9 @@ class ClimateData(models.Model):
     class Meta:
         unique_together = ('map_cell', 'data_source', 'day_of_year')
         index_together = ('map_cell', 'data_source')
+
+    def natural_key(self):
+        return (self.map_cell, self.data_source)
 
 
 class HistoricAverageClimateData(models.Model):
@@ -192,3 +220,6 @@ class HistoricAverageClimateData(models.Model):
     class Meta:
         unique_together = ('city', 'month_day')
         index_together = ('city', 'month_day')
+
+    def natural_key(self):
+        return (self.city, self.month_day)
