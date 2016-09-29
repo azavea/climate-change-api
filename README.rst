@@ -114,19 +114,19 @@ Some indicators rely on comparison to aggregated values computed from historic o
 
 To load pre-computed historic aggregated values from the fixture::
 
-    ./scripts/console django loaddata historic_averages
+    ./scripts/console django loaddata historic_averages historic_baselines
 
 To rebuild the fixture of computed historic aggregated values, first load cities into the database.
 Then run the management command to query for historic data from a remote server, aggregate the values,
-and load them into the HistoricAverageClimateData model. Note that this will first delete any
-existing HistoricAverageClimateData objects from the local database::
+and load them into the HistoricAverageClimateData model. Note that if you already have historic aggregated
+data you will need to delete it using the administrative tools first::
 
     ./scripts/console django './manage.py import_historic staging.somewhere.com API_KEY'
 
-Then to dump the newly loaded HistoricAverageClimateData objects to a fixture file::
+Then to dump the newly loaded historic climate data averages and baselines to a fixture file::
 
-    ./scripts/console django './manage.py dumpdata climate_data.HistoricAverageClimateData > climate_data/fixtures/historic_averages.json'
+    ./scripts/console django './manage.py dumpdata climate_data.HistoricAverageClimateData --natural-foreign --natural-primary > climate_data/fixtures/historic_averages.json && ./manage.py dumpdata climate_data.ClimateDataBaseline --natural-foreign --natural-primary > climate_data/fixtures/historic_baselines.json'
 
-And compress the result::
+And compress the historic averages::
 
     gzip climate_data/fixtures/historic_averages.json
