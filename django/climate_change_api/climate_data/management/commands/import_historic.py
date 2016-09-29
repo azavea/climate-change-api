@@ -79,19 +79,17 @@ def get_precipitation_baseline(domain, token, city, model):
 
 
 def record_precipitation_baselines(domain, token, local_city, remote_city_id):
-    if ClimateDataBaseline.objects.filter(map_cell=local_city.map_cell).exists():
-        return
-
-    # We received a list of data by year, but we want pure numbers
-    # Flatten the lists into a single master list
-
-    precip_99ps = (get_precipitation_baseline(domain, token, remote_city_id, model) for model in MODELS)
-
-    baseline = ClimateDataBaseline(
+    baselines = (ClimateDataBaseline(
         map_cell=local_city.map_cell,
-        precip_99p=np.mean(list(precip_99ps))
+        model=model,
+        precip_99p=get_precipitation_baseline(domain, token, remote_city_id,
+                                              model)
+    ) for model in MODELS if not ClimateDataBaseline.objects.filter(
+        map_cell=local_city.map_cell,
+        model=model).exists()
     )
-    baseline.save()
+
+    ClimateDataBaseline.objects.bulk_create(baselines)
 
 
 class Command(BaseCommand):

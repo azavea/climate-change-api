@@ -131,13 +131,17 @@ class ClimateDataCell(models.Model):
 
 
 class ClimateDataBaseline(models.Model):
-    map_cell = TinyOneToOne(ClimateDataCell, null=False, related_name='baseline')
+    map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
+    model = TinyForeignKey(ClimateModel, null=False)
 
     precip_99p = models.FloatField(null=True,
                                    help_text='99th percentile historic precipitation by day')
 
+    class Meta:
+        unique_together = ('map_cell', 'model')
+
     def natural_key(self):
-        return (self.map_cell,)
+        return (self.map_cell, self.model)
 
 
 class City(models.Model):
