@@ -128,14 +128,13 @@ class Command(BaseCommand):
 
                 # mapping of list of daily values for each year, keyed by date as MM-DD
                 dailies = {}
-                for year in data.keys():
-                    for date in data[year].keys():
-                        # strip off leading year from date string of form YYYY-MM-DD
-                        month_day = date[5:]
-                        # append reading for this year to readings for this date from all years
-                        day_readings = dailies.get(month_day, [])
-                        day_readings.append(data[year][date])
-                        dailies[month_day] = day_readings
+                for date, values in data.iteritems():
+                    # strip off leading year from date string of form YYYY-MM-DD
+                    month_day = date[5:]
+                    # append reading for this year to readings for this date from all years
+                    day_readings = dailies.get(month_day, [])
+                    day_readings.append(values['avg'])
+                    dailies[month_day] = day_readings
 
                 # set value for each day to the avearge of all its readings
                 for day in dailies.keys():
