@@ -2,7 +2,7 @@ import inspect
 import sys
 
 from django.db import connection
-from django.db.models import Avg, Max, Min, Sum
+from django.db.models import F, Avg, Max, Min, Sum
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
                                   DailyRawIndicator, int_avg)
@@ -134,6 +134,14 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
         results = [{'data_source__year': yr, 'data_source__model': md, 'value': value['streaks']}
                    for yr in counts for (md, value) in counts[yr].items()]
         return results
+
+
+class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Extreme Precipitation Events'
+    description = ('Total number of times per year daily precipitation exceeds the 99th '
+                    'percentile of observations from 1960 to 1995')
+    variables = ('pr',)
+    filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
 
 
 class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
