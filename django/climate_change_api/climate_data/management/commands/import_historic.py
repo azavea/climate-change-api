@@ -101,7 +101,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logger.info('Deleting any existing aggregated historic data...')
-        HistoricAverageClimateData.objects.all().delete()
         logger.info('Fetching available cities...')
         for city in get_cities(options['domain'], options['token']):
             logger.info('Importing historic data for city %s, %s',
@@ -119,6 +118,12 @@ class Command(BaseCommand):
                 continue
 
             record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
+
+            if HistoricAverageClimateData.objects.filter(city=local_city).exists():
+                logger.warn('Average data for %s, %s aready exists. Skipping',
+                            city['properties']['name'],
+                            city['properties']['admin'])
+                continue
 
             # map of each MM-DD to indicator to aggregated reading for this city
             city_data = {}
