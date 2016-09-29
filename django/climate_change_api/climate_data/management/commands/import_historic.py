@@ -60,6 +60,8 @@ def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
 
 
 def get_precipitation_baseline(domain, token, city, model):
+    logger.warn('Getting precipitation baselines for %s',
+                    model.name)
     response = get_historic_raw_data(domain, token, city, model.name, 'pr')
     data = response['data']
 
@@ -116,6 +118,10 @@ class Command(BaseCommand):
                             city['properties']['name'],
                             city['properties']['admin'])
                 continue
+
+            logger.warn('Processing %s, %s...',
+                        city['properties']['name'],
+                        city['properties']['admin'])
 
             record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
 
