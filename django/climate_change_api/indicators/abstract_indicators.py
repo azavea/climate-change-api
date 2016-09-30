@@ -2,13 +2,11 @@ from collections import OrderedDict, defaultdict
 import re
 from datetime import date, timedelta
 
-from django.db.models import F, Avg, Count
+from django.db.models import F, Count
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
 from .serializers import IndicatorSerializer
-
-
 
 
 class Indicator(object):
@@ -106,13 +104,11 @@ class Indicator(object):
         @returns Dict in same format as the aggregations parameter, with values converted
                  to `self.units`
         """
-        if self.units == self.storage_units:
-            return aggregations
-        converter = self.conversions[self.storage_units][self.units]
+        converter = self.getConverter(self.storage_units, self.units)
         for item in aggregations:
             if item['value'] is not None:
                 item['value'] = converter(item['value'])
-        return aggregations
+            yield item
 
     def collate_results(self, aggregations):
         """ Take results as a series of datapoints and collate them by key
@@ -162,16 +158,21 @@ class YearlyIndicator(Indicator):
 class YearlyAggregationIndicator(YearlyIndicator):
     def aggregate(self):
         return (self.queryset.values('data_source__year', 'data_source__model')
-                             .annotate(value=self.agg_function(self.variables[0])))
+                .annotate(value=self.agg_function(self.variables[0])))
 
 
 class YearlyCountIndicator(YearlyAggregationIndicator):
     agg_function = Count
 
+    def round_values(self, aggregations):
+        for result in aggregations:
+            if result['value'] is not None:
+                result['value'] = int(round(result['value']))
+            yield result
+
     def collate_results(self, aggregations):
         """ Overriden to return integer values for averages across models """
-        for result in aggregations:
-            result['value'] = int(round(result['value']))
+        aggregations = self.round_values(aggregations)
         return super(YearlyCountIndicator, self).collate_results(aggregations)
 
 
