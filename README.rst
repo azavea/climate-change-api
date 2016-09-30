@@ -125,7 +125,8 @@ data you will need to delete it using the administrative tools first::
 
 Then to dump the newly loaded historic climate data averages and baselines to a fixture file::
 
-    ./scripts/console django './manage.py dumpdata climate_data.HistoricAverageClimateData --natural-foreign --natural-primary > climate_data/fixtures/historic_averages.json && ./manage.py dumpdata climate_data.ClimateDataBaseline --natural-foreign --natural-primary > climate_data/fixtures/historic_baselines.json'
+    ./scripts/console django './manage.py dumpdata climate_data.HistoricAverageClimateData --natural-foreign --natural-primary > climate_data/fixtures/historic_averages.json
+        && ./manage.py dumpdata climate_data.ClimateDataBaseline --natural-foreign --natural-primary > climate_data/fixtures/historic_baselines.json'
 
 And compress the historic averages::
 
