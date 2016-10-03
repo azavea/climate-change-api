@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from user_management.forms import UserForm, UserProfileForm
 from user_management.models import UserProfile
 from user_management.throttling import ObtainAuthTokenThrottle
-
+from user_management.serializers import AuthTokenSerializer
 
 class RegistrationView(BaseRegistrationView):
     """ Extends default Django-registration HMAC view """
@@ -43,7 +43,6 @@ class UserProfileView(LoginRequiredMixin, View):
         self.initial = {
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'email': user.email,
             'organization': user.userprofile.organization
         }
         return self.initial
@@ -63,7 +62,6 @@ class UserProfileView(LoginRequiredMixin, View):
         self.form = UserProfileForm(request._post, initial=self.initial)
         if self.form.is_valid():
             # Save changes to user, token, userprofile models
-            user.email = self.form.cleaned_data.get('email')
             user.first_name = self.form.cleaned_data.get('first_name')
             user.last_name = self.form.cleaned_data.get('last_name')
             user.userprofile.organization = self.form.cleaned_data.get('organization')
@@ -87,3 +85,4 @@ class ClimateAPIObtainAuthToken(ObtainAuthToken):
     """ Anonymous endpoint for users to request tokens from for authentication """
 
     throttle_classes = (ObtainAuthTokenThrottle,)
+    serializer_class = AuthTokenSerializer
