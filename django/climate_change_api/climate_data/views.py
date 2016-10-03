@@ -231,7 +231,8 @@ def climate_indicator(request, *args, **kwargs):
         type: string
         paramType: query
       - name: units
-        description: Units in which to return the data. Defaults to units in which variable stored.
+        description: Units in which to return the data. Defaults to Imperial units (Fahrenheit for
+                     temperature indicators and inches per day for precipitation).
         required: false
         type: string
         paramType: query
