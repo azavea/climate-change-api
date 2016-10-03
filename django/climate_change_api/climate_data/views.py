@@ -16,7 +16,6 @@ from rest_framework_gis.filters import InBBoxFilter
 from climate_data.filters import ClimateDataFilterSet
 from climate_data.models import City, ClimateData, ClimateModel, Scenario
 from climate_data.serializers import (CitySerializer,
-                                      ClimateDataSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
@@ -159,12 +158,12 @@ def climate_data_list(request, *args, **kwargs):
 
     try:
         city = City.objects.get(id=kwargs['city'])
-    except (City.DoesNotExist, City.MultipleObjectsReturned) as e:
+    except (City.DoesNotExist, City.MultipleObjectsReturned):
         raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
 
     try:
         scenario = Scenario.objects.get(name=kwargs['scenario'])
-    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
+    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
     queryset = ClimateData.objects.filter(map_cell=city.map_cell, data_source__scenario=scenario)
@@ -240,12 +239,12 @@ def climate_indicator(request, *args, **kwargs):
     """
     try:
         city = City.objects.get(id=kwargs['city'])
-    except (City.DoesNotExist, City.MultipleObjectsReturned) as e:
+    except (City.DoesNotExist, City.MultipleObjectsReturned):
         raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
 
     try:
         scenario = Scenario.objects.get(name=kwargs['scenario'])
-    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned) as e:
+    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
         raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
     # Get valid model params list to use in response
