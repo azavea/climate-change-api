@@ -139,9 +139,10 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
 class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Precipitation Events'
     description = ('Total number of times per year daily precipitation exceeds the 99th '
-                    'percentile of observations from 1960 to 1995')
+                    'percentile of observations from 1961 to 1990')
     variables = ('pr',)
-    filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    filters = {'pr__gt': F('map_cell__baseline__precip_99p'),
+               'data_source__model': F('map_cell__baseline__model__id')}
 
 
 class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
