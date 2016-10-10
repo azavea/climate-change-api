@@ -205,10 +205,8 @@ class HistoricAverageClimateData(models.Model):
     whereas the raw data is too large to load practically in development.)
     """
 
-    city = TinyForeignKey(City)
-
-    # date string in format 'MM-DD'
-    month_day = models.CharField(null=False, blank=False, max_length=5)
+    map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average')
+    day_of_year = models.PositiveSmallIntegerField()
 
     tasmin = models.FloatField(null=True,
                                help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA
@@ -218,8 +216,8 @@ class HistoricAverageClimateData(models.Model):
                            help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA
 
     class Meta:
-        unique_together = ('city', 'month_day')
-        index_together = ('city', 'month_day')
+        unique_together = ('map_cell', 'day_of_year')
+        index_together = ('map_cell', 'day_of_year')
 
     def natural_key(self):
         return (self.city, self.month_day)

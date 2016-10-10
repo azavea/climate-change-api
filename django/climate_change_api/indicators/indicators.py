@@ -1,8 +1,9 @@
 import inspect
 import sys
+from itertools import groupby
 
 from django.db import connection
-from django.db.models import F, Avg, Max, Min, Sum
+from django.db.models import F, Avg, Max, Min
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
                                   DailyRawIndicator)
@@ -139,9 +140,58 @@ class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
 class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Precipitation Events'
     description = ('Total number of times per year daily precipitation exceeds the 99th '
-                    'percentile of observations from 1960 to 1995')
+                   'percentile of observations from 1960 to 1995')
     variables = ('pr',)
     filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
+
+
+class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
+    label = 'Heat Wave Duration Index'
+    description = ('Maximum period of consecutive days with daily high temperature greater than '
+                   '5C above historic norm')
+    variables = ('tasmax',)
+    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
+
+    def row_group_key(self, row):
+        """ Simple function for groupby to use to break input stream into chunks """
+        return (row['data_source__model'], row['data_source__year'])
+
+    def consecutive_value_lengths(self, sequence):
+        # Group the values by their offset from an enumeration
+        # Consecutive values will all have the same offset, any gaps will change it.
+        for group, values in groupby(enumerate(sequence), lambda (i, v): i - v):
+            # groupby() gives an iterator - but not a list - so we can't directly len() it
+            # Rather than pass over the iterator just to convert it to a list so we can then count
+            #  the elements we already processed, let's just count them directly.
+            yield sum(1 for v in values)
+        else:
+            # There are no values in the list, so the longest consecutive series is 0
+            yield 0
+
+    def aggregate(self):
+        """ Get all tasmax data for all of the years requested, then in memory process them to find
+        consecutive days that exceed their historic average. We need to do this in Python rather in
+        SQL because some places like Honolulu have absurdly consistent temperates and can go years
+        without a single day significantly above average.
+        """
+        days = (self.queryset.order_by('data_source__year', 'data_source__model', 'day_of_year')
+                             .values('data_source__year', 'data_source__model', 'day_of_year',
+                                     'tasmax', 'map_cell__historic_average__tasmax')
+                )
+
+        # Read in all of the data grouped by year and model, so we can process each chunk as it
+        #  comes in to find the longest sequence of consecutive dates
+        # groupby() splits the sets by model and year, so we don't have to worry about tracking
+        #  the changeover ourselves
+        for model_year, days in groupby(days, self.row_group_key):
+            (model, year) = model_year
+            exceeding_days = (row['day_of_year'] for row in days
+                              if row['tasmax'] > row['map_cell__historic_average__tasmax'] + 5)
+            consecutive_counts = self.consecutive_value_lengths(exceeding_days)
+
+            yield {'data_source__year': year,
+                   'data_source__model': model,
+                   'value': max(consecutive_counts)}
 
 
 class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
