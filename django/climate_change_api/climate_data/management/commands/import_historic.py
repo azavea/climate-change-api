@@ -1,19 +1,18 @@
 import logging
 
+from urllib import urlencode
+import numpy as np
+
 from django.core.management.base import BaseCommand
-from django.core.exceptions import ObjectDoesNotExist
 
 from climate_data.management.commands.import_from_other_instance import get_cities, make_request
-from climate_data.models import City, HistoricAverageClimateData
-
-import requests
-
-from time import time, sleep
+from climate_data.models import City, HistoricAverageClimateData, ClimateDataBaseline, ClimateModel
 
 logger = logging.getLogger('climate_data')
 
 CITY_URL = 'https://{domain}/api/city/?format=json'
 INDICATOR_URL = 'https://{domain}/api/climate-data/{city}/historical/indicator/{indicator}/?years=1961:1990&units={units}&format=json'  # NOQA
+RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 
 INDICATORS = [
     {
@@ -29,6 +28,7 @@ INDICATORS = [
         'units': 'kg*m^2/s'
     }
 ]
+MODELS = ClimateModel.objects.all()
 
 
 def get_historic_data(domain, token, city_id, indicator):
@@ -42,6 +42,58 @@ def get_historic_data(domain, token, city_id, indicator):
     return make_request(url, token)
 
 
+def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
+    """
+    Gets the historic data for a city from a climate-change-api instance
+    """
+    url = RAWDATA_URL.format(domain=domain,
+                             city=city_id)
+    params = {}
+    if model:
+        params['models'] = model
+    if variable:
+        params['variables'] = variable
+    if params:
+        url = '{}?{}'.format(url, urlencode(params))
+
+    return make_request(url, token)
+
+
+def get_precipitation_baseline(domain, token, city, model):
+    logger.warn('Getting precipitation baselines for %s',
+                    model.name)
+    response = get_historic_raw_data(domain, token, city, model.name, 'pr')
+    data = response['data']
+
+    # Use a generator to extract the precip data from each year
+    precip = (year['pr'] for year in data.values())
+
+    # Flatten the list-of-lists into a single list of straight values
+    flat_precip = (v for years_data in precip for v in years_data)
+
+    # Remove any readings with no precipitation that day
+    rainfall = (v for v in flat_precip if v > 0)
+
+    # Calculate the 99th percentile of the data
+    return np.percentile(list(rainfall), 99)
+
+
+def record_precipitation_baselines(domain, token, local_city, remote_city_id):
+    if ClimateDataBaseline.objects.filter(map_cell=local_city.map_cell).exists():
+        return
+
+    # We received a list of data by year, but we want pure numbers
+    # Flatten the lists into a single master list
+
+    precip_99ps = (get_precipitation_baseline(domain, token, remote_city_id, model) for model in MODELS)
+
+    baseline = ClimateDataBaseline(
+        map_cell=local_city.map_cell,
+        precip_99p=np.mean(list(precip_99ps))
+    )
+    baseline.save()
+
+
 class Command(BaseCommand):
     help = 'Downloads historic data from a remote instance and imports computed aggregates'
 
@@ -51,7 +103,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logger.info('Deleting any existing aggregated historic data...')
-        HistoricAverageClimateData.objects.all().delete()
         logger.info('Fetching available cities...')
         for city in get_cities(options['domain'], options['token']):
             logger.info('Importing historic data for city %s, %s',
@@ -68,6 +119,18 @@ class Command(BaseCommand):
                             city['properties']['admin'])
                 continue
 
+            logger.warn('Processing %s, %s...',
+                        city['properties']['name'],
+                        city['properties']['admin'])
+
+            record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
+
+            if HistoricAverageClimateData.objects.filter(city=local_city).exists():
+                logger.warn('Average data for %s, %s aready exists. Skipping',
+                            city['properties']['name'],
+                            city['properties']['admin'])
+                continue
+
             # map of each MM-DD to indicator to aggregated reading for this city
             city_data = {}
             for indicator in INDICATORS:
@@ -76,14 +139,13 @@ class Command(BaseCommand):
 
                 # mapping of list of daily values for each year, keyed by date as MM-DD
                 dailies = {}
-                for year in data.keys():
-                    for date in data[year].keys():
-                        # strip off leading year from date string of form YYYY-MM-DD
-                        month_day = date[5:]
-                        # append reading for this year to readings for this date from all years
-                        day_readings = dailies.get(month_day, [])
-                        day_readings.append(data[year][date])
-                        dailies[month_day] = day_readings
+                for date, values in data.iteritems():
+                    # strip off leading year from date string of form YYYY-MM-DD
+                    month_day = date[5:]
+                    # append reading for this year to readings for this date from all years
+                    day_readings = dailies.get(month_day, [])
+                    day_readings.append(values['avg'])
+                    dailies[month_day] = day_readings
 
                 # set value for each day to the avearge of all its readings
                 for day in dailies.keys():
