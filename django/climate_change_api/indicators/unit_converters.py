@@ -4,7 +4,12 @@ DAYS_PER_YEAR = 365.25
 INCHES_PER_MILLIMETER = 1 / 25.4
 
 
-class TemperatureUnitsMixin(object):
+class ConversionMixin(object):
+    def getConverter(self, start, end):
+        return lambda x: x
+
+
+class TemperatureUnitsMixin(ConversionMixin):
     """ Define units for temperature conversion.
     """
     available_units = ('K', 'F', 'C')
@@ -18,8 +23,13 @@ class TemperatureUnitsMixin(object):
         }
     }
 
+    def getConverter(self, start, end):
+        if end == self.storage_units:
+            return lambda x: x
+        return self.conversions[start][end]
 
-class PrecipUnitsMixin(object):
+
+class PrecipUnitsMixin(ConversionMixin):
     """ Define units for precipitation
 
     The units are rates, so cumulative totals can be had either by averaging the rates then
@@ -43,14 +53,19 @@ class PrecipUnitsMixin(object):
         }
     }
 
+    def getConverter(self, start, end):
+        if end == self.storage_units:
+            return lambda x: x
+        return self.conversions[start][end]
 
-class DaysUnitsMixin(object):
+
+class DaysUnitsMixin(ConversionMixin):
     available_units = ('days',)
     storage_units = 'days'
     default_units = 'days'
 
 
-class CountUnitsMixin(object):
+class CountUnitsMixin(ConversionMixin):
     available_units = ('count',)
     storage_units = 'count'
     default_units = 'count'

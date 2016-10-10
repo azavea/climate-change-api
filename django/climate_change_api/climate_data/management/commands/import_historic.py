@@ -2,6 +2,7 @@ import logging
 
 from urllib import urlencode
 import numpy as np
+from itertools import izip
 
 from django.core.management.base import BaseCommand
 
@@ -11,35 +12,10 @@ from climate_data.models import City, HistoricAverageClimateData, ClimateDataBas
 logger = logging.getLogger('climate_data')
 
 CITY_URL = 'https://{domain}/api/city/?format=json'
-INDICATOR_URL = 'https://{domain}/api/climate-data/{city}/historical/indicator/{indicator}/?years=1961:1990&units={units}&format=json'  # NOQA
+
 RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
-
-INDICATORS = [
-    {
-        'name': 'daily_high_temperature',
-        'units': 'K'
-    },
-    {
-        'name': 'daily_low_temperature',
-        'units': 'K'
-    },
-    {
-        'name': 'daily_precipitation',
-        'units': 'kg*m^2/s'
-    }
-]
+VARIABLES = ['tasmin', 'tasmax', 'pr']
 MODELS = ClimateModel.objects.all()
-
-
-def get_historic_data(domain, token, city_id, indicator):
-    """
-    Gets the historic data for a city from a climate-change-api instance
-    """
-    url = INDICATOR_URL.format(domain=domain,
-                               indicator=indicator['name'],
-                               city=city_id,
-                               units=indicator['units'])
-    return make_request(url, token)
 
 
 def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
@@ -49,9 +25,9 @@ def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
     url = RAWDATA_URL.format(domain=domain,
                              city=city_id)
     params = {}
-    if model:
+    if model is None:
         params['models'] = model
-    if variable:
+    if variable is None:
         params['variables'] = variable
     if params:
         url = '{}?{}'.format(url, urlencode(params))
@@ -102,14 +78,12 @@ class Command(BaseCommand):
         parser.add_argument('token', type=str, help='API token for authorization')
 
     def handle(self, *args, **options):
-        logger.info('Deleting any existing aggregated historic data...')
         logger.info('Fetching available cities...')
         for city in get_cities(options['domain'], options['token']):
             logger.info('Importing historic data for city %s, %s',
                         city['properties']['name'],
                         city['properties']['admin'])
 
-            records = []
             # find city in local database matching remote
             local_city = City.objects.get(name=city['properties']['name'],
                                           admin=city['properties']['admin'])
@@ -119,50 +93,44 @@ class Command(BaseCommand):
                             city['properties']['admin'])
                 continue
 
-            logger.warn('Processing %s, %s...',
-                        city['properties']['name'],
-                        city['properties']['admin'])
-
-            record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
-
-            if HistoricAverageClimateData.objects.filter(city=local_city).exists():
-                logger.warn('Average data for %s, %s aready exists. Skipping',
+            if HistoricAverageClimateData.objects.filter(map_cell=local_city.map_cell).exists():
+                logger.warn('City %s, %s already imported, skipping',
                             city['properties']['name'],
                             city['properties']['admin'])
                 continue
 
-            # map of each MM-DD to indicator to aggregated reading for this city
-            city_data = {}
-            for indicator in INDICATORS:
-                data = get_historic_data(options['domain'], options['token'], city['id'], indicator)
-                data = data['data']
+            response = get_historic_raw_data(options['domain'], options['token'], city['id'])
+            data = response['data']
 
-                # mapping of list of daily values for each year, keyed by date as MM-DD
-                dailies = {}
-                for date, values in data.iteritems():
-                    # strip off leading year from date string of form YYYY-MM-DD
-                    month_day = date[5:]
-                    # append reading for this year to readings for this date from all years
-                    day_readings = dailies.get(month_day, [])
-                    day_readings.append(values['avg'])
-                    dailies[month_day] = day_readings
+            # Convert the list into a list of year/readings sets arranged by variable, like
+            # (((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...),  <- tasmin
+            #  ((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...),  <- tasmax
+            #  ((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...))  <- pr
+            variable_data = ((year[var] for year in data.values()) for var in VARIABLES)
 
-                # set value for each day to the avearge of all its readings
-                for day in dailies.keys():
-                    readings = dailies[day]
-                    city_data_day = city_data.get(day, {})
-                    city_data_day[indicator['name']] = sum(readings) / float(len(readings))
-                    city_data[day] = city_data_day
+            # Join the years together on day, so we have a structure like
+            # (((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmin
+            #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmax
+            #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...))  <- pr
+            # n.b. izip is the iterative version of zip, allowing lazy evaluation
+            day_tuples = (izip(*years) for years in variable_data)
 
-            for day in city_data.keys():
-                tasmin = city_data[day].get('daily_low_temperature')
-                tasmax = city_data[day].get('daily_high_temperature')
-                pr = city_data[day].get('daily_precipitation')
-                records.append(HistoricAverageClimateData(city=local_city,
-                                                          month_day=day,
-                                                          tasmin=tasmin,
-                                                          pr=pr,
-                                                          tasmax=tasmax))
+            # Join the days together so we have a tuple per day with yearly
+            # readings grouped by variable
+            #        tasmin             tasmax                pr
+            # (((y1d1, y2d1, ...), (y1d1, y2d1, ...), (y1d1, y2d1, ...)),
+            #  ((y1d2, y2d2, ...), (y1d2, y2d2, ...), (y1d2, y2d2, ...)), ...)
+            day_variable_tuples = izip(*day_tuples)
+
+            records = (HistoricAverageClimateData(
+                    map_cell=local_city.map_cell,
+                    day_of_year=day_of_year,
+                    # Some models might not have data for a specific day, so we
+                    #  need to exclude those values from the average
+                    tasmin=np.mean([v for v in tasmin if v is not None]),
+                    tasmax=np.mean([v for v in tasmax if v is not None]),
+                    pr=np.mean([v for v in pr if v is not None]))
+                for (day_of_year, (tasmin, tasmax, pr)) in enumerate(day_variable_tuples))
 
             logger.info('Creating historic aggregated data records for city')
             HistoricAverageClimateData.objects.bulk_create(records)
