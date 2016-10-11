@@ -25,9 +25,9 @@ def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
     url = RAWDATA_URL.format(domain=domain,
                              city=city_id)
     params = {}
-    if model is None:
+    if model is not None:
         params['models'] = model
-    if variable is None:
+    if variable is not None:
         params['variables'] = variable
     if params:
         url = '{}?{}'.format(url, urlencode(params))
@@ -37,7 +37,7 @@ def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
 
 def get_precipitation_baseline(domain, token, city, model):
     logger.warn('Getting precipitation baselines for %s',
-                    model.name)
+                model.name)
     response = get_historic_raw_data(domain, token, city, model.name, 'pr')
     data = response['data']
 
@@ -56,6 +56,9 @@ def get_precipitation_baseline(domain, token, city, model):
 
 def record_precipitation_baselines(domain, token, local_city, remote_city_id):
     if ClimateDataBaseline.objects.filter(map_cell=local_city.map_cell).exists():
+        logger.warn('City %s, %s already has baseline data imported, skipping',
+                    local_city.name,
+                    local_city.admin)
         return
 
     # We received a list of data by year, but we want pure numbers
@@ -93,8 +96,14 @@ class Command(BaseCommand):
                             city['properties']['admin'])
                 continue
 
+            logger.info('Processing %s, %s...',
+                        city['properties']['name'],
+                        city['properties']['admin'])
+
+            record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
+
             if HistoricAverageClimateData.objects.filter(map_cell=local_city.map_cell).exists():
-                logger.warn('City %s, %s already imported, skipping',
+                logger.warn('City %s, %s already has average data imported, skipping',
                             city['properties']['name'],
                             city['properties']['admin'])
                 continue
