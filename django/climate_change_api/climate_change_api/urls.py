@@ -22,6 +22,7 @@ from django.views.generic import RedirectView
 from rest_framework import routers
 
 from climate_data import views as climate_data_views
+from user_projects import views as user_projects_views
 from user_management.views import ClimateAPIObtainAuthToken
 
 
@@ -29,6 +30,7 @@ router = routers.DefaultRouter()
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 router.register(r'scenario', climate_data_views.ScenarioViewSet)
+router.register(r'project', user_projects_views.ProjectViewSet, base_name='project')
 
 urlpatterns = [
     url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
