@@ -16,3 +16,6 @@ class Project(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     project_data = JSONField()
+
+    def __unicode__(self):
+        return unicode(self.id)
