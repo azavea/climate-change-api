@@ -164,17 +164,6 @@ class YearlyAggregationIndicator(YearlyIndicator):
 class YearlyCountIndicator(YearlyAggregationIndicator):
     agg_function = Count
 
-    def round_values(self, aggregations):
-        for result in aggregations:
-            if result['value'] is not None:
-                result['value'] = int(round(result['value']))
-            yield result
-
-    def collate_results(self, aggregations):
-        """ Overriden to return integer values for averages across models """
-        aggregations = self.round_values(aggregations)
-        return super(YearlyCountIndicator, self).collate_results(aggregations)
-
 
 class DailyIndicator(Indicator):
     time_aggregation = 'daily'
