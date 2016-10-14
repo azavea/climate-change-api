@@ -40,7 +40,7 @@ class PrecipUnitsMixin(ConversionMixin):
     The former is to be preferred, since the latter is basically doing part of this unit conversion
     by hand and will put the values out of sync with what the object believes its units to be.
     """
-    available_units = ('kg*m^2/s', 'kg*m^2/day', 'kg*m^2/year', 'in/day', 'in/year')
+    available_units = ('kg*m^2/s', 'kg*m^2/day', 'kg*m^2/year', 'in/day', 'in/year', 'in/month')
     storage_units = 'kg*m^2/s'
     default_units = 'in/day'
 
@@ -50,6 +50,10 @@ class PrecipUnitsMixin(ConversionMixin):
             'kg*m^2/year': lambda x: x * SECONDS_PER_DAY * DAYS_PER_YEAR,
             'in/day': lambda x: x * INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
             'in/year': lambda x: x * INCHES_PER_MILLIMETER * SECONDS_PER_DAY * DAYS_PER_YEAR,
+
+            # TODO: months are irregular, so this is actually in/day and the indicator sums over
+            # the days in the month. Should find a better way.
+            'in/month': lambda x: x * INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
         }
     }
 
