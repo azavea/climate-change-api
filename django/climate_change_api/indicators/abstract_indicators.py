@@ -210,46 +210,29 @@ class MonthlyIndicator(Indicator):
     @classmethod
     def get_ranges(cls):
         """ Build mapping from day of year to month.
-        Gets the year range by querying what data exists and caches the ranges as a class attribute.
+
+        Gets the year range by querying what data exists and builds MonthRange objects for each
+        month.
+
+        Caches the resulting range config as a class attribute.
         """
         if cls.range_config is None:
             all_years = set(ClimateDataSource.objects.distinct('year')
                                              .values_list('year', flat=True))
             leap_years = set(filter(calendar.isleap, all_years))
+
+            def make_ranges(months):
+                return [cls.MonthRange('{:02d}'.format(i+1), sum(months[:i])+1, months[i])
+                        for i in range(len(months))]
+
             cls.range_config = {
                 'leap': {
                     'years': leap_years,
-                    'ranges': [
-                        cls.MonthRange('01', 1, 31),
-                        cls.MonthRange('02', 32, 29),
-                        cls.MonthRange('03', 61, 31),
-                        cls.MonthRange('04', 92, 30),
-                        cls.MonthRange('05', 122, 31),
-                        cls.MonthRange('06', 153, 30),
-                        cls.MonthRange('07', 183, 31),
-                        cls.MonthRange('08', 214, 31),
-                        cls.MonthRange('09', 245, 30),
-                        cls.MonthRange('10', 275, 31),
-                        cls.MonthRange('11', 306, 30),
-                        cls.MonthRange('12', 336, 31),
-                    ],
+                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
                 },
                 'nonleap': {
                     'years': all_years - leap_years,
-                    'ranges': [
-                        cls.MonthRange('01', 1, 31),
-                        cls.MonthRange('02', 32, 28),
-                        cls.MonthRange('03', 60, 31),
-                        cls.MonthRange('04', 91, 30),
-                        cls.MonthRange('05', 121, 31),
-                        cls.MonthRange('06', 152, 30),
-                        cls.MonthRange('07', 182, 31),
-                        cls.MonthRange('08', 213, 31),
-                        cls.MonthRange('09', 244, 30),
-                        cls.MonthRange('10', 274, 31),
-                        cls.MonthRange('11', 305, 30),
-                        cls.MonthRange('12', 335, 31),
-                    ],
+                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
                 },
             }
         return cls.range_config
