@@ -31,7 +31,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (InBBoxFilter, filters.SearchFilter,
                        filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name', 'admin',)
-    search_fields = ('name',)
+    search_fields = ('name', 'admin',)
     ordering_fields = ('name',)
     pagination_class = GeoJsonPagination
     bbox_filter_field = 'geom'
