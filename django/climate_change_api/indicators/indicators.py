@@ -58,9 +58,9 @@ class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
 class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Frost Days'
     description = ('Number of days per year in which the daily low temperature is ' +
-                   'below the melting point of water')
+                   'below the freezing point of water')
     variables = ('tasmin',)
-    filters = {'tasmin__lt': 273.15}
+    conditions = {'tasmin__lt': 273.15}
 
 
 class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
@@ -146,7 +146,7 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
 
 
 class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
@@ -154,7 +154,6 @@ class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
 
     def row_group_key(self, row):
         """ Simple function for groupby to use to break input stream into chunks """
@@ -244,9 +243,9 @@ class MonthlyTotalPrecipitation(PrecipUnitsMixin, MonthlyAggregationIndicator):
 class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Frost Days'
     description = ('Number of days per month in which the daily low temperature is ' +
-                   'below the melting point of water')
+                   'below the freezing point of water')
     variables = ('tasmin',)
-    filters = {'tasmin__lt': 273.15}
+    conditions = {'tasmin__lt': 273.15}
 
 
 class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
@@ -254,7 +253,7 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     description = ('Total number of times per month daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
 
 
 ##########################
