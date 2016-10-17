@@ -3,13 +3,17 @@ import sys
 from itertools import groupby
 
 from django.db import connection
-from django.db.models import F, Avg, Max, Min
+from django.db.models import F, Avg, Max, Min, Sum
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
+                                  MonthlyAggregationIndicator, MonthlyCountIndicator,
                                   DailyRawIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
                               DaysUnitsMixin, CountUnitsMixin)
 
+
+##########################
+# Yearly indicators
 
 class YearlyAverageHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
     label = 'Yearly Average High Temperature'
@@ -54,9 +58,9 @@ class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
 class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Frost Days'
     description = ('Number of days per year in which the daily low temperature is ' +
-                   'below the melting point of water')
+                   'below the freezing point of water')
     variables = ('tasmin',)
-    filters = {'tasmin__lt': 273.15}
+    conditions = {'tasmin__lt': 273.15}
 
 
 class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
@@ -142,7 +146,7 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    filters = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
 
 
 class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
@@ -150,7 +154,6 @@ class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
 
     def row_group_key(self, row):
         """ Simple function for groupby to use to break input stream into chunks """
@@ -193,6 +196,67 @@ class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
                    'data_source__model': model,
                    'value': max(consecutive_counts)}
 
+
+##########################
+# Monthly indicators
+
+class MonthlyAverageHighTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
+    label = 'Monthly Average High Temperature'
+    description = ('Aggregated monthly average high temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmax',)
+    agg_function = Avg
+
+
+class MonthlyAverageLowTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
+    label = 'Monthly Average Low Temperature'
+    description = ('Aggregated monthly average low temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmin',)
+    agg_function = Avg
+
+
+class MonthlyMaxHighTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
+    label = 'Monthly Maximum High Temperature'
+    description = ('Monthly maximum high temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmax',)
+    agg_function = Max
+
+
+class MonthlyMinLowTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
+    label = 'Monthly Minimum Low Temperature'
+    description = ('Monthly minimum low temperature, generated from daily data ' +
+                   'using all requested models')
+    variables = ('tasmin',)
+    agg_function = Min
+
+
+class MonthlyTotalPrecipitation(PrecipUnitsMixin, MonthlyAggregationIndicator):
+    label = 'Monthly Total Precipitation'
+    description = 'Monthly total precipitation'
+    variables = ('pr',)
+    agg_function = Avg
+
+
+class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
+    label = 'Monthly Frost Days'
+    description = ('Number of days per month in which the daily low temperature is ' +
+                   'below the freezing point of water')
+    variables = ('tasmin',)
+    conditions = {'tasmin__lt': 273.15}
+
+
+class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
+    label = 'Monthly Extreme Precipitation Events'
+    description = ('Total number of times per month daily precipitation exceeds the 99th '
+                   'percentile of observations from 1960 to 1995')
+    variables = ('pr',)
+    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
+
+
+##########################
+# Daily indicators
 
 class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
     label = 'Daily Low Temperature'
