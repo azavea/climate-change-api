@@ -159,7 +159,7 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyTotalPrecipitation
     indicator_name = 'yearly_total_precipitation'
-    units = 'kg*m^2/s'
+    units = 'kg/m^2/s'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
                                    2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -219,3 +219,108 @@ class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
                                  2001: {'avg': 0, 'min': 0, 'max': 0},
                                  2002: {'avg': 0, 'min': 0, 'max': 0},
                                  2003: {'avg': 0, 'min': 0, 'max': 0}}
+
+
+class MonthlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyAverageHighTemperature
+    indicator_name = 'monthly_average_high_temperature'
+    units = 'K'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {'2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {'2000-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
+class MonthlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyAverageLowTemperature
+    indicator_name = 'monthly_average_low_temperature'
+    units = 'K'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {'2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {'2000-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
+class MonthlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyMaxHighTemperature
+    indicator_name = 'monthly_max_high_temperature'
+    units = 'K'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {'2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {'2000-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
+class MonthlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyMinLowTemperature
+    indicator_name = 'monthly_min_low_temperature'
+    units = 'K'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {'2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2003-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {'2000-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
+class MonthlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyTotalPrecipitation
+    indicator_name = 'monthly_total_precipitation'
+    units = 'kg/m^2/s'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   '2003-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_years_filter_equals = {'2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2003-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+
+
+class MonthlyFrostDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyFrostDays
+    indicator_name = 'monthly_frost_days'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 1, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {'2000-01': {'avg': 1, 'min': 1, 'max': 1},
+                                   '2001-01': {'avg': 1, 'min': 1, 'max': 1},
+                                   '2002-01': {'avg': 1, 'min': 1, 'max': 1},
+                                   '2003-01': {'avg': 1, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {'2001-01': {'avg': 1, 'min': 1, 'max': 1},
+                                '2002-01': {'avg': 1, 'min': 1, 'max': 1}}
+    test_models_filter_equals = {'2000-01': {'avg': 1, 'min': 1, 'max': 1},
+                                 '2001-01': {'avg': 1, 'min': 1, 'max': 1},
+                                 '2002-01': {'avg': 1, 'min': 1, 'max': 1},
+                                 '2003-01': {'avg': 1, 'min': 1, 'max': 1}}
