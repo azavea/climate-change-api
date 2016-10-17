@@ -236,8 +236,7 @@ class MonthlyTotalPrecipitation(PrecipUnitsMixin, MonthlyAggregationIndicator):
     label = 'Monthly Total Precipitation'
     description = 'Monthly total precipitation'
     variables = ('pr',)
-    agg_function = Sum
-    default_units = 'in/month'
+    agg_function = Avg
 
 
 class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
