@@ -159,7 +159,7 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyTotalPrecipitation
     indicator_name = 'yearly_total_precipitation'
-    units = 'kg*m^2/s'
+    units = 'kg/m^2/s'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
                                    2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -275,7 +275,6 @@ class MonthlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     test_units_fahrenheit_equals = {'2000-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
-
 class MonthlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.MonthlyMinLowTemperature
     indicator_name = 'monthly_min_low_temperature'
@@ -297,7 +296,7 @@ class MonthlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 class MonthlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.MonthlyTotalPrecipitation
     indicator_name = 'monthly_total_precipitation'
-    units = 'kg*m^2/s'
+    units = 'kg/m^2/s'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
                                    '2001-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
