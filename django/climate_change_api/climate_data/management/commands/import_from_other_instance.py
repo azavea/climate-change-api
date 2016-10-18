@@ -36,7 +36,7 @@ def make_request(url, token, failures=10):
         except requests.exceptions.HTTPError as e:
             if res.status_code == 401:
                 logger.critical('Check your authorization token')
-                raise e
+            raise e
         except Exception as e:
             tries += 1
             if tries >= failures:
