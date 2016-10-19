@@ -36,7 +36,7 @@ def make_request(url, token, failures=10):
         except requests.exceptions.HTTPError as e:
             if res.status_code == 401:
                 logger.critical('Check your authorization token')
-                raise e
+            raise e
         except Exception as e:
             tries += 1
             if tries >= failures:
@@ -198,6 +198,7 @@ class Command(BaseCommand):
 
                 if ClimateData.objects.filter(
                         data_source__model=model,
+                        data_source__scenario=scenario,
                         map_cell=created_city.map_cell).exists():
                     logger.info("Skipping %s, data already imported", model.name)
                 else:
