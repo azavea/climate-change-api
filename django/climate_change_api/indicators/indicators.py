@@ -2,10 +2,10 @@ import inspect
 import sys
 from itertools import groupby
 
-from django.db import connection
-from django.db.models import F, Avg, Max, Min, Sum
+from django.db.models import F, Avg, Max, Min
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
+                                  YearlyMaxConsecutiveDaysIndicator,
                                   MonthlyAggregationIndicator, MonthlyCountIndicator,
                                   DailyRawIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
@@ -63,50 +63,11 @@ class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
     conditions = {'tasmin__lt': 273.15}
 
 
-class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
+class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     label = 'Yearly Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation per year')
     variables = ('pr',)
-
-    def aggregate(self):
-        """
-        Uses a query to partition the data series into consecutive days with the same amount of
-        precip and return all streaks sorted by year, model, streak length. Then picks the longest
-        where the amount is zero for each year and model.
-
-        Starts from the existing queryset with year/model/etc filters already applied.
-
-        Filtering by precip amount is done in code because if it were done in the query we would
-        get no results for years/models with no dry spells.
-        """
-        (base_query, base_query_params) = (self.queryset.select_related('data_source')
-                                               .query.sql_with_params())
-        query = """
-            SELECT year as data_source__year, model_id as data_source__model, count(*) as length, pr
-            FROM (SELECT year, model_id, day_of_year, pr,
-                         ROW_NUMBER() OVER(ORDER BY year, model_id, day_of_year) -
-                         ROW_NUMBER() OVER(PARTITION BY pr ORDER BY year, model_id, day_of_year)
-                         AS grp
-                  FROM ({base_query}) orig_query) groups
-            GROUP BY year, model_id, grp, pr
-        """.format(base_query=base_query)
-        # First run the query and get a list of dicts with one result per sequence
-        with connection.cursor() as cursor:
-            cursor.execute(query, base_query_params)
-            columns = [col[0] for col in cursor.description]
-            sequences = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        # Then run through the results to get the longest sequence for each model for each year
-        longest = {}
-        for seq in sequences:
-            year = longest.setdefault(seq['data_source__year'], {})
-            year.setdefault(seq['data_source__model'], 0)
-            if seq['pr'] == 0 and seq['length'] > year[seq['data_source__model']]:
-                year[seq['data_source__model']] = seq['length']
-        # Then convert back to the format that aggregate is supposed to return so that subsequent
-        # steps will work
-        results = [{'data_source__year': yr, 'data_source__model': model, 'value': value}
-                   for yr in longest for (model, value) in longest[yr].items()]
-        return results
+    raw_condition = 'pr = 0'
 
 
 class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
@@ -154,10 +115,6 @@ class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-
-    def row_group_key(self, row):
-        """ Simple function for groupby to use to break input stream into chunks """
-        return (row['data_source__model'], row['data_source__year'])
 
     def consecutive_value_lengths(self, sequence):
         # Group the values by their offset from an enumeration
