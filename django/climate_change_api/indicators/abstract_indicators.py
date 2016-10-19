@@ -1,13 +1,17 @@
 from collections import OrderedDict, defaultdict, namedtuple
+from itertools import groupby
 import re
 from datetime import date, timedelta
 import calendar
 
-from django.db.models import F, Case, When, CharField, IntegerField, Value, Sum, Count
+from django.db.models import F, Case, When, CharField, IntegerField, Value, Sum
+from django.db import connection
+
 
 from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
 from .serializers import IndicatorSerializer
+from .unit_converters import DaysUnitsMixin
 
 
 class Indicator(object):
@@ -155,6 +159,11 @@ class YearlyIndicator(Indicator):
         """
         return result['data_source__year']
 
+    def row_group_key(self, row):
+        """ Key function for groupby to use to break input stream into chunks in indicators that
+        require processing in code."""
+        return (row['data_source__model'], row['data_source__year'])
+
 
 class YearlyAggregationIndicator(YearlyIndicator):
     def aggregate(self):
@@ -175,6 +184,72 @@ class YearlyCountIndicator(YearlyIndicator):
                                 output_field=IntegerField()))
         return (self.queryset.values('data_source__year', 'data_source__model')
                 .annotate(value=agg_function))
+
+
+class YearlySequenceIndicator(YearlyCountIndicator):
+    """ Abstract indicator to count series of consecutive days on which a condition is met.
+
+    The query is done with raw SQL, so the condition has to be a string that constitutes a
+    valid condition when dropped into the WHEN clause inside the query.
+    """
+    def get_streaks(self):
+        """
+        Uses a query to partition the data series into consecutive days on which the condition is
+        or is not met and return all the streaks sorted by year and model.
+
+        Starts from the existing queryset with year/model/etc filters already applied.
+
+        Returns non-matching as well as matching sequences to guarantee that any year that matches
+        the filter parameters and for which we have data will be represented in the results set.
+        Filtering out non-matches inside the query would mean we get no results for years with no
+        matches, making them indistinguishable from years that were filtered out or for which
+        there is no data.
+        """
+        (base_query, base_query_params) = (self.queryset.select_related('data_source')
+                                               .query.sql_with_params())
+        query = """
+            SELECT year as data_source__year, model_id as data_source__model,
+                   count(*) as length, match
+            FROM (SELECT year, model_id, day_of_year,
+                         (CASE WHEN {condition} THEN 1 ELSE 0 END) as match,
+                         ROW_NUMBER() OVER(ORDER BY year, model_id, day_of_year) -
+                         ROW_NUMBER() OVER(PARTITION BY CASE WHEN {condition} THEN 1 ELSE 0 END
+                                           ORDER BY year, model_id, day_of_year)
+                         AS grp
+                  FROM ({base_query}) orig_query) groups
+            GROUP BY year, model_id, grp, match
+            ORDER BY year, model_id
+        """.format(base_query=base_query, condition=self.raw_condition)
+        # First run the query and get a list of dicts with one result per sequence
+        with connection.cursor() as cursor:
+            cursor.execute(query, base_query_params)
+            columns = [col[0] for col in cursor.description]
+            sequences = (dict(zip(columns, row)) for row in cursor.fetchall())
+        return sequences
+
+
+class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator):
+    """ Abstract indicator to count the longest series of consecutive days on which a condition is
+    met.
+
+    The query is done with raw SQL, so the condition has to be a string that constitutes a
+    valid condition when dropped into the WHEN clause inside the query.
+    """
+    def aggregate(self):
+        """
+        Gets streaks of matching and non-matching days then picks the longest matching streak
+        and returns its length, or zero if there are no matching streaks.
+        """
+        sequences = self.get_streaks()
+        for (model, year), streaks in groupby(sequences, self.row_group_key):
+            try:
+                longest = max(seq['length'] for seq in streaks if seq['match'] == 1)
+            except ValueError:
+                longest = 0
+
+            yield {'data_source__year': year,
+                   'data_source__model': model,
+                   'value': longest}
 
 
 class DailyIndicator(Indicator):
