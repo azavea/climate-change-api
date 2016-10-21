@@ -5,7 +5,7 @@ from itertools import groupby
 from django.db.models import F, Avg, Max, Min
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
-                                  YearlyMaxConsecutiveDaysIndicator,
+                                  YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator,
                                   MonthlyAggregationIndicator, MonthlyCountIndicator,
                                   DailyRawIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
@@ -70,36 +70,23 @@ class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     raw_condition = 'pr = 0'
 
 
-class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
+class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per year that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
+    raw_condition = 'pr = 0'
 
     def aggregate(self):
-        """ Since filtering for precip in the query means we get no data for a year/model if
-        there were zero dry days, this pulls all relevant data and does the filtering and
-        counting in code.
-        """
-        days = (self.queryset.order_by('data_source__year', 'data_source__model', 'day_of_year')
-                             .values('data_source__year', 'data_source__model', 'day_of_year', 'pr')
-                )
-        # Loop through the results and add up dry spells by year and model
-        counts = {}
-        for day in days:
-            year = counts.setdefault(day['data_source__year'], {})
-            model = year.setdefault(day['data_source__model'], {'dry_days': 0,
-                                                                'streaks': 0})
-            if day['pr'] > 0:
-                model['dry_days'] = 0
-            else:
-                model['dry_days'] += 1
-            if model['dry_days'] == 5:
-                model['streaks'] += 1
-        # Convert the answers to the required return format
-        results = [{'data_source__year': yr, 'data_source__model': md, 'value': value['streaks']}
-                   for yr in counts for (md, value) in counts[yr].items()]
-        return results
+        """ Calls get_streaks to get all sequences of zero or non-zero precip then counts
+        the zero-precip ones that are at least 5 days long """
+        sequences = self.get_streaks()
+        for (model, year), streaks in groupby(sequences, self.row_group_key):
+            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
+
+            yield {'data_source__year': year,
+                   'data_source__model': model,
+                   'value': num_dry_spells}
 
 
 class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
