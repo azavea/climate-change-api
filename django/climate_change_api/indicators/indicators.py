@@ -2,10 +2,10 @@ import inspect
 import sys
 from itertools import groupby
 
-from django.db import connection
-from django.db.models import F, Avg, Max, Min, Sum
+from django.db.models import F, Avg, Max, Min
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
+                                  YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator,
                                   MonthlyAggregationIndicator, MonthlyCountIndicator,
                                   DailyRawIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
@@ -63,82 +63,30 @@ class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
     conditions = {'tasmin__lt': 273.15}
 
 
-class YearlyMaxConsecutiveDryDays(DaysUnitsMixin, YearlyCountIndicator):
+class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     label = 'Yearly Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation per year')
     variables = ('pr',)
-
-    def aggregate(self):
-        """
-        Uses a query to partition the data series into consecutive days with the same amount of
-        precip and return all streaks sorted by year, model, streak length. Then picks the longest
-        where the amount is zero for each year and model.
-
-        Starts from the existing queryset with year/model/etc filters already applied.
-
-        Filtering by precip amount is done in code because if it were done in the query we would
-        get no results for years/models with no dry spells.
-        """
-        (base_query, base_query_params) = (self.queryset.select_related('data_source')
-                                               .query.sql_with_params())
-        query = """
-            SELECT year as data_source__year, model_id as data_source__model, count(*) as length, pr
-            FROM (SELECT year, model_id, day_of_year, pr,
-                         ROW_NUMBER() OVER(ORDER BY year, model_id, day_of_year) -
-                         ROW_NUMBER() OVER(PARTITION BY pr ORDER BY year, model_id, day_of_year)
-                         AS grp
-                  FROM ({base_query}) orig_query) groups
-            GROUP BY year, model_id, grp, pr
-        """.format(base_query=base_query)
-        # First run the query and get a list of dicts with one result per sequence
-        with connection.cursor() as cursor:
-            cursor.execute(query, base_query_params)
-            columns = [col[0] for col in cursor.description]
-            sequences = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        # Then run through the results to get the longest sequence for each model for each year
-        longest = {}
-        for seq in sequences:
-            year = longest.setdefault(seq['data_source__year'], {})
-            year.setdefault(seq['data_source__model'], 0)
-            if seq['pr'] == 0 and seq['length'] > year[seq['data_source__model']]:
-                year[seq['data_source__model']] = seq['length']
-        # Then convert back to the format that aggregate is supposed to return so that subsequent
-        # steps will work
-        results = [{'data_source__year': yr, 'data_source__model': model, 'value': value}
-                   for yr in longest for (model, value) in longest[yr].items()]
-        return results
+    raw_condition = 'pr = 0'
 
 
-class YearlyDrySpells(CountUnitsMixin, YearlyCountIndicator):
+class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per year that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
+    raw_condition = 'pr = 0'
 
     def aggregate(self):
-        """ Since filtering for precip in the query means we get no data for a year/model if
-        there were zero dry days, this pulls all relevant data and does the filtering and
-        counting in code.
-        """
-        days = (self.queryset.order_by('data_source__year', 'data_source__model', 'day_of_year')
-                             .values('data_source__year', 'data_source__model', 'day_of_year', 'pr')
-                )
-        # Loop through the results and add up dry spells by year and model
-        counts = {}
-        for day in days:
-            year = counts.setdefault(day['data_source__year'], {})
-            model = year.setdefault(day['data_source__model'], {'dry_days': 0,
-                                                                'streaks': 0})
-            if day['pr'] > 0:
-                model['dry_days'] = 0
-            else:
-                model['dry_days'] += 1
-            if model['dry_days'] == 5:
-                model['streaks'] += 1
-        # Convert the answers to the required return format
-        results = [{'data_source__year': yr, 'data_source__model': md, 'value': value['streaks']}
-                   for yr in counts for (md, value) in counts[yr].items()]
-        return results
+        """ Calls get_streaks to get all sequences of zero or non-zero precip then counts
+        the zero-precip ones that are at least 5 days long """
+        sequences = self.get_streaks()
+        for (model, year), streaks in groupby(sequences, self.row_group_key):
+            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
+
+            yield {'data_source__year': year,
+                   'data_source__model': model,
+                   'value': num_dry_spells}
 
 
 class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
@@ -149,52 +97,17 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
 
 
-class HeatWaveDurationIndex(CountUnitsMixin, YearlyCountIndicator):
+class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-
-    def row_group_key(self, row):
-        """ Simple function for groupby to use to break input stream into chunks """
-        return (row['data_source__model'], row['data_source__year'])
-
-    def consecutive_value_lengths(self, sequence):
-        # Group the values by their offset from an enumeration
-        # Consecutive values will all have the same offset, any gaps will change it.
-        for group, values in groupby(enumerate(sequence), lambda (i, v): i - v):
-            # groupby() gives an iterator - but not a list - so we can't directly len() it
-            # Rather than pass over the iterator just to convert it to a list so we can then count
-            #  the elements we already processed, let's just count them directly.
-            yield sum(1 for v in values)
-        else:
-            # There are no values in the list, so the longest consecutive series is 0
-            yield 0
+    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
+    raw_condition = 'tasmax > avg_tasmax + 5'
 
     def aggregate(self):
-        """ Get all tasmax data for all of the years requested, then in memory process them to find
-        consecutive days that exceed their historic average. We need to do this in Python rather in
-        SQL because some places like Honolulu have absurdly consistent temperates and can go years
-        without a single day significantly above average.
-        """
-        days = (self.queryset.order_by('data_source__year', 'data_source__model', 'day_of_year')
-                             .values('data_source__year', 'data_source__model', 'day_of_year',
-                                     'tasmax', 'map_cell__historic_average__tasmax')
-                )
-
-        # Read in all of the data grouped by year and model, so we can process each chunk as it
-        #  comes in to find the longest sequence of consecutive dates
-        # groupby() splits the sets by model and year, so we don't have to worry about tracking
-        #  the changeover ourselves
-        for model_year, days in groupby(days, self.row_group_key):
-            (model, year) = model_year
-            exceeding_days = (row['day_of_year'] for row in days
-                              if row['tasmax'] > row['map_cell__historic_average__tasmax'] + 5)
-            consecutive_counts = self.consecutive_value_lengths(exceeding_days)
-
-            yield {'data_source__year': year,
-                   'data_source__model': model,
-                   'value': max(consecutive_counts)}
+        self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
+        return super(HeatWaveDurationIndex, self).aggregate()
 
 
 ##########################
