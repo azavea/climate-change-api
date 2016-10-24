@@ -85,6 +85,7 @@ INSTALLED_APPS = [
 
     # Apps
     'climate_data',
+    'user_projects',
 ]
 
 if DEBUG:
