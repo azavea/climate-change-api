@@ -1,0 +1,156 @@
+{
+  "title": "UserProject Schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "visibility": {
+      "type": "number"
+    },
+    "city": {
+      "$ref": "#/definitions/city"
+    },
+    "scenario": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name"]
+    },
+    "allModels": {
+      "type": "boolean"
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/model"
+      }
+    },
+    "charts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/chart"
+      }
+    },
+    "multiChartScrubber": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["name", "visibility", "city",
+               "scenario", "allModels", "models", "charts",
+               "multiChartScrubber"],
+  "definitions": {
+    "chart": {
+      "type": "object",
+      "properties": {
+        "indicator": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "label": {"type": "string"},
+            "description": {"type": "string"},
+            "time_aggregation": {"type": "string"}
+          }
+        },
+        "showSettings": {"type": "boolean"},
+        "showTrendline": {"type": "boolean"},
+        "showMinimum": {"type": "boolean"},
+        "showMaximum": {"type": "boolean"},
+        "minimumValue": {"type": "number"},
+        "maximumValue": {"type": "number"}
+      },
+      "additionalProperties": false,
+      "required": ["indicator", "showSettings", "showTrendline",
+                   "showMinimum", "showMaximum", "minimumValue",
+                   "maximumValue"]
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "label": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "null"}
+          ]
+        },
+        "base_time": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "null"}
+          ]
+        },
+        "selected": {"type": "boolean"}
+      },
+      "additionalProperties": false,
+      "required": ["name", "selected"]
+    },
+    "city": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Feature"]
+        },
+        "geometry": {
+          "$ref": "#/definitions/pointgeom"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "map_cell": {"$ref": "#/definitions/pointgeom"},
+            "name": {
+              "type": "string"
+            },
+            "admin": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["map_cell", "name", "admin"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["id", "type", "geometry", "properties"]
+    },
+    "pointgeom": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["Point"]
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["type", "coordinates"]
+    }
+  }
+}
