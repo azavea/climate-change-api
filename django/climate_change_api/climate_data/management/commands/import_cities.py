@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 
 from django.db.utils import IntegrityError
+from django.db import transaction
 
 from climate_data.models import City
 import json
@@ -30,10 +31,6 @@ class Command(BaseCommand):
         parser.add_argument('key', type=str)
 
     def handle(self, *args, **options):
-        FIELDS = (
-            ('name', 'name'),
-            ('admin1', 'admin'),
-        )
         client = boto3.client('s3')
         response = client.get_object(Bucket=options['bucket'],
                                      Key=options['key'])
@@ -42,18 +39,21 @@ class Command(BaseCommand):
         error = 0
         for city_data in cities:
             try:
-                city = City()
-                city.geom = Point(*city_data['geometry']['coordinates'])
-                for src, dest in FIELDS:
-                    setattr(city, dest, city_data['properties'][src])
-                city.save()
-                success += 1
+                with transaction.atomic():
+                    city, _ = City.objects.update_or_create(
+                        name=city_data['properties']['name'],
+                        admin=city_data['properties']['admin1'],
+                        defaults={'geom': Point(*city_data['geometry']['coordinates'])})
+                    city.population = city_data['properties']['population']
+                    city.save()
+                    success += 1
             except TypeError:
                 logger.error('Bad item: %s', city_data)
                 error += 1
             except IntegrityError:
                 logger.error('Skipping %s, %s due to IntegrityError',
-                             city.name, city.admin)
+                             city_data['properties']['name'],
+                             city_data['properties']['admin1'])
                 error += 1
 
         logger.info('%s saved successfully', success)
