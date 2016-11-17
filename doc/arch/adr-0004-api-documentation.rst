@@ -31,10 +31,13 @@ be applicable.
 Consequences
 ------------
 
+During testing, the `sphinxcontrib-openapi` extension was not successfully used. Some additional
+effort may be necessary to make it work.
+
 If later we decide Sphinx is not a good solution for some reason, the swagger definition should
 still be a good intermediate format for generation of documentation.
 
-Because the swagger definiton is embedded in a larger body of documentation, context can be given
+Because the swagger definition is embedded in a larger body of documentation, context can be given
 to the API. Code samples and introductory text, for example, can be included.
 
 We avoid adding too many more dependencies to the project as we are already generating
