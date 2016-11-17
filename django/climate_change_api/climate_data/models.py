@@ -154,6 +154,8 @@ class City(models.Model):
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
 
+    population = models.IntegerField(null=True)
+
     objects = CityManager()
 
     def __str__(self):
