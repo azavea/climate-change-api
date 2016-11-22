@@ -94,7 +94,8 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    conditions = {'pr__gt': F('map_cell__baseline__pr'),
+                  'map_cell__baseline__percentile': 99}
 
 
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
@@ -165,7 +166,8 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     description = ('Total number of times per month daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    conditions = {'pr__gt': F('map_cell__baseline__precip_99p')}
+    conditions = {'pr__gt': F('map_cell__baseline__pr'),
+                  'map_cell__baseline__percentile': 99}
 
 
 ##########################
