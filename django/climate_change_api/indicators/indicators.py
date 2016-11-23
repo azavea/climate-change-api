@@ -94,8 +94,12 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    conditions = {'pr__gt': F('map_cell__baseline__pr'),
-                  'map_cell__baseline__percentile': 99}
+    parameters = {'percentile': 99}
+
+    @property
+    def conditions(self):
+        return {'pr__gt': F('map_cell__baseline__pr'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
@@ -103,8 +107,12 @@ class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily maximum temperature exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('tasmax',)
-    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax'),
-                  'map_cell__baseline__percentile': 99}
+    parameters = {'percentile': 99}
+
+    @property
+    def conditions(self):
+        return {'tasmax__gt': F('map_cell__baseline__tasmax'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
@@ -112,8 +120,12 @@ class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
     description = ('Total number of times per year daily minimum temperature is below the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
-    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin'),
-                  'map_cell__baseline__percentile': 1}
+    parameters = {'percentile': 1}
+
+    @property
+    def conditions(self):
+        return {'tasmin__lt': F('map_cell__baseline__tasmin'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
@@ -184,8 +196,12 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     description = ('Total number of times per month daily precipitation exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('pr',)
-    conditions = {'pr__gt': F('map_cell__baseline__pr'),
-                  'map_cell__baseline__percentile': 99}
+    parameters = {'percentile': 99}
+
+    @property
+    def conditions(self):
+        return {'pr__gt': F('map_cell__baseline__pr'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
@@ -193,8 +209,12 @@ class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
     description = ('Total number of times per month daily maximum temperature exceeds the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('tasmax',)
-    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax'),
-                  'map_cell__baseline__percentile': 99}
+    parameters = {'percentile': 99}
+
+    @property
+    def conditions(self):
+        return {'tasmax__gt': F('map_cell__baseline__tasmax'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
@@ -202,8 +222,13 @@ class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
     description = ('Total number of times per month daily minimum temperature is below the 99th '
                    'percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
-    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin'),
-                  'map_cell__baseline__percentile': 1}
+    parameters = {'percentile': 1}
+
+    @property
+    def conditions(self):
+        return {'tasmin__lt': F('map_cell__baseline__tasmin'),
+                'map_cell__baseline__percentile': self.parameters['percentile']}
+
 
 
 ##########################
