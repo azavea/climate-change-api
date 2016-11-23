@@ -98,6 +98,24 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
                   'map_cell__baseline__percentile': 99}
 
 
+class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Extreme Heat Events'
+    description = ('Total number of times per year daily maximum temperature exceeds the 99th '
+                   'percentile of observations from 1960 to 1995')
+    variables = ('tasmax',)
+    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax'),
+                  'map_cell__baseline__percentile': 99}
+
+
+class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
+    label = 'Yearly Extreme Cold Events'
+    description = ('Total number of times per year daily minimum temperature is below the 99th '
+                   'percentile of observations from 1960 to 1995')
+    variables = ('tasmin',)
+    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin'),
+                  'map_cell__baseline__percentile': 1}
+
+
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '
@@ -168,6 +186,24 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     variables = ('pr',)
     conditions = {'pr__gt': F('map_cell__baseline__pr'),
                   'map_cell__baseline__percentile': 99}
+
+
+class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
+    label = 'Monthly Extreme Heat Events'
+    description = ('Total number of times per month daily maximum temperature exceeds the 99th '
+                   'percentile of observations from 1960 to 1995')
+    variables = ('tasmax',)
+    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax'),
+                  'map_cell__baseline__percentile': 99}
+
+
+class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
+    label = 'Monthly Extreme Cold Events'
+    description = ('Total number of times per month daily minimum temperature is below the 99th '
+                   'percentile of observations from 1960 to 1995')
+    variables = ('tasmin',)
+    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin'),
+                  'map_cell__baseline__percentile': 1}
 
 
 ##########################
