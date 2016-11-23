@@ -279,6 +279,7 @@ def climate_indicator(request, *args, **kwargs):
                           models=models_param,
                           years=years_param,
                           serializer_aggregations=aggregations,
+                          parameters=request.query_params,
                           units=units_param).calculate()
 
     if units_param and units_param not in IndicatorClass.available_units:

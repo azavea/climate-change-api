@@ -28,9 +28,10 @@ class Indicator(object):
     storage_units = None
     default_units = None
     available_units = (None,)
+    parameters = ()
 
     def __init__(self, city, scenario, models=None, years=None,
-                 serializer_aggregations=None, units=None):
+                 serializer_aggregations=None, units=None, parameters={}):
         if not city:
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
@@ -46,6 +47,10 @@ class Indicator(object):
         self.units = units if units is not None else self.default_units
         if self.units not in self.available_units:
             raise ValueError('Cannot convert to requested units ({})'.format(self.units))
+
+        if self.parameters:
+            self.parameters = {key: parameters.get(key, default)
+                               for (key, default) in self.parameters.items()}
 
         self.queryset = self.get_queryset()
         self.queryset = self.filter_objects()
