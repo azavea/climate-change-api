@@ -1,28 +1,23 @@
+import re
 import numpy as np
+
 
 def float_avg(values):
     return float(sum(values)) / len(values)
 
-def percentile_95(values):
-    return np.percentile(values, 95)
-
-def percentile_99(values):
-    return np.percentile(values, 99)
-
 
 class IndicatorSerializer(object):
 
-    AGGREGATION_MAP = {
+    AGGREGATION_DEFAULT = ('max', 'min', 'avg',)
+    _AGGREGATION_MAP = {
         'avg': float_avg,
         'min': min,
         'max': max,
         'median': np.median,
-        'stddev': np.std,
-        '95th': percentile_95,
-        '99th': percentile_99
+        'stddev': np.std
     }
-    AGGREGATION_CHOICES = AGGREGATION_MAP.keys()
-    AGGREGATION_DEFAULT = ('max', 'min', 'avg',)
+    _AGGREGATION_CHOICES = _AGGREGATION_MAP.keys()
+    _PERCENTILE_REGEX = re.compile('([0-9]?[0-9])th', re.IGNORECASE)
 
     def to_representation(self, results, **kwargs):
         """ Simplify the full list of collated data points to a constant summary
@@ -58,17 +53,39 @@ class IndicatorSerializer(object):
          - 'max' - Absolute max of the values
          - 'median' - Median of the values
          - 'stddev' - Standard deviation of the values
-         - '95th' - 95th percentile
-         - '99th' - 99th percentile
+         - 'XXth' - Percentile. Replace XX with a number between 1-99. This option can be provided
+                    multiple times with different values, e.g. ('5th', '95th', '99th',)
         Defaults to ('avg', 'min', 'max',).
         Example: `serializer.to_representation(results, aggregations=('avg', 'stddev', '95th',))`
 
         """
-        valid_aggregations = set(self.AGGREGATION_CHOICES)
+
+        def create_percentile_lambda(percentile):
+            """ Wrap percentile lambda in function to capture scope of the percentile var """
+            return lambda v: np.percentile(v, percentile)
+
+        valid_aggregations = set(self._AGGREGATION_CHOICES)
         kwargs_aggregations = kwargs.get('aggregations', None)
-        if not kwargs_aggregations:
+        if kwargs_aggregations:
+            kwargs_aggregations = [str(k) for k in kwargs_aggregations]
+        else:
             kwargs_aggregations = self.AGGREGATION_DEFAULT
+
+        # Prefilter the list of results here to remove duplicates and invalid values so we don't
+        # have to loop the whole results dict later to do so
         aggregations = set(kwargs_aggregations).intersection(valid_aggregations)
 
-        return {key: {agg: self.AGGREGATION_MAP[agg](values) for agg in aggregations}
+        # Add valid percentile agg requests to the aggregation list
+        percentiles = [p.strip() for p in kwargs_aggregations
+                       if re.match(self._PERCENTILE_REGEX, p.strip())]
+        aggregations = aggregations.union(set(percentiles))
+
+        # Add functions for each of the valid requested percentiles to aggregation function map
+        aggregation_map = self._AGGREGATION_MAP.copy()
+        for p in percentiles:
+            match = re.match(self._PERCENTILE_REGEX, p)
+            percentile = int(match.groups()[0])
+            aggregation_map[p] = create_percentile_lambda(percentile)
+
+        return {key: {agg: aggregation_map[agg](values) for agg in aggregations}
                 for (key, values) in results.iteritems()}
