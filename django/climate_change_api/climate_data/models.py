@@ -186,6 +186,29 @@ class CityBoundary(models.Model):
     objects = CityBoundaryManager()
 
 
+class Region(models.Model):
+    """
+    A level 2 ecoregion as described in
+    https://www.epa.gov/eco-research/ecoregions-north-america
+    """
+    geom = models.GeometryField()
+
+    level1 = models.IntegerField()
+    level2 = models.IntegerField()
+
+    level1_description = models.CharField(max_length=64)
+    level2_description = models.CharField(max_length=64)
+
+    def __str__(self):
+        return "{}.{} {}, {}".format(self.level1,
+                                     self.level2,
+                                     self.level1_description,
+                                     self.level2_description)
+
+    class Meta:
+        unique_together = ('level1', 'level2')
+
+
 class City(models.Model):
     """Model representing a city
 
@@ -201,6 +224,8 @@ class City(models.Model):
     admin = models.CharField(max_length=40)
 
     population = models.IntegerField(null=True)
+
+    region = models.ForeignKey(Region, on_delete=SET_NULL, null=True)
 
     objects = CityManager()
 
