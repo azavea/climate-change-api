@@ -231,7 +231,10 @@ def climate_indicator(request, *args, **kwargs):
         paramType: query
       - name: agg
         description: A list of comma separated aggregation types to return. Valid choices are
-                     'min', 'max', 'avg', 'median', 'stddev', '95th', '99th'.
+                     'min', 'max', 'avg', 'median', 'stddev', and 'XXth'. If using 'XXth', replace
+                     the XX with a number between 1-99 to return that percentile. For example,
+                     '99th' returns the value of the 99th percentile. The 'XXth' option can be
+                     provided multiple times with different values.
                      Defaults to 'min', 'max', 'avg'.
         required: false
         type: string
