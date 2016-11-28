@@ -14,7 +14,8 @@ class IndicatorSerializer(object):
         'min': min,
         'max': max,
         'median': np.median,
-        'stddev': np.std
+        'stddev': np.std,
+        'stdev': np.std
     }
     _AGGREGATION_CHOICES = _AGGREGATION_MAP.keys()
     _PERCENTILE_REGEX = re.compile('([0-9]?[0-9])th', re.IGNORECASE)
@@ -53,6 +54,7 @@ class IndicatorSerializer(object):
          - 'max' - Absolute max of the values
          - 'median' - Median of the values
          - 'stddev' - Standard deviation of the values
+         - 'stdev' - Alias to 'stddev'
          - 'XXth' - Percentile. Replace XX with a number between 1-99. This option can be provided
                     multiple times with different values, e.g. ('5th', '95th', '99th',)
         Defaults to ('avg', 'min', 'max',).
