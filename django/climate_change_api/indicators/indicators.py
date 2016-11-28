@@ -91,8 +91,8 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
 
 class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Precipitation Events'
-    description = ('Total number of times per year daily precipitation exceeds the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per year daily precipitation exceeds the specified '
+                   '(Default 99th) percentile of observations from 1960 to 1995')
     variables = ('pr',)
     parameters = {'percentile': 99}
 
@@ -104,8 +104,8 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
 
 class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Heat Events'
-    description = ('Total number of times per year daily maximum temperature exceeds the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per year daily maximum temperature exceeds the specified '
+                   '(Default 99th) percentile of observations from 1960 to 1995')
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
@@ -117,8 +117,8 @@ class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
 
 class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Cold Events'
-    description = ('Total number of times per year daily minimum temperature is below the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per year daily minimum temperature is below the specified '
+                   '(Default 1st) percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
@@ -193,8 +193,8 @@ class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
 
 class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Precipitation Events'
-    description = ('Total number of times per month daily precipitation exceeds the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per month daily precipitation exceeds the specified '
+                   '(Default 99th) percentile of observations from 1960 to 1995')
     variables = ('pr',)
     parameters = {'percentile': 99}
 
@@ -206,8 +206,8 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
 
 class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Heat Events'
-    description = ('Total number of times per month daily maximum temperature exceeds the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per month daily maximum temperature exceeds the specified '
+                   '(Default 99th) percentile of observations from 1960 to 1995')
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
@@ -219,8 +219,8 @@ class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
 
 class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Cold Events'
-    description = ('Total number of times per month daily minimum temperature is below the 99th '
-                   'percentile of observations from 1960 to 1995')
+    description = ('Total number of times per month daily minimum temperature is below the specified '
+                   '(Default 1st) percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 

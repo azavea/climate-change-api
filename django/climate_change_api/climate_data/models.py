@@ -135,7 +135,7 @@ class ClimateDataBaseline(models.Model):
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic least daily minimum temperature for this percentile from 1961-1990')
+                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')
     tasmax = models.FloatField(null=True,
                                help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')
     pr = models.FloatField(null=True,
