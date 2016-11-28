@@ -229,6 +229,17 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: string
         paramType: query
+      - name: agg
+        description: A list of comma separated aggregation types to return. Valid choices are
+                     'min', 'max', 'avg', 'median', 'stddev', 'stdev', and 'XXth'. If using 'XXth',
+                     replace the XX with a number between 1-99 to return that percentile. For
+                     example, '99th' returns the value of the 99th percentile. The 'XXth' option
+                     can be provided multiple times with different values. 'stdev' is an alias to
+                     'stddev'.
+                     Defaults to 'min', 'max', 'avg'.
+        required: false
+        type: string
+        paramType: query
       - name: units
         description: Units in which to return the data. Defaults to Imperial units (Fahrenheit for
                      temperature indicators and inches per day for precipitation).
@@ -254,6 +265,8 @@ def climate_indicator(request, *args, **kwargs):
     else:
         model_list = ClimateModel.objects.all()
 
+    agg_param = request.query_params.get('agg', None)
+    aggregations = agg_param.split(',') if agg_param else None
     years_param = request.query_params.get('years', None)
     units_param = request.query_params.get('units', None)
 
@@ -265,6 +278,7 @@ def climate_indicator(request, *args, **kwargs):
                           scenario,
                           models=models_param,
                           years=years_param,
+                          serializer_aggregations=aggregations,
                           units=units_param).calculate()
 
     if units_param and units_param not in IndicatorClass.available_units:

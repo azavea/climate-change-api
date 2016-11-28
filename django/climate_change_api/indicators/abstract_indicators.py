@@ -29,7 +29,8 @@ class Indicator(object):
     default_units = None
     available_units = (None,)
 
-    def __init__(self, city, scenario, models=None, years=None, units=None):
+    def __init__(self, city, scenario, models=None, years=None,
+                 serializer_aggregations=None, units=None):
         if not city:
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
@@ -39,6 +40,7 @@ class Indicator(object):
         self.scenario = scenario
         self.models = models
         self.years = years
+        self.serializer_aggregations = serializer_aggregations
 
         # Set and validate desired units
         self.units = units if units is not None else self.default_units
@@ -143,7 +145,8 @@ class Indicator(object):
         aggregations = self.aggregate()
         aggregations = self.convert_units(aggregations)
         collations = self.collate_results(aggregations)
-        return self.serializer.to_representation(collations)
+        return self.serializer.to_representation(collations,
+                                                 aggregations=self.serializer_aggregations)
 
 
 class YearlyIndicator(Indicator):
