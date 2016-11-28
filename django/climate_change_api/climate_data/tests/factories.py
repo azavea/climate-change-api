@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point
 from factory.django import DjangoModelFactory
 import factory
 
-from climate_data.models import (ClimateModel, City, ClimateData,
+from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
                                  ClimateDataSource, Scenario, ClimateDataCell)
 
 
@@ -83,3 +83,16 @@ class ClimateDataFactory(DjangoModelFactory):
     class Meta:
         model = ClimateData
         django_get_or_create = ('map_cell', 'data_source', 'day_of_year',)
+
+
+class ClimateDataBaselineFactory(DjangoModelFactory):
+
+    map_cell = ClimateDataCellFactory()
+    percentile = 99
+    tasmin = 272
+    tasmax = 292
+    pr = 0.00005
+
+    class Meta:
+        model = ClimateDataBaseline
+        django_get_or_create = ('map_cell', 'percentile',)
