@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.db.models import SET_NULL
+from django.db.models import CASCADE, SET_NULL
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
@@ -140,6 +140,20 @@ class ClimateDataBaseline(models.Model):
         return (self.map_cell,)
 
 
+class CityBoundary(models.Model):
+    """ Stores the related boundary and a generic string type for a given city
+
+    This model was left intentionally generic so we can support boundaries from different global
+    sources easily.
+
+    The boundary_type field stores values such as 'incorporated place', 'county' or 'postalcode'
+
+    """
+    geom = models.MultiPolygonField()
+    source = models.CharField(max_length=64)
+    boundary_type = models.CharField(max_length=64)
+
+
 class City(models.Model):
     """Model representing a city
 
@@ -150,6 +164,7 @@ class City(models.Model):
     _geog = models.PointField(geography=True)
 
     map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
+    boundary = models.OneToOneField(CityBoundary, on_delete=CASCADE, null=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
