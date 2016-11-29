@@ -1,8 +1,9 @@
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.urlresolvers import reverse
 
 from rest_framework import status
 
-from climate_data.models import ClimateData, ClimateModel
+from climate_data.models import CityBoundary, ClimateData, ClimateModel
 from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
 from climate_data.tests.factories import (ClimateModelFactory,
                                           ScenarioFactory)
@@ -137,6 +138,16 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         for field in fields:
             self.assertIn(field, geojson)
 
+    def test_detail_doesnt_have_boundary(self):
+        """ Ensure this endpoint is geojson-like """
+        url = reverse('city-detail', args=[self.city1.id])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        geojson = response.data
+        self.assertNotIn('boundary', geojson['properties'])
+
     def test_bbox_filtering(self):
         """ Ensure this endpoint has bbox filtering via in_bbox=minlon,minlat,maxlon,maxlat """
         url = reverse('city-list')
@@ -158,6 +169,30 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['count'], 1)
         feature = response.data['features'][0]
         self.assertEqual(feature['properties']['name'], self.city1.name)
+
+    def test_boundary_404_if_no_data(self):
+        self.city1.boundary = None
+        self.city1.save()
+
+        url = reverse('city-boundary', args=[self.city1.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_boundary(self):
+
+        geom = MultiPolygon(Polygon([[0, 0], [1, 1], [2, 2], [0, 0]]))
+        boundary = CityBoundary.objects.create(geom=geom, boundary_type='TEST', source='TEST')
+
+        self.city1.boundary = boundary
+        self.city1.save()
+
+        url = reverse('city-boundary', args=[self.city1.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        geojson = response.data
+        fields = ('type', 'geometry', 'properties',)
+        for field in fields:
+            self.assertIn(field, geojson)
 
     def test_nearest_endpoint(self):
         """ Test getting the list of nearest cities from a separate endpoint """

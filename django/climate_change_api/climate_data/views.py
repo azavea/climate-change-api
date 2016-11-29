@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, list_route
+from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
@@ -16,6 +16,7 @@ from rest_framework_gis.filters import InBBoxFilter
 from climate_data.filters import ClimateDataFilterSet
 from climate_data.models import City, ClimateData, ClimateModel, Scenario
 from climate_data.serializers import (CitySerializer,
+                                      CityBoundarySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
@@ -87,6 +88,20 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             serializer = self.get_serializer(nearest_cities, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @detail_route(methods=['GET'])
+    def boundary(self, request, pk=None):
+        """ Return the geographical boundary associated with this city as GeoJSON
+
+        Returns 404 if the city object has no valid boundary
+
+        """
+        city = self.get_object()
+        if city.boundary:
+            serializer = CityBoundarySerializer(city.boundary)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 
 class ClimateModelViewSet(viewsets.ReadOnlyModelViewSet):
