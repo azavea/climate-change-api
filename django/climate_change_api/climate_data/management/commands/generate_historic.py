@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 
 from climate_data.models import (ClimateData, ClimateDataCell, HistoricAverageClimateData,
                                  ClimateDataBaseline, ClimateModel)
+from indicators.validators import PERCENTILES
 from django.db.models import Avg
 
 logger = logging.getLogger('climate_data')
@@ -13,7 +14,6 @@ CITY_URL = 'https://{domain}/api/city/?format=json'
 
 RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 VARIABLES = ['tasmin', 'tasmax', 'pr']
-PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
 
 

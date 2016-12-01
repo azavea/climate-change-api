@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 
 from climate_data.management.commands.import_from_other_instance import get_cities, make_request
 from climate_data.models import City, HistoricAverageClimateData, ClimateDataBaseline, ClimateModel
+from indicators.validators import PERCENTILES
 
 logger = logging.getLogger('climate_data')
 
@@ -15,7 +16,6 @@ CITY_URL = 'https://{domain}/api/city/?format=json'
 
 RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 VARIABLES = ['tasmin', 'tasmax', 'pr']
-PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
 
 
