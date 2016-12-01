@@ -9,6 +9,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from climate_data.models import (City,
+                                 CityBoundary,
                                  ClimateData,
                                  ClimateDataCell,
                                  ClimateDataSource,
@@ -29,6 +30,7 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
 
 logger = logging.getLogger(__name__)
 
+
 class CitySerializer(GeoFeatureModelSerializer):
 
     map_cell = ClimateDataCellSerializer()
@@ -36,7 +38,16 @@ class CitySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog',)
+        exclude = ('_geog', 'boundary',)
+
+
+class CityBoundarySerializer(GeoFeatureModelSerializer):
+
+    class Meta:
+        model = CityBoundary
+        id_field = False
+        geo_field = 'geom'
+        exclude = ('id',)
 
 
 class ClimateDataSourceSerializer(serializers.ModelSerializer):
