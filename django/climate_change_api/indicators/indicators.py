@@ -10,7 +10,6 @@ from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicat
                                   DailyRawIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
                               DaysUnitsMixin, CountUnitsMixin)
-from validators import PercentileValidatorMixin
 
 
 ##########################
@@ -90,8 +89,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
                    'value': num_dry_spells}
 
 
-class YearlyExtremePrecipitationEvents(PercentileValidatorMixin, CountUnitsMixin,
-                                       YearlyCountIndicator):
+class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Precipitation Events'
     description = ('Total number of times per year daily precipitation exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
@@ -104,7 +102,7 @@ class YearlyExtremePrecipitationEvents(PercentileValidatorMixin, CountUnitsMixin
                 'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyExtremeHeatEvents(PercentileValidatorMixin, CountUnitsMixin, YearlyCountIndicator):
+class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Heat Events'
     description = ('Total number of times per year daily maximum temperature exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
@@ -117,10 +115,10 @@ class YearlyExtremeHeatEvents(PercentileValidatorMixin, CountUnitsMixin, YearlyC
                 'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyExtremeColdEvents(PercentileValidatorMixin, CountUnitsMixin, YearlyCountIndicator):
+class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
     label = 'Yearly Extreme Cold Events'
-    description = ('Total number of times per year daily minimum temperature is below the specified'
-                   ' (Default 1st) percentile of observations from 1960 to 1995')
+    description = ('Total number of times per year daily minimum temperature is below the specified '
+                   '(Default 1st) percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
@@ -193,8 +191,7 @@ class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
     conditions = {'tasmin__lt': 273.15}
 
 
-class MonthlyExtremePrecipitationEvents(PercentileValidatorMixin, CountUnitsMixin,
-                                        MonthlyCountIndicator):
+class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Precipitation Events'
     description = ('Total number of times per month daily precipitation exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
@@ -207,10 +204,10 @@ class MonthlyExtremePrecipitationEvents(PercentileValidatorMixin, CountUnitsMixi
                 'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class MonthlyExtremeHeatEvents(PercentileValidatorMixin, CountUnitsMixin, MonthlyCountIndicator):
+class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Heat Events'
-    description = ('Total number of times per month daily maximum temperature exceeds the specified'
-                   ' (Default 99th) percentile of observations from 1960 to 1995')
+    description = ('Total number of times per month daily maximum temperature exceeds the specified '
+                   '(Default 99th) percentile of observations from 1960 to 1995')
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
@@ -220,10 +217,10 @@ class MonthlyExtremeHeatEvents(PercentileValidatorMixin, CountUnitsMixin, Monthl
                 'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class MonthlyExtremeColdEvents(PercentileValidatorMixin, CountUnitsMixin, MonthlyCountIndicator):
+class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
     label = 'Monthly Extreme Cold Events'
-    description = ('Total number of times per month daily minimum temperature is below the '
-                   'specified (Default 1st) percentile of observations from 1960 to 1995')
+    description = ('Total number of times per month daily minimum temperature is below the specified '
+                   '(Default 1st) percentile of observations from 1960 to 1995')
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
@@ -231,6 +228,7 @@ class MonthlyExtremeColdEvents(PercentileValidatorMixin, CountUnitsMixin, Monthl
     def conditions(self):
         return {'tasmin__lt': F('map_cell__baseline__tasmin'),
                 'map_cell__baseline__percentile': self.parameters['percentile']}
+
 
 
 ##########################

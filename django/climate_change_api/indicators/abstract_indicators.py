@@ -146,17 +146,7 @@ class Indicator(object):
         """
         raise NotImplementedError()
 
-    def validate(self):
-        """ Stub function for indicators with scope-specific validation requirements
-
-        Will throw an exception on validation error with a message of what the error was.
-        """
-        pass
-
     def calculate(self):
-        # validate() will throw its own exception if the indicator is invalid
-        self.validate()
-
         aggregations = self.aggregate()
         aggregations = self.convert_units(aggregations)
         collations = self.collate_results(aggregations)
