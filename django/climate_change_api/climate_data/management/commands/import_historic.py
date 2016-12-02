@@ -15,10 +15,11 @@ CITY_URL = 'https://{domain}/api/city/?format=json'
 
 RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 VARIABLES = ['tasmin', 'tasmax', 'pr']
+PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
 
 
-def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
+def get_historic_raw_data(domain, token, city_id, model=None, variables=None):
     """
     Gets the historic data for a city from a climate-change-api instance
     """
@@ -27,36 +28,36 @@ def get_historic_raw_data(domain, token, city_id, model=None, variable=None):
     params = {}
     if model is not None:
         params['models'] = model
-    if variable is not None:
-        params['variables'] = variable
+    if variables is not None:
+        params['variables'] = ",".join(variables)
     if params:
         url = '{}?{}'.format(url, urlencode(params))
 
     return make_request(url, token)
 
 
-def get_precipitation_baseline(domain, token, city, model):
-    logger.warn('Getting precipitation baselines for %s',
+def get_baseline(domain, token, city, model):
+    logger.warn('Getting percentile baselines for %s',
                 model.name)
-    response = get_historic_raw_data(domain, token, city, model.name, 'pr')
-    data = response['data']
+    response = get_historic_raw_data(domain, token, city, model.name, VARIABLES)
+    yearly_data = response['data']
 
-    # Use a generator to extract the precip data from each year
-    precip = (year['pr'] for year in data.values())
+    flat_values = {var: [v for year_data in yearly_data.values()
+                         for v in year_data[var] if v is not None]
+                   for var in VARIABLES}
 
-    # Flatten the list-of-lists into a single list of straight values
-    flat_precip = (v for years_data in precip for v in years_data)
-
-    # Remove any readings with no precipitation that day
-    rainfall = (v for v in flat_precip if v > 0)
+    # For precipitation events only use days that had some rainfall
+    flat_values['pr'] = filter(lambda x: x > 0, flat_values['pr'])
 
     # Calculate the 99th percentile of the data
-    return np.percentile(list(rainfall), 99)
+    return {percentile:
+            {var: np.percentile(flat_values[var], percentile) for var in VARIABLES}
+            for percentile in PERCENTILES}
 
 
-def record_precipitation_baselines(domain, token, local_city, remote_city_id):
+def record_baselines(domain, token, local_city, remote_city_id):
     if ClimateDataBaseline.objects.filter(map_cell=local_city.map_cell).exists():
-        logger.warn('City %s, %s already has baseline data imported, skipping',
+        logger.warn('City %s, %s already has percentile baseline data imported, skipping',
                     local_city.name,
                     local_city.admin)
         return
@@ -64,13 +65,19 @@ def record_precipitation_baselines(domain, token, local_city, remote_city_id):
     # We received a list of data by year, but we want pure numbers
     # Flatten the lists into a single master list
 
-    precip_99ps = (get_precipitation_baseline(domain, token, remote_city_id, model) for model in MODELS)
+    model_values = [get_baseline(domain, token, remote_city_id, model)
+                    for model in MODELS]
 
-    baseline = ClimateDataBaseline(
-        map_cell=local_city.map_cell,
-        precip_99p=np.mean(list(precip_99ps))
-    )
-    baseline.save()
+    for percentile in PERCENTILES:
+        insert_values = {var: np.mean([mv[percentile][var] for mv in model_values])
+                         for var in VARIABLES}
+
+        insert_values.update({
+            'map_cell': local_city.map_cell,
+            'percentile': percentile
+        })
+
+        ClimateDataBaseline(**insert_values).save()
 
 
 class Command(BaseCommand):
@@ -100,7 +107,8 @@ class Command(BaseCommand):
                         city['properties']['name'],
                         city['properties']['admin'])
 
-            record_precipitation_baselines(options['domain'], options['token'], local_city, city['id'])
+            record_baselines(options['domain'], options['token'],
+                             local_city, city['id'])
 
             if HistoricAverageClimateData.objects.filter(map_cell=local_city.map_cell).exists():
                 logger.warn('City %s, %s already has average data imported, skipping',
