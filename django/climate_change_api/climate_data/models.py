@@ -133,13 +133,21 @@ class ClimateDataCell(models.Model):
 
 
 class ClimateDataBaseline(models.Model):
-    map_cell = TinyOneToOne(ClimateDataCell, null=False, related_name='baseline')
+    map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
+    percentile = models.IntegerField(null=False)
 
-    precip_99p = models.FloatField(null=True,
-                                   help_text='99th percentile historic precipitation by day')
+    tasmin = models.FloatField(null=True,
+                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')
+    tasmax = models.FloatField(null=True,
+                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')
+    pr = models.FloatField(null=True,
+                           help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA
 
     def natural_key(self):
-        return (self.map_cell,)
+        return (self.map_cell, self.percentile)
+
+    class Meta:
+        unique_together = ('map_cell', 'percentile')
 
 
 class CityBoundaryManager(models.Manager):

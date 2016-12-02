@@ -221,6 +221,54 @@ class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 0, 'min': 0, 'max': 0}}
 
 
+class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyExtremePrecipitationEvents
+    indicator_name = 'yearly_extreme_precipitation_events'
+    test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                   2001: {'avg': 0, 'min': 0, 'max': 0},
+                                   2002: {'avg': 0, 'min': 0, 'max': 0},
+                                   2003: {'avg': 0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {2001: {'avg': 0, 'min': 0, 'max': 0},
+                                2002: {'avg': 0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                 2001: {'avg': 0, 'min': 0, 'max': 0},
+                                 2002: {'avg': 0, 'min': 0, 'max': 0},
+                                 2003: {'avg': 0, 'min': 0, 'max': 0}}
+
+
+class YearlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyExtremeHeatEvents
+    indicator_name = 'yearly_extreme_heat_events'
+    test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                   2001: {'avg': 0, 'min': 0, 'max': 0},
+                                   2002: {'avg': 0, 'min': 0, 'max': 0},
+                                   2003: {'avg': 0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {2001: {'avg': 0, 'min': 0, 'max': 0},
+                                2002: {'avg': 0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                 2001: {'avg': 0, 'min': 0, 'max': 0},
+                                 2002: {'avg': 0, 'min': 0, 'max': 0},
+                                 2003: {'avg': 0, 'min': 0, 'max': 0}}
+
+
+class YearlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.YearlyExtremeColdEvents
+    indicator_name = 'yearly_extreme_cold_events'
+    test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0.5, 'min': 0, 'max': 1},
+                                   2001: {'avg': 0.5, 'min': 0, 'max': 1},
+                                   2002: {'avg': 1, 'min': 1, 'max': 1},
+                                   2003: {'avg': 1, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {2001: {'avg': 0.5, 'min': 0, 'max': 1},
+                                2002: {'avg': 1.0, 'min': 1, 'max': 1}}
+    test_models_filter_equals = {2000: {'avg': 1.0, 'min': 1, 'max': 1},
+                                 2001: {'avg': 1.0, 'min': 1, 'max': 1},
+                                 2002: {'avg': 1.0, 'min': 1, 'max': 1},
+                                 2003: {'avg': 1.0, 'min': 1, 'max': 1}}
+
+
 class MonthlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.MonthlyAverageHighTemperature
     indicator_name = 'monthly_average_high_temperature'
@@ -324,3 +372,51 @@ class MonthlyFrostDaysTestCase(IndicatorTests, TestCase):
                                  '2001-01': {'avg': 1, 'min': 1, 'max': 1},
                                  '2002-01': {'avg': 1, 'min': 1, 'max': 1},
                                  '2003-01': {'avg': 1, 'min': 1, 'max': 1}}
+
+
+class MonthlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyExtremePrecipitationEvents
+    indicator_name = 'monthly_extreme_precipitation_events'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2002-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2003-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {'2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                '2002-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2002-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2003-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+
+
+class MonthlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyExtremeHeatEvents
+    indicator_name = 'monthly_extreme_heat_events'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2002-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                   '2003-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {'2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                '2002-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2002-01': {'avg': 0.0, 'min': 0, 'max': 0},
+                                 '2003-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+
+
+class MonthlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.MonthlyExtremeColdEvents
+    indicator_name = 'monthly_extreme_cold_events'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0}}
+    test_indicator_rcp45_equals = {'2000-01': {'avg': 0.5, 'min': 0, 'max': 1},
+                                   '2001-01': {'avg': 0.5, 'min': 0, 'max': 1},
+                                   '2002-01': {'avg': 1.0, 'min': 1, 'max': 1},
+                                   '2003-01': {'avg': 1.0, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {'2001-01': {'avg': 0.5, 'min': 0, 'max': 1},
+                                '2002-01': {'avg': 1.0, 'min': 1, 'max': 1}}
+    test_models_filter_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1},
+                                 '2001-01': {'avg': 1.0, 'min': 1, 'max': 1},
+                                 '2002-01': {'avg': 1.0, 'min': 1, 'max': 1},
+                                 '2003-01': {'avg': 1.0, 'min': 1, 'max': 1}}

@@ -261,6 +261,12 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: string
         paramType: query
+      - name: percentile
+        description: (Appropriate indicators only) The percentile threshold used to calculate
+                     the number of exceeding events compared to historic levels.
+        required: false
+        type: integer
+        paramType: query
 
     """
     try:
@@ -294,6 +300,7 @@ def climate_indicator(request, *args, **kwargs):
                           models=models_param,
                           years=years_param,
                           serializer_aggregations=aggregations,
+                          parameters=request.query_params,
                           units=units_param).calculate()
 
     if units_param and units_param not in IndicatorClass.available_units:
