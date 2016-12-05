@@ -2,7 +2,7 @@ import inspect
 import sys
 from itertools import groupby
 
-from django.db.models import F, Avg, Max, Min
+from django.db.models import F, Sum, Avg, Max, Min
 
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator,
@@ -128,6 +128,38 @@ class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
                 'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
+class YearlyHeatingDegreeDays(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Degree Days'
+    description = ('Cumulative difference of daily low temperature to base')
+    parameters = {'basetemp': 291}  # 65F = 18.3C = 291.5K
+    variables = ('tasmin',)
+    agg_function = Sum
+
+    @property
+    def conditions(self):
+            return {'tasmin__lte': self.parameters['basetemp']}
+
+    @property
+    def expression(self):
+        return self.parameters['basetemp'] - F('tasmin')
+
+
+class YearlyCoolingDegreeDays(TemperatureUnitsMixin, YearlyAggregationIndicator):
+    label = 'Yearly Degree Days'
+    description = ('Cumulative difference of daily high temperature to base')
+    parameters = {'basetemp': 291}  # 65F = 18.3C = 291.5K
+    variables = ('tasmax',)
+    agg_function = Sum
+
+    @property
+    def conditions(self):
+            return {'tasmax__gte': self.parameters['basetemp']}
+
+    @property
+    def expression(self):
+        return F('tasmax') - self.parameters['basetemp']
+
+
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '
@@ -228,7 +260,6 @@ class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
     def conditions(self):
         return {'tasmin__lt': F('map_cell__baseline__tasmin'),
                 'map_cell__baseline__percentile': self.parameters['percentile']}
-
 
 
 ##########################
