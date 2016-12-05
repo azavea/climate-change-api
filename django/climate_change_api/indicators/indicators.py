@@ -96,10 +96,11 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
     variables = ('pr',)
     parameters = {'percentile': 99}
 
+    conditions = {'pr__gt': F('map_cell__baseline__pr')}
+
     @property
-    def conditions(self):
-        return {'pr__gt': F('map_cell__baseline__pr'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
@@ -109,10 +110,11 @@ class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
+    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
+
     @property
-    def conditions(self):
-        return {'tasmax__gt': F('map_cell__baseline__tasmax'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
@@ -122,10 +124,11 @@ class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
+    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
+
     @property
-    def conditions(self):
-        return {'tasmin__lt': F('map_cell__baseline__tasmin'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class YearlyHeatingDegreeDays(TemperatureUnitsMixin, YearlyAggregationIndicator):
@@ -165,7 +168,7 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-    conditions = {'day_of_year': F('map_cell__historic_average__day_of_year')}
+    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
     raw_condition = 'tasmax > avg_tasmax + 5'
 
     def aggregate(self):
@@ -230,10 +233,11 @@ class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
     variables = ('pr',)
     parameters = {'percentile': 99}
 
+    conditions = {'pr__gt': F('map_cell__baseline__pr')}
+
     @property
-    def conditions(self):
-        return {'pr__gt': F('map_cell__baseline__pr'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
@@ -243,10 +247,11 @@ class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
+    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
+
     @property
-    def conditions(self):
-        return {'tasmax__gt': F('map_cell__baseline__tasmax'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
@@ -256,10 +261,11 @@ class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
+    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
+
     @property
-    def conditions(self):
-        return {'tasmin__lt': F('map_cell__baseline__tasmin'),
-                'map_cell__baseline__percentile': self.parameters['percentile']}
+    def filters(self):
+        return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
 ##########################
