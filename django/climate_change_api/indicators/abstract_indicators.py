@@ -20,6 +20,7 @@ class Indicator(object):
     description = ''
     time_aggregation = None     # One of 'daily'|'monthly'|'yearly'
     variables = ClimateData.VARIABLE_CHOICES
+    filters = None
     serializer_class = IndicatorSerializer
 
     # Subclasses should use a units mixin from 'unit_converters' to define these units
@@ -52,6 +53,7 @@ class Indicator(object):
                                for (key, default) in self.parameters.items()}
 
         self.queryset = self.get_queryset()
+        self.queryset = self.filter_objects()
 
         self.serializer = self.serializer_class()
 
@@ -89,6 +91,13 @@ class Indicator(object):
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
         return queryset
+
+    def filter_objects(self):
+        """ A subclass can override this to further filter the dataset before calling calculate """
+        if self.filters is not None:
+            return self.queryset.filter(**self.filters)
+        else:
+            return self.queryset
 
     def aggregate(self):
         """ Calculate the indicator aggregation
@@ -359,13 +368,34 @@ class MonthlyIndicator(Indicator):
 
 
 class MonthlyAggregationIndicator(MonthlyIndicator):
+    default = 0
+    conditions = None
+
     def aggregate(self):
-        return self.monthly_queryset.annotate(value=self.agg_function(self.variables[0]))
+        if self.conditions:
+            agg_function = self.agg_function(
+                        Case(When(then=self.expression, **self.conditions),
+                             default=self.default,
+                             output_field=IntegerField()))
+        else:
+            agg_function = self.agg_function(self.expression)
+        return (self.monthly_queryset.annotate(value=agg_function))
+
+    @property
+    def expression(self):
+        """ Lookup function to get the actual value used for aggregation
+
+        Defaults to the first variable mentioned in the variables variable, but can be overloaded
+        for complex queries.
+
+        This is necessary because the variables value is serialized for the /indicators/ endpoint,
+        but complex queries may require non-serializable components. Using the expression property
+        allows us to subsitute the variable specifically for the serialization instead.
+        """
+        return self.variables[0]
 
 
 class MonthlyCountIndicator(MonthlyAggregationIndicator):
-    def aggregate(self):
-        agg_function = Sum(Case(When(then=1, **self.conditions),
-                                default=0,
-                                output_field=IntegerField()))
-        return self.monthly_queryset.annotate(value=agg_function)
+    agg_function = Sum
+    default = 0
+    expression = 1
