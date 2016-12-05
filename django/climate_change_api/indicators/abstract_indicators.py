@@ -174,9 +174,28 @@ class YearlyIndicator(Indicator):
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
+    default = 0
+    conditions = None
+
     def aggregate(self):
+        if self.conditions:
+            agg_function = self.agg_function(
+                        Case(When(then=self.expression, **self.conditions),
+                             default=self.default,
+                             output_field=IntegerField()))
+        else:
+            agg_function = self.agg_function(self.expression)
         return (self.queryset.values('data_source__year', 'data_source__model')
-                .annotate(value=self.agg_function(self.variables[0])))
+                .annotate(value=agg_function))
+
+    @property
+    def expression(self):
+        """ Lookup function to get the actual value used for aggregation
+
+        Defaults to the first variable mentioned in the variables variable, but can be overloaded
+        for complex queries.
+        """
+        return self.variables[0]
 
 
 class YearlyCountIndicator(YearlyIndicator):
