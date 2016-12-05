@@ -193,19 +193,15 @@ class YearlyAggregationIndicator(YearlyIndicator):
         return self.variables[0]
 
 
-class YearlyCountIndicator(YearlyIndicator):
+class YearlyCountIndicator(YearlyAggregationIndicator):
     """ Class to count days on which a condition is met.
 
-    Since using a filter would result in ignoring year/model combinations where the count is zero
-    and Count doesn't discriminate between values, uses a Case/When clause to return 1 for hits
-    and 0 for misses then Sum to count them up.
+    Essentially a specialized version of the YearlyAggregationIndicator where all values count as 1
+    if they match the conditions and 0 in all other cases.
     """
-    def aggregate(self):
-        agg_function = Sum(Case(When(then=1, **self.conditions),
-                                default=0,
-                                output_field=IntegerField()))
-        return (self.queryset.values('data_source__year', 'data_source__model')
-                .annotate(value=agg_function))
+    agg_function = Sum
+    default = 0
+    expression = 1
 
 
 class YearlySequenceIndicator(YearlyCountIndicator):
