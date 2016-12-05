@@ -20,7 +20,6 @@ class Indicator(object):
     description = ''
     time_aggregation = None     # One of 'daily'|'monthly'|'yearly'
     variables = ClimateData.VARIABLE_CHOICES
-    filters = None
     serializer_class = IndicatorSerializer
 
     # Subclasses should use a units mixin from 'unit_converters' to define these units
@@ -53,7 +52,6 @@ class Indicator(object):
                                for (key, default) in self.parameters.items()}
 
         self.queryset = self.get_queryset()
-        self.queryset = self.filter_objects()
 
         self.serializer = self.serializer_class()
 
@@ -91,13 +89,6 @@ class Indicator(object):
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
         return queryset
-
-    def filter_objects(self):
-        """ A subclass can override this to further filter the dataset before calling calculate """
-        if self.filters is not None:
-            return self.queryset.filter(**self.filters)
-        else:
-            return self.queryset
 
     def aggregate(self):
         """ Calculate the indicator aggregation
@@ -194,6 +185,10 @@ class YearlyAggregationIndicator(YearlyIndicator):
 
         Defaults to the first variable mentioned in the variables variable, but can be overloaded
         for complex queries.
+
+        This is necessary because the variables value is serialized for the /indicators/ endpoint,
+        but complex queries may require non-serializable components. Using the expression property
+        allows us to subsitute the variable specifically for the serialization instead.
         """
         return self.variables[0]
 

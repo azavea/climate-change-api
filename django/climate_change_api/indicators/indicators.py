@@ -165,7 +165,7 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
     variables = ('tasmax',)
-    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
+    conditions = {'day_of_year': F('map_cell__historic_average__day_of_year')}
     raw_condition = 'tasmax > avg_tasmax + 5'
 
     def aggregate(self):
