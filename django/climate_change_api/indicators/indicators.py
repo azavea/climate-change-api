@@ -280,6 +280,50 @@ class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
         return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
+class MonthlyHeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
+                               MonthlyAggregationIndicator):
+    label = 'Monthly Heating Degree Days'
+    description = ('Total difference of daily low temperature to a reference base temperature '
+                   '(Default 65F)')
+    variables = ('tasmin',)
+    agg_function = Sum
+
+    # List units as a parameter so it gets updated by the query params if it is overriden.
+    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
+    parameters = {'basetemp': '65F',
+                  'units': 'F'}
+
+    @property
+    def conditions(self):
+        return {'tasmin__lte': self.parameters['basetemp']}
+
+    @property
+    def expression(self):
+        return self.parameters['basetemp'] - F('tasmin')
+
+
+class MonthlyCoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
+                               MonthlyAggregationIndicator):
+    label = 'Monthly Cooling Degree Days'
+    description = ('Total difference of daily high temperature to a reference base temperature '
+                   '(Default 65F)')
+    variables = ('tasmax',)
+    agg_function = Sum
+
+    # List units as a parameter so it gets updated by the query params if it is overriden.
+    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
+    parameters = {'basetemp': '65F',
+                  'units': 'F'}
+
+    @property
+    def conditions(self):
+            return {'tasmax__gte': self.parameters['basetemp']}
+
+    @property
+    def expression(self):
+        return F('tasmax') - self.parameters['basetemp']
+
+
 ##########################
 # Daily indicators
 
