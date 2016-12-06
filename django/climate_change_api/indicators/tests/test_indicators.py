@@ -49,14 +49,6 @@ class IndicatorTests(ClimateDataSetupMixin, object):
         data = indicator.calculate()
         self.assertEqual(data, self.test_models_filter_equals)
 
-    def test_unit_conversion_definitions(self):
-        """ Some sanity checks for unit conversion class attributes """
-        self.assertIn(self.indicator_class.default_units, self.indicator_class.available_units)
-        storage_units = self.indicator_class.storage_units
-        for units in self.indicator_class.available_units:
-            self.assertTrue(units == storage_units or callable(
-                self.indicator_class.conversions[self.indicator_class.storage_units][units]))
-
 
 class TemperatureIndicatorTests(IndicatorTests):
     def test_unit_conversion(self):

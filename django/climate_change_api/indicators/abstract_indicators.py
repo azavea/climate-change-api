@@ -11,7 +11,7 @@ from django.db import connection
 from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin
+from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
 
 class Indicator(object):
@@ -185,6 +185,7 @@ class YearlyAggregationIndicator(YearlyIndicator):
                              output_field=IntegerField()))
         else:
             agg_function = self.agg_function(self.expression)
+
         return (self.queryset.values('data_source__year', 'data_source__model')
                 .annotate(value=agg_function))
 
@@ -379,6 +380,7 @@ class MonthlyAggregationIndicator(MonthlyIndicator):
                              output_field=IntegerField()))
         else:
             agg_function = self.agg_function(self.expression)
+
         return (self.monthly_queryset.annotate(value=agg_function))
 
     @property
@@ -399,3 +401,22 @@ class MonthlyCountIndicator(MonthlyAggregationIndicator):
     agg_function = Sum
     default = 0
     expression = 1
+
+
+class BasetempIndicatorMixin(object):
+    """ Framework for pre-processing the basetemp parameter to a native unit
+    """
+    def calculate(self):
+        m = re.match(r'(?P<value>\d+(\.\d+)?)(?P<unit>[FKC])?', self.parameters['basetemp'])
+        assert m, "Parameter basetemp must be numeric"
+
+        value = float(m.group('value'))
+        unit = m.group('unit')
+        if unit is None:
+            unit = self.parameters.get('units', self.default_units)
+
+        converter = TemperatureConverter.get(unit, self.storage_units)
+        self.parameters['basetemp'] = converter(value)
+        self.parameters['units'] = self.storage_units
+
+        return super(BasetempIndicatorMixin, self).calculate()
