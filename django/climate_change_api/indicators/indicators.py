@@ -7,9 +7,9 @@ from django.db.models import F, Sum, Avg, Max, Min
 from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator,
                                   MonthlyAggregationIndicator, MonthlyCountIndicator,
-                                  DailyRawIndicator)
-from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin,
-                              DaysUnitsMixin, CountUnitsMixin)
+                                  DailyRawIndicator, BasetempIndicatorMixin)
+from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
+                              CountUnitsMixin, TemperatureDeltaUnitsMixin)
 
 
 ##########################
@@ -131,28 +131,40 @@ class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
         return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyHeatingDegreeDays(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Degree Days'
-    description = ('Cumulative difference of daily low temperature to base')
-    parameters = {'basetemp': 291}  # 65F = 18.3C = 291.5K
+class YearlyHeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
+                              YearlyAggregationIndicator):
+    label = 'Yearly Heating Degree Days'
+    description = ('Total difference of daily low temperature to a reference base temperature '
+                   '(Default 65F)')
     variables = ('tasmin',)
     agg_function = Sum
 
+    # List units as a parameter so it gets updated by the query params if it is overriden.
+    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
+    parameters = {'basetemp': '65F',
+                  'units': 'F'}
+
     @property
     def conditions(self):
-            return {'tasmin__lte': self.parameters['basetemp']}
+        return {'tasmin__lte': self.parameters['basetemp']}
 
     @property
     def expression(self):
         return self.parameters['basetemp'] - F('tasmin')
 
 
-class YearlyCoolingDegreeDays(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Degree Days'
-    description = ('Cumulative difference of daily high temperature to base')
-    parameters = {'basetemp': 291}  # 65F = 18.3C = 291.5K
+class YearlyCoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
+                              YearlyAggregationIndicator):
+    label = 'Yearly Cooling Degree Days'
+    description = ('Total difference of daily high temperature to a reference base temperature '
+                   '(Default 65F)')
     variables = ('tasmax',)
     agg_function = Sum
+
+    # List units as a parameter so it gets updated by the query params if it is overriden.
+    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
+    parameters = {'basetemp': '65F',
+                  'units': 'F'}
 
     @property
     def conditions(self):

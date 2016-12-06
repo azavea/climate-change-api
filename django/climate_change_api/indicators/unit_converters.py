@@ -1,35 +1,76 @@
+from django.utils.decorators import classproperty
 
 SECONDS_PER_DAY = 24 * 60 * 60
 DAYS_PER_YEAR = 365.25
 INCHES_PER_MILLIMETER = 1 / 25.4
 
 
-class ConversionMixin(object):
-    def getConverter(self, start, end):
-        return lambda x: x
+##########################
+# Unit converters
+
+class UnitConverter(object):
+    units = {}
+
+    @classmethod
+    def create(cls, start, end):
+        raise NotImplementedError()
+
+    @classmethod
+    def get(cls, start, end):
+        """ Factory method to instantiate a converter if necessary
+
+        In cases where we're doing a noop conversion, instead we'll return a pass-through lambda
+        """
+        if start == end:
+            # We're not doing a conversion, so no need to create a converter class
+            return lambda x: x
+
+        # Create a lamdba for converting these specific units
+        return cls.create(start, end)
 
 
-class TemperatureUnitsMixin(ConversionMixin):
-    """ Define units for temperature conversion.
-    """
-    available_units = ('K', 'F', 'C')
-    storage_units = 'K'
-    default_units = 'F'
+class LinearConverter(UnitConverter):
+    @classmethod
+    def create(cls, start, end):
+        ratio = 1.0 * cls.units[end] / cls.units[start]
 
-    conversions = {
-        'K': {
-            'F': lambda x: x * 1.8 - 459.67,
-            'C': lambda x: x - 273.15
-        }
+        return lambda x: x * ratio
+
+
+class OffsetLinearConverter(UnitConverter):
+    @classmethod
+    def create(cls, start, end):
+        start_x, start_r = cls.units[start]
+        end_x, end_r = cls.units[end]
+
+        ratio = 1.0 * end_r / start_r
+        offset = (1.0 * end_x / ratio) - start_x
+
+        return lambda x: (x + offset) * ratio
+
+
+class TemperatureConverter(OffsetLinearConverter):
+    units = {
+        'F': (-459.67, 1.8),
+        'C': (-273.15, 1),
+        'K': (0, 1)
     }
 
-    def getConverter(self, start, end):
-        if end == self.storage_units:
-            return lambda x: x
-        return self.conversions[start][end]
+
+class TemperatureDeltaConverter(LinearConverter):
+    """ Specialized version of TemperatureConverter to convert a degree temperature as a quantity
+
+    This does not adjust for different 0-points. That is, 1 degree Centigrade is equal to exactly
+    1.8 degrees Fahrenheit.
+    """
+    units = {
+        'C': 1,
+        'F': 1.8,
+        'K': 1
+    }
 
 
-class PrecipUnitsMixin(ConversionMixin):
+class PrecipitationConverter(LinearConverter):
     """ Define units for precipitation
 
     The units are rates, so cumulative totals can be had either by averaging the rates then
@@ -43,23 +84,47 @@ class PrecipUnitsMixin(ConversionMixin):
     To convert from mass/area/second to height, we're assuming 1kg water == .001 m^3 which makes
     kg/m^2 equivalent to millimeters.
     """
-    available_units = ('kg/m^2/s', 'kg/m^2/day', 'kg/m^2/year', 'in/day', 'in/year')
-    storage_units = 'kg/m^2/s'
-    default_units = 'in/day'
-
-    conversions = {
-        'kg/m^2/s': {
-            'kg/m^2/day': lambda x: x * SECONDS_PER_DAY,
-            'kg/m^2/year': lambda x: x * SECONDS_PER_DAY * DAYS_PER_YEAR,
-            'in/day': lambda x: x * INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
-            'in/year': lambda x: x * INCHES_PER_MILLIMETER * SECONDS_PER_DAY * DAYS_PER_YEAR,
-        }
+    units = {
+        'kg/m^2/s': 1,
+        'kg/m^2/day': SECONDS_PER_DAY,
+        'kg/m^2/year': SECONDS_PER_DAY * DAYS_PER_YEAR,
+        'in/day': INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
+        'in/year': INCHES_PER_MILLIMETER * SECONDS_PER_DAY * DAYS_PER_YEAR,
     }
 
+
+##########################
+# Mixin classes
+
+class ConversionMixin(object):
+    converter_class = UnitConverter
+
     def getConverter(self, start, end):
-        if end == self.storage_units:
-            return lambda x: x
-        return self.conversions[start][end]
+        return self.converter_class.get(start, end)
+
+    @classproperty
+    def available_units(cls):
+        return cls.converter_class.units.keys()
+
+
+class TemperatureUnitsMixin(ConversionMixin):
+    """ Define units for temperature conversion.
+    """
+    converter_class = TemperatureConverter
+    storage_units = 'K'
+    default_units = 'F'
+
+
+class TemperatureDeltaUnitsMixin(TemperatureUnitsMixin):
+    """ Uses the same units as the TemperatureUnitsMixin, but doesn't adjust for 0-point offset
+    """
+    converter_class = TemperatureDeltaConverter
+
+
+class PrecipUnitsMixin(ConversionMixin):
+    converter_class = PrecipitationConverter
+    storage_units = 'kg/m^2/s'
+    default_units = 'in/day'
 
 
 class DaysUnitsMixin(ConversionMixin):
