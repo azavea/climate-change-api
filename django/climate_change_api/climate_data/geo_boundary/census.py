@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import logging
 
 import requests
 from retry import retry
@@ -6,6 +7,8 @@ from retry import retry
 from django.contrib.gis.geos import MultiPolygon, Polygon
 
 from .exceptions import GeoBoundaryError
+
+logger = logging.getLogger(__name__)
 
 
 class CensusBoundaryError(GeoBoundaryError):
@@ -81,6 +84,24 @@ def boundary_from_point(point, srid=4326):
     :return (boundary: MultiPolygon, boundary_type: str). The associated boundary and its type.
 
     """
+    def geom_from_census_boundary(boundary, layer_id, srid=4326):
+        params = {
+            'where': 'OID={}'.format(boundary['OID']),
+            'returnGeometry': 'true',
+            'outSr': srid,
+            'f': 'pjson',
+        }
+        results = map_server_request(layer_id, params=params)
+        features = results['features']
+        geometry_type = results['geometryType']
+        # ArcGIS MapServer doesn't have a multipolygon type so only check for Polygon
+        if len(features) > 0 and geometry_type == 'esriGeometryPolygon':
+            feature = features[0]
+            rings = feature['geometry']['rings']
+            geom = Polygon(*rings, srid=srid)
+            return MultiPolygon(geom)
+        return None
+
     CENSUS_LAYERS = OrderedDict([
         ('Incorporated Places', 28),
         ('Census Designated Places', 30),
@@ -99,22 +120,15 @@ def boundary_from_point(point, srid=4326):
     for boundary_type, layer_id in CENSUS_LAYERS.iteritems():
         boundaries = results['geographies'][boundary_type]
         if len(boundaries) > 0:
-            boundary = boundaries[0]
-            params = {
-                'where': 'OID={}'.format(boundary['OID']),
-                'returnGeometry': 'true',
-                'outSr': srid,
-                'f': 'pjson',
-            }
-            results = map_server_request(layer_id, params=params)
-            features = results['features']
-            geometry_type = results['geometryType']
-            # ArcGIS MapServer doesn't have a multipolygon type so only check for Polygon
-            if len(features) > 0 and geometry_type == 'esriGeometryPolygon':
-                feature = features[0]
-                rings = feature['geometry']['rings']
-                geom = Polygon(*rings, srid=srid)
-                return (MultiPolygon(geom), boundary_type,)
+            try:
+                geom = geom_from_census_boundary(boundaries[0], layer_id, srid=srid)
+            except KeyError as e:
+                geom = None
+                logger.info('KeyError in boundary_for_point %s: %s. %s skipped.',
+                            point, e, boundary_type)
+            if geom:
+                return (geom, boundary_type,)
+        logger.info('No boundary of type %s at point %s', boundary_type, point)
 
     # Default to raising instance of GeoBoundaryError if no boundary
     # This shouldn't ever happen since Counties have 100% area coverage
