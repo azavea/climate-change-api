@@ -297,6 +297,7 @@ def climate_indicator(request, *args, **kwargs):
     aggregations = agg_param.split(',') if agg_param else None
     years_param = request.query_params.get('years', None)
     units_param = request.query_params.get('units', None)
+    span_param = request.query_params.get('span', None)
 
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
@@ -306,6 +307,7 @@ def climate_indicator(request, *args, **kwargs):
                           scenario,
                           models=models_param,
                           years=years_param,
+                          time_aggregation=span_param,
                           serializer_aggregations=aggregations,
                           parameters=request.query_params,
                           units=units_param).calculate()

@@ -4,10 +4,8 @@ from itertools import groupby
 
 from django.db.models import F, Sum, Avg, Max, Min
 
-from .abstract_indicators import (YearlyAggregationIndicator, YearlyCountIndicator,
-                                  YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator,
-                                  MonthlyAggregationIndicator, MonthlyCountIndicator,
-                                  DailyRawIndicator, BasetempIndicatorMixin)
+from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
+                                  YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin)
 
@@ -15,50 +13,56 @@ from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnits
 ##########################
 # Yearly indicators
 
-class YearlyAverageHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Average High Temperature'
+class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Average High Temperature'
     description = ('Aggregated yearly average high temperature, generated from daily data ' +
                    'using all requested models')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Avg
 
 
-class YearlyAverageLowTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Average Low Temperature'
+class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Average Low Temperature'
     description = ('Aggregated yearly average low temperature, generated from daily data ' +
                    'using all requested models')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Avg
 
 
-class YearlyMaxHighTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Maximum High Temperature'
+class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Maximum High Temperature'
     description = ('Yearly maximum high temperature, generated from daily data ' +
                    'using all requested models')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Max
 
 
-class YearlyMinLowTemperature(TemperatureUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Minimum Low Temperature'
+class MinLowTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Minimum Low Temperature'
     description = ('Yearly minimum low temperature, generated from daily data ' +
                    'using all requested models')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Min
 
 
-class YearlyTotalPrecipitation(PrecipUnitsMixin, YearlyAggregationIndicator):
-    label = 'Yearly Total Precipitation'
+class TotalPrecipitation(PrecipUnitsMixin, Indicator):
+    label = 'Total Precipitation'
     description = 'Yearly total precipitation'
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
     agg_function = Avg
     default_units = 'in/year'
 
 
-class YearlyFrostDays(DaysUnitsMixin, YearlyCountIndicator):
-    label = 'Yearly Frost Days'
+class FrostDays(DaysUnitsMixin, CountIndicator):
+    label = 'Frost Days'
     description = ('Number of days per year in which the daily low temperature is ' +
                    'below the freezing point of water')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     conditions = {'tasmin__lt': 273.15}
 
@@ -77,6 +81,10 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     variables = ('pr',)
     raw_condition = 'pr = 0'
 
+    def row_group_key(self, row):
+        """ Key function for groupby to use to break input stream into chunks."""
+        return (row['data_source__model'], row['data_source__year'])
+
     def aggregate(self):
         """ Calls get_streaks to get all sequences of zero or non-zero precip then counts
         the zero-precip ones that are at least 5 days long """
@@ -89,10 +97,11 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
                    'value': num_dry_spells}
 
 
-class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
-    label = 'Yearly Extreme Precipitation Events'
+class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
+    label = 'Extreme Precipitation Events'
     description = ('Total number of times per year daily precipitation exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
     parameters = {'percentile': 99}
 
@@ -103,10 +112,11 @@ class YearlyExtremePrecipitationEvents(CountUnitsMixin, YearlyCountIndicator):
         return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
-    label = 'Yearly Extreme Heat Events'
+class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
+    label = 'Extreme Heat Events'
     description = ('Total number of times per year daily maximum temperature exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     parameters = {'percentile': 99}
 
@@ -117,10 +127,11 @@ class YearlyExtremeHeatEvents(CountUnitsMixin, YearlyCountIndicator):
         return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
-    label = 'Yearly Extreme Cold Events'
-    description = ('Total number of times per year daily minimum temperature is below the specified '
-                   '(Default 1st) percentile of observations from 1960 to 1995')
+class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
+    label = 'Extreme Cold Events'
+    description = ('Total number of times per year daily minimum temperature is below the specified'
+                   ' (Default 1st) percentile of observations from 1960 to 1995')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     parameters = {'percentile': 1}
 
@@ -131,11 +142,11 @@ class YearlyExtremeColdEvents(CountUnitsMixin, YearlyCountIndicator):
         return {'map_cell__baseline__percentile': self.parameters['percentile']}
 
 
-class YearlyHeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
-                              YearlyAggregationIndicator):
-    label = 'Yearly Heating Degree Days'
+class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+    label = 'Heating Degree Days'
     description = ('Total difference of daily low temperature to a reference base temperature '
                    '(Default 65F)')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Sum
 
@@ -153,11 +164,11 @@ class YearlyHeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin
         return self.parameters['basetemp'] - F('tasmin')
 
 
-class YearlyCoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
-                              YearlyAggregationIndicator):
-    label = 'Yearly Cooling Degree Days'
+class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+    label = 'Cooling Degree Days'
     description = ('Total difference of daily high temperature to a reference base temperature '
                    '(Default 65F)')
+    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Sum
 
@@ -189,159 +200,26 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
 
 
 ##########################
-# Monthly indicators
-
-class MonthlyAverageHighTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
-    label = 'Monthly Average High Temperature'
-    description = ('Aggregated monthly average high temperature, generated from daily data ' +
-                   'using all requested models')
-    variables = ('tasmax',)
-    agg_function = Avg
-
-
-class MonthlyAverageLowTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
-    label = 'Monthly Average Low Temperature'
-    description = ('Aggregated monthly average low temperature, generated from daily data ' +
-                   'using all requested models')
-    variables = ('tasmin',)
-    agg_function = Avg
-
-
-class MonthlyMaxHighTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
-    label = 'Monthly Maximum High Temperature'
-    description = ('Monthly maximum high temperature, generated from daily data ' +
-                   'using all requested models')
-    variables = ('tasmax',)
-    agg_function = Max
-
-
-class MonthlyMinLowTemperature(TemperatureUnitsMixin, MonthlyAggregationIndicator):
-    label = 'Monthly Minimum Low Temperature'
-    description = ('Monthly minimum low temperature, generated from daily data ' +
-                   'using all requested models')
-    variables = ('tasmin',)
-    agg_function = Min
-
-
-class MonthlyTotalPrecipitation(PrecipUnitsMixin, MonthlyAggregationIndicator):
-    label = 'Monthly Total Precipitation'
-    description = 'Monthly total precipitation'
-    variables = ('pr',)
-    agg_function = Avg
-
-
-class MonthlyFrostDays(DaysUnitsMixin, MonthlyCountIndicator):
-    label = 'Monthly Frost Days'
-    description = ('Number of days per month in which the daily low temperature is ' +
-                   'below the freezing point of water')
-    variables = ('tasmin',)
-    conditions = {'tasmin__lt': 273.15}
-
-
-class MonthlyExtremePrecipitationEvents(CountUnitsMixin, MonthlyCountIndicator):
-    label = 'Monthly Extreme Precipitation Events'
-    description = ('Total number of times per month daily precipitation exceeds the specified '
-                   '(Default 99th) percentile of observations from 1960 to 1995')
-    variables = ('pr',)
-    parameters = {'percentile': 99}
-
-    conditions = {'pr__gt': F('map_cell__baseline__pr')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
-
-
-class MonthlyExtremeHeatEvents(CountUnitsMixin, MonthlyCountIndicator):
-    label = 'Monthly Extreme Heat Events'
-    description = ('Total number of times per month daily maximum temperature exceeds the specified '
-                   '(Default 99th) percentile of observations from 1960 to 1995')
-    variables = ('tasmax',)
-    parameters = {'percentile': 99}
-
-    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
-
-
-class MonthlyExtremeColdEvents(CountUnitsMixin, MonthlyCountIndicator):
-    label = 'Monthly Extreme Cold Events'
-    description = ('Total number of times per month daily minimum temperature is below the specified '
-                   '(Default 1st) percentile of observations from 1960 to 1995')
-    variables = ('tasmin',)
-    parameters = {'percentile': 1}
-
-    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
-
-
-class MonthlyHeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
-                               MonthlyAggregationIndicator):
-    label = 'Monthly Heating Degree Days'
-    description = ('Total difference of daily low temperature to a reference base temperature '
-                   '(Default 65F)')
-    variables = ('tasmin',)
-    agg_function = Sum
-
-    # List units as a parameter so it gets updated by the query params if it is overriden.
-    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
-    parameters = {'basetemp': '65F',
-                  'units': 'F'}
-
-    @property
-    def conditions(self):
-        return {'tasmin__lte': self.parameters['basetemp']}
-
-    @property
-    def expression(self):
-        return self.parameters['basetemp'] - F('tasmin')
-
-
-class MonthlyCoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin,
-                               MonthlyAggregationIndicator):
-    label = 'Monthly Cooling Degree Days'
-    description = ('Total difference of daily high temperature to a reference base temperature '
-                   '(Default 65F)')
-    variables = ('tasmax',)
-    agg_function = Sum
-
-    # List units as a parameter so it gets updated by the query params if it is overriden.
-    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
-    parameters = {'basetemp': '65F',
-                  'units': 'F'}
-
-    @property
-    def conditions(self):
-            return {'tasmax__gte': self.parameters['basetemp']}
-
-    @property
-    def expression(self):
-        return F('tasmax') - self.parameters['basetemp']
-
-
-##########################
 # Daily indicators
 
-class DailyLowTemperature(TemperatureUnitsMixin, DailyRawIndicator):
-    label = 'Daily Low Temperature'
+class LowTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Low Temperature'
     description = ('Daily low temperature averaged across all requested models')
+    valid_aggregations = ('daily',)
     variables = ('tasmin',)
 
 
-class DailyHighTemperature(TemperatureUnitsMixin, DailyRawIndicator):
-    label = 'Daily High Temperature'
+class HighTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'High Temperature'
     description = ('Daily high temperature averaged across all requested models')
+    valid_aggregations = ('daily',)
     variables = ('tasmax',)
 
 
-class DailyPrecipitation(PrecipUnitsMixin, DailyRawIndicator):
-    label = 'Daily Precipitation'
+class Precipitation(PrecipUnitsMixin, Indicator):
+    label = 'Precipitation'
     description = ('Daily precipitation averaged across all requested models')
+    valid_aggregations = ('daily',)
     variables = ('pr',)
 
 
