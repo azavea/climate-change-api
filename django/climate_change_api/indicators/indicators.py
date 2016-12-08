@@ -6,6 +6,7 @@ from django.db.models import F, Sum, Avg, Max, Min
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
+from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, PrecipRateUnitsMixin,
                               DaysUnitsMixin, CountUnitsMixin, TemperatureDeltaUnitsMixin,
                               SECONDS_PER_DAY)
@@ -98,90 +99,80 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Precipitation Events'
     description = ('Total number of times per period daily precipitation exceeds the specified '
-                   '(Default 99th) percentile of observations from 1960 to 1995')
+                   'percentile of observations from 1960 to 1995')
     valid_aggregations = ('yearly', 'monthly',)
+    params_class = Percentile99IndicatorParams
     variables = ('pr',)
-    parameters = {'percentile': 99}
 
     conditions = {'pr__gt': F('map_cell__baseline__pr')}
 
     @property
     def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
+        return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
 class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Heat Events'
     description = ('Total number of times per period daily maximum temperature exceeds the '
-                   'specified (Default 99th) percentile of observations from 1960 to 1995')
+                   'specified percentile of observations from 1960 to 1995')
+    params_class = Percentile99IndicatorParams
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
-    parameters = {'percentile': 99}
 
     conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
 
     @property
     def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
+        return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
 class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Cold Events'
     description = ('Total number of times per period daily minimum temperature is below the '
-                   'specified (Default 1st) percentile of observations from 1960 to 1995')
+                   'specified percentile of observations from 1960 to 1995')
+    params_class = Percentile1IndicatorParams
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
-    parameters = {'percentile': 1}
 
     conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
 
     @property
     def filters(self):
-        return {'map_cell__baseline__percentile': self.parameters['percentile']}
+        return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
-    description = ('Total difference of daily low temperature to a reference base temperature '
-                   '(Default 65F)')
+    description = 'Total difference of daily low temperature to a reference base temperature'
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Sum
-
-    # List units as a parameter so it gets updated by the query params if it is overriden.
-    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
-    parameters = {'basetemp': '65F',
-                  'units': 'F'}
+    params_class = DegreeDayIndicatorParams
 
     @property
     def conditions(self):
-        return {'tasmin__lte': self.parameters['basetemp']}
+        return {'tasmin__lte': self.params.basetemp.value}
 
     @property
     def expression(self):
-        return self.parameters['basetemp'] - F('tasmin')
+        return self.params.basetemp.value - F('tasmin')
 
 
 class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Cooling Degree Days'
-    description = ('Total difference of daily high temperature to a reference base temperature '
-                   '(Default 65F)')
+    description = 'Total difference of daily high temperature to a reference base temperature '
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Sum
-
-    # List units as a parameter so it gets updated by the query params if it is overriden.
-    # This way we can fall back to the units param if we need to handle bare numbers for basetemp
-    parameters = {'basetemp': '65F',
-                  'units': 'F'}
+    params_class = DegreeDayIndicatorParams
 
     @property
     def conditions(self):
-            return {'tasmax__gte': self.parameters['basetemp']}
+            return {'tasmax__gte': self.params.basetemp.value}
 
     @property
     def expression(self):
-        return F('tasmax') - self.parameters['basetemp']
+        return F('tasmax') - self.params.basetemp.value
 
 
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
