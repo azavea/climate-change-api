@@ -11,6 +11,7 @@ class IndicatorTests(ClimateDataSetupMixin, object):
     parameters = None
     indicator_name = ''
     units = None
+    time_aggregation = None
     test_indicator_no_data_equals = {}
     test_indicator_rcp85_equals = None
     test_indicator_rcp45_equals = None
@@ -25,47 +26,55 @@ class IndicatorTests(ClimateDataSetupMixin, object):
         self.assertTrue(len(self.indicator_class.description) > 0)
 
     def test_indicator_rcp85(self):
-        indicator = self.indicator_class(self.city1, self.rcp85, units=self.units,
-                                         parameters=self.parameters)
+        indicator = self.indicator_class(self.city1, self.rcp85, parameters=self.parameters,
+                                         units=self.units, time_aggregation=self.time_aggregation)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_rcp85_equals)
 
     def test_indicator_rcp45(self):
-        indicator = self.indicator_class(self.city1, self.rcp45, units=self.units,
-                                         parameters=self.parameters)
+        indicator = self.indicator_class(self.city1, self.rcp45, parameters=self.parameters,
+                                         units=self.units, time_aggregation=self.time_aggregation)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_rcp45_equals)
 
     def test_indicator_no_data(self):
-        indicator = self.indicator_class(self.city2, self.rcp85, units=self.units,
-                                         parameters=self.parameters)
+        indicator = self.indicator_class(self.city2, self.rcp85, parameters=self.parameters,
+                                         units=self.units, time_aggregation=self.time_aggregation)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_no_data_equals)
 
     def test_years_filter(self):
-        indicator = self.indicator_class(self.city1, self.rcp45, units=self.units,
-                                         years='2001:2002', parameters=self.parameters)
+        indicator = self.indicator_class(self.city1, self.rcp45,  parameters=self.parameters,
+                                         units=self.units, time_aggregation=self.time_aggregation,
+                                         years='2001:2002')
         data = indicator.calculate()
         self.assertEqual(data, self.test_years_filter_equals)
 
     def test_models_filter(self):
-        indicator = self.indicator_class(self.city1, self.rcp45, units=self.units, models='CCSM4',
-                                         parameters=self.parameters)
+        indicator = self.indicator_class(self.city1, self.rcp45, models='CCSM4',
+                                         parameters=self.parameters, units=self.units,
+                                         time_aggregation=self.time_aggregation)
         data = indicator.calculate()
         self.assertEqual(data, self.test_models_filter_equals)
+
+    def test_unit_conversion_definitions(self):
+        """ Some sanity checks for unit conversion class attributes """
+        self.assertIn(self.indicator_class.default_units, self.indicator_class.available_units)
 
 
 class TemperatureIndicatorTests(IndicatorTests):
     def test_unit_conversion(self):
-        indicator = self.indicator_class(self.city1, self.rcp85, units='F')
+        indicator = self.indicator_class(self.city1, self.rcp85,
+                                         time_aggregation=self.time_aggregation, units='F')
         data = indicator.calculate()
         self.assertEqual(data, self.test_units_fahrenheit_equals,
                          'Temperature should be converted to degrees F')
 
 
 class DailyHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.DailyHighTemperature
-    indicator_name = 'daily_high_temperature'
+    indicator_class = indicators.HighTemperature
+    indicator_name = 'high_temperature'
+    time_aggregation = 'daily'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -82,8 +91,9 @@ class DailyHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.YearlyAverageHighTemperature
-    indicator_name = 'yearly_average_high_temperature'
+    indicator_class = indicators.AverageHighTemperature
+    indicator_name = 'average_high_temperature'
+    time_aggregation = 'yearly'
     units = 'K'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -100,8 +110,9 @@ class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.YearlyAverageLowTemperature
-    indicator_name = 'yearly_average_low_temperature'
+    indicator_class = indicators.AverageLowTemperature
+    indicator_name = 'average_low_temperature'
+    time_aggregation = 'yearly'
     units = 'K'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -118,8 +129,9 @@ class YearlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.YearlyMaxHighTemperature
-    indicator_name = 'yearly_max_high_temperature'
+    indicator_class = indicators.MaxHighTemperature
+    indicator_name = 'max_high_temperature'
+    time_aggregation = 'yearly'
     units = 'K'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -136,8 +148,9 @@ class YearlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.YearlyMinLowTemperature
-    indicator_name = 'yearly_min_low_temperature'
+    indicator_class = indicators.MinLowTemperature
+    indicator_name = 'min_low_temperature'
+    time_aggregation = 'yearly'
     units = 'K'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -154,8 +167,9 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyTotalPrecipitation
-    indicator_name = 'yearly_total_precipitation'
+    indicator_class = indicators.TotalPrecipitation
+    indicator_name = 'total_precipitation'
+    time_aggregation = 'yearly'
     units = 'kg/m^2/s'
     test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
     test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -171,8 +185,9 @@ class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
 
 
 class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyFrostDays
-    indicator_name = 'yearly_frost_days'
+    indicator_class = indicators.FrostDays
+    indicator_name = 'frost_days'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
                                    2001: {'avg': 1, 'min': 1, 'max': 1},
@@ -189,6 +204,7 @@ class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
 class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyMaxConsecutiveDryDays
     indicator_name = 'yearly_max_consecutive_dry_days'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
                                    2001: {'avg': 0, 'min': 0, 'max': 0},
@@ -205,6 +221,7 @@ class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
 class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.YearlyDrySpells
     indicator_name = 'yearly_dry_spells'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
                                    2001: {'avg': 0, 'min': 0, 'max': 0},
@@ -219,8 +236,9 @@ class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
 
 
 class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyExtremePrecipitationEvents
-    indicator_name = 'yearly_extreme_precipitation_events'
+    indicator_class = indicators.ExtremePrecipitationEvents
+    indicator_name = 'extreme_precipitation_events'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
                                    2001: {'avg': 0, 'min': 0, 'max': 0},
@@ -235,8 +253,9 @@ class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
 
 
 class YearlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyExtremeHeatEvents
-    indicator_name = 'yearly_extreme_heat_events'
+    indicator_class = indicators.ExtremeHeatEvents
+    indicator_name = 'extreme_heat_events'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
                                    2001: {'avg': 0, 'min': 0, 'max': 0},
@@ -251,8 +270,9 @@ class YearlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
 
 
 class YearlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyExtremeColdEvents
-    indicator_name = 'yearly_extreme_cold_events'
+    indicator_class = indicators.ExtremeColdEvents
+    indicator_name = 'extreme_cold_events'
+    time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0.5, 'min': 0, 'max': 1},
                                    2001: {'avg': 0.5, 'min': 0, 'max': 1},
@@ -267,8 +287,9 @@ class YearlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
 
 
 class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyHeatingDegreeDays
-    indicator_name = 'yearly_heating_degree_days'
+    indicator_class = indicators.HeatingDegreeDays
+    indicator_name = 'heating_degree_days'
+    time_aggregation = 'yearly'
     parameters = {
         'basetemp': '42.5K'
     }
@@ -286,8 +307,9 @@ class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
 
 
 class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyCoolingDegreeDays
-    indicator_name = 'yearly_cooling_degree_days'
+    indicator_class = indicators.CoolingDegreeDays
+    indicator_name = 'cooling_degree_days'
+    time_aggregation = 'yearly'
     parameters = {
         'basetemp': '-265.85C'  # 7.3K
     }
@@ -315,8 +337,9 @@ class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyAverageHighTemperature
-    indicator_name = 'monthly_average_high_temperature'
+    indicator_class = indicators.AverageHighTemperature
+    indicator_name = 'average_high_temperature'
+    time_aggregation = 'monthly'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -333,8 +356,9 @@ class MonthlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase)
 
 
 class MonthlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyAverageLowTemperature
-    indicator_name = 'monthly_average_low_temperature'
+    indicator_class = indicators.AverageLowTemperature
+    indicator_name = 'average_low_temperature'
+    time_aggregation = 'monthly'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -351,8 +375,9 @@ class MonthlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class MonthlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyMaxHighTemperature
-    indicator_name = 'monthly_max_high_temperature'
+    indicator_class = indicators.MaxHighTemperature
+    indicator_name = 'max_high_temperature'
+    time_aggregation = 'monthly'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -369,8 +394,9 @@ class MonthlyMaxHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class MonthlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyMinLowTemperature
-    indicator_name = 'monthly_min_low_temperature'
+    indicator_class = indicators.MinLowTemperature
+    indicator_name = 'min_low_temperature'
+    time_aggregation = 'monthly'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -387,8 +413,9 @@ class MonthlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class MonthlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyTotalPrecipitation
-    indicator_name = 'monthly_total_precipitation'
+    indicator_class = indicators.TotalPrecipitation
+    indicator_name = 'total_precipitation'
+    time_aggregation = 'monthly'
     units = 'kg/m^2/s'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 35.0, 'min': 30.0, 'max': 40.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -404,8 +431,9 @@ class MonthlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyFrostDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyFrostDays
-    indicator_name = 'monthly_frost_days'
+    indicator_class = indicators.FrostDays
+    indicator_name = 'frost_days'
+    time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 1, 'min': 1, 'max': 1},
                                    '2001-01': {'avg': 1, 'min': 1, 'max': 1},
@@ -420,8 +448,9 @@ class MonthlyFrostDaysTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyExtremePrecipitationEvents
-    indicator_name = 'monthly_extreme_precipitation_events'
+    indicator_class = indicators.ExtremePrecipitationEvents
+    indicator_name = 'extreme_precipitation_events'
+    time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
                                    '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
@@ -436,8 +465,9 @@ class MonthlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyExtremeHeatEvents
-    indicator_name = 'monthly_extreme_heat_events'
+    indicator_class = indicators.ExtremeHeatEvents
+    indicator_name = 'extreme_heat_events'
+    time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
                                    '2001-01': {'avg': 0.0, 'min': 0, 'max': 0},
@@ -452,8 +482,9 @@ class MonthlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyExtremeColdEvents
-    indicator_name = 'monthly_extreme_cold_events'
+    indicator_class = indicators.ExtremeColdEvents
+    indicator_name = 'extreme_cold_events'
+    time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.5, 'min': 0, 'max': 1},
                                    '2001-01': {'avg': 0.5, 'min': 0, 'max': 1},
@@ -468,8 +499,9 @@ class MonthlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyHeatingDegreeDays
-    indicator_name = 'monthly_heating_degree_days'
+    indicator_class = indicators.HeatingDegreeDays
+    indicator_name = 'heating_degree_days'
+    time_aggregation = 'monthly'
     parameters = {
         'basetemp': '-384.07',
         'units': 'F'
@@ -489,8 +521,9 @@ class MonthlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
 
 
 class MonthlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MonthlyCoolingDegreeDays
-    indicator_name = 'monthly_cooling_degree_days'
+    indicator_class = indicators.CoolingDegreeDays
+    indicator_name = 'cooling_degree_days'
+    time_aggregation = 'monthly'
     parameters = {
         'basetemp': '-273.15',
         'units': 'C'
