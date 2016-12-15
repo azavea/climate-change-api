@@ -11,7 +11,7 @@ from django.db import connection
 from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin
+from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
 
 class Indicator(object):
@@ -174,24 +174,44 @@ class YearlyIndicator(Indicator):
 
 
 class YearlyAggregationIndicator(YearlyIndicator):
+    default = 0
+    conditions = None
+
     def aggregate(self):
-        return (self.queryset.values('data_source__year', 'data_source__model')
-                .annotate(value=self.agg_function(self.variables[0])))
+        if self.conditions:
+            agg_function = self.agg_function(
+                        Case(When(then=self.expression, **self.conditions),
+                             default=self.default,
+                             output_field=IntegerField()))
+        else:
+            agg_function = self.agg_function(self.expression)
 
-
-class YearlyCountIndicator(YearlyIndicator):
-    """ Class to count days on which a condition is met.
-
-    Since using a filter would result in ignoring year/model combinations where the count is zero
-    and Count doesn't discriminate between values, uses a Case/When clause to return 1 for hits
-    and 0 for misses then Sum to count them up.
-    """
-    def aggregate(self):
-        agg_function = Sum(Case(When(then=1, **self.conditions),
-                                default=0,
-                                output_field=IntegerField()))
         return (self.queryset.values('data_source__year', 'data_source__model')
                 .annotate(value=agg_function))
+
+    @property
+    def expression(self):
+        """ Lookup function to get the actual value used for aggregation
+
+        Defaults to the first variable mentioned in the variables variable, but can be overloaded
+        for complex queries.
+
+        This is necessary because the variables value is serialized for the /indicators/ endpoint,
+        but complex queries may require non-serializable components. Using the expression property
+        allows us to subsitute the variable specifically for the serialization instead.
+        """
+        return self.variables[0]
+
+
+class YearlyCountIndicator(YearlyAggregationIndicator):
+    """ Class to count days on which a condition is met.
+
+    Essentially a specialized version of the YearlyAggregationIndicator where all values count as 1
+    if they match the conditions and 0 in all other cases.
+    """
+    agg_function = Sum
+    default = 0
+    expression = 1
 
 
 class YearlySequenceIndicator(YearlyCountIndicator):
@@ -349,13 +369,54 @@ class MonthlyIndicator(Indicator):
 
 
 class MonthlyAggregationIndicator(MonthlyIndicator):
+    default = 0
+    conditions = None
+
     def aggregate(self):
-        return self.monthly_queryset.annotate(value=self.agg_function(self.variables[0]))
+        if self.conditions:
+            agg_function = self.agg_function(
+                        Case(When(then=self.expression, **self.conditions),
+                             default=self.default,
+                             output_field=IntegerField()))
+        else:
+            agg_function = self.agg_function(self.expression)
+
+        return (self.monthly_queryset.annotate(value=agg_function))
+
+    @property
+    def expression(self):
+        """ Lookup function to get the actual value used for aggregation
+
+        Defaults to the first variable mentioned in the variables variable, but can be overloaded
+        for complex queries.
+
+        This is necessary because the variables value is serialized for the /indicators/ endpoint,
+        but complex queries may require non-serializable components. Using the expression property
+        allows us to subsitute the variable specifically for the serialization instead.
+        """
+        return self.variables[0]
 
 
 class MonthlyCountIndicator(MonthlyAggregationIndicator):
-    def aggregate(self):
-        agg_function = Sum(Case(When(then=1, **self.conditions),
-                                default=0,
-                                output_field=IntegerField()))
-        return self.monthly_queryset.annotate(value=agg_function)
+    agg_function = Sum
+    default = 0
+    expression = 1
+
+
+class BasetempIndicatorMixin(object):
+    """ Framework for pre-processing the basetemp parameter to a native unit
+    """
+    def calculate(self):
+        m = re.match(r'(?P<value>\d+(\.\d+)?)(?P<unit>[FKC])?', self.parameters['basetemp'])
+        assert m, "Parameter basetemp must be numeric"
+
+        value = float(m.group('value'))
+        unit = m.group('unit')
+        if unit is None:
+            unit = self.parameters.get('units', self.default_units)
+
+        converter = TemperatureConverter.get(unit, self.storage_units)
+        self.parameters['basetemp'] = converter(value)
+        self.parameters['units'] = self.storage_units
+
+        return super(BasetempIndicatorMixin, self).calculate()
