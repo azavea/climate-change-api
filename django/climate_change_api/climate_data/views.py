@@ -267,6 +267,13 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: integer
         paramType: query
+      - name: basetemp
+        description: (Appropriate indicators only) The base temperature used to calculate the daily
+                     difference for degree days sumations. Can be a number with a unit suffix (Such
+                     as 20C) or a bare number (Such as 65) measured in the request output units.
+        required: false
+        type: integer
+        paramType: query
 
     """
     try:
