@@ -4,7 +4,7 @@ import re
 from datetime import date, timedelta
 import calendar
 
-from django.db.models import F, Case, When, CharField, IntegerField, Value, Sum
+from django.db.models import F, Case, When, CharField, FloatField, Value, Sum
 from django.db import connection
 
 
@@ -48,7 +48,9 @@ class Indicator(object):
         if self.units not in self.available_units:
             raise ValueError('Cannot convert to requested units ({})'.format(self.units))
 
-        if self.parameters is not None and parameters is not None:
+        if self.parameters is not None:
+            # Because degree days changes the parameters object, we need to make sure we make a copy
+            parameters = parameters if parameters is not None else {}
             self.parameters = {key: parameters.get(key, default)
                                for (key, default) in self.parameters.items()}
 
@@ -182,7 +184,7 @@ class YearlyAggregationIndicator(YearlyIndicator):
             agg_function = self.agg_function(
                         Case(When(then=self.expression, **self.conditions),
                              default=self.default,
-                             output_field=IntegerField()))
+                             output_field=FloatField()))
         else:
             agg_function = self.agg_function(self.expression)
 
@@ -377,7 +379,7 @@ class MonthlyAggregationIndicator(MonthlyIndicator):
             agg_function = self.agg_function(
                         Case(When(then=self.expression, **self.conditions),
                              default=self.default,
-                             output_field=IntegerField()))
+                             output_field=FloatField()))
         else:
             agg_function = self.agg_function(self.expression)
 
@@ -406,9 +408,16 @@ class MonthlyCountIndicator(MonthlyAggregationIndicator):
 class BasetempIndicatorMixin(object):
     """ Framework for pre-processing the basetemp parameter to a native unit
     """
-    def calculate(self):
-        m = re.match(r'(?P<value>\d+(\.\d+)?)(?P<unit>[FKC])?', self.parameters['basetemp'])
-        assert m, "Parameter basetemp must be numeric"
+
+    def __init__(self, *args, **kwargs):
+        super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
+
+        available_units = TemperatureConverter.available_units
+        m = re.match(r'^(?P<value>-?\d+(\.\d+)?)(?P<unit>%s)?$' % '|'.join(available_units),
+                     self.parameters['basetemp'])
+        if not m:
+            raise ValueError('Parameter basetemp must be numeric and optionally end with %s'
+                             % str(available_units))
 
         value = float(m.group('value'))
         unit = m.group('unit')
@@ -418,5 +427,3 @@ class BasetempIndicatorMixin(object):
         converter = TemperatureConverter.get(unit, self.storage_units)
         self.parameters['basetemp'] = converter(value)
         self.parameters['units'] = self.storage_units
-
-        return super(BasetempIndicatorMixin, self).calculate()
