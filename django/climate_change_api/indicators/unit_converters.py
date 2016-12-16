@@ -28,6 +28,10 @@ class UnitConverter(object):
         # Create a lamdba for converting these specific units
         return cls.create(start, end)
 
+    @classproperty
+    def available_units(cls):
+        return cls.units.keys()
+
 
 class LinearConverter(UnitConverter):
     @classmethod
@@ -104,7 +108,7 @@ class ConversionMixin(object):
 
     @classproperty
     def available_units(cls):
-        return cls.converter_class.units.keys()
+        return cls.converter_class.available_units
 
 
 class TemperatureUnitsMixin(ConversionMixin):
