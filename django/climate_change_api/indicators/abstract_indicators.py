@@ -408,13 +408,16 @@ class MonthlyCountIndicator(MonthlyAggregationIndicator):
 class BasetempIndicatorMixin(object):
     """ Framework for pre-processing the basetemp parameter to a native unit
     """
+
     def __init__(self, *args, **kwargs):
         super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
 
-        m = re.match(r'^(?P<value>-?\d+(\.\d+)?)(?P<unit>[%s])?$' % ''.join(self.available_units),
+        available_units = TemperatureConverter.available_units
+        m = re.match(r'^(?P<value>-?\d+(\.\d+)?)(?P<unit>%s)?$' % '|'.join(available_units),
                      self.parameters['basetemp'])
         if not m:
-            raise ValueError('Parameter basetemp must be numeric and end with C, F or K')
+            raise ValueError('Parameter basetemp must be numeric and optionally end with %s'
+                             % str(available_units))
 
         value = float(m.group('value'))
         unit = m.group('unit')
