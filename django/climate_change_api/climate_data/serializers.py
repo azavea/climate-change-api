@@ -38,7 +38,7 @@ class CitySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog', 'boundary',)
+        exclude = ('_geog',)
 
 
 class CityBoundarySerializer(GeoFeatureModelSerializer):
@@ -47,7 +47,7 @@ class CityBoundarySerializer(GeoFeatureModelSerializer):
         model = CityBoundary
         id_field = False
         geo_field = 'geom'
-        exclude = ('id',)
+        exclude = ('id', 'city',)
 
 
 class ClimateDataSourceSerializer(serializers.ModelSerializer):

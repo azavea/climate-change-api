@@ -174,6 +174,7 @@ class CityBoundary(models.Model):
     geom = models.MultiPolygonField()
     source = models.CharField(max_length=64)
     boundary_type = models.CharField(max_length=64)
+    city = models.OneToOneField('City', on_delete=CASCADE, related_name='boundary', null=True)
 
     objects = CityBoundaryManager()
 
@@ -188,7 +189,6 @@ class City(models.Model):
     _geog = models.PointField(geography=True)
 
     map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
-    boundary = models.OneToOneField(CityBoundary, on_delete=CASCADE, null=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
