@@ -15,7 +15,7 @@ from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnits
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
-    description = ('Aggregated yearly average high temperature, generated from daily data ' +
+    description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
@@ -24,7 +24,7 @@ class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
 
 class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average Low Temperature'
-    description = ('Aggregated yearly average low temperature, generated from daily data ' +
+    description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
@@ -33,7 +33,7 @@ class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
 
 class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Maximum High Temperature'
-    description = ('Yearly maximum high temperature, generated from daily data ' +
+    description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
@@ -42,7 +42,7 @@ class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
 
 class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Minimum Low Temperature'
-    description = ('Yearly minimum low temperature, generated from daily data ' +
+    description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
@@ -51,7 +51,7 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
 
 class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     label = 'Total Precipitation'
-    description = 'Yearly total precipitation'
+    description = 'Total precipitation'
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
     agg_function = Avg
@@ -234,7 +234,7 @@ def indicator_factory(indicator_name):
     """ Return a valid indicator class based on the string provided
 
     Given a lower case, underscore separated indicator name, return the class associated
-    with it. e.g. yearly_frost_days -> indicators.models.YearlyFrostDays
+    with it. e.g. frost_days -> indicators.models.FrostDays
     If no match found, return None
 
     """
