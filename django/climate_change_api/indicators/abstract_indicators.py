@@ -97,7 +97,7 @@ class Indicator(object):
             ('name', cls.name()),
             ('label', cls.label),
             ('description', cls.description),
-            ('time_aggregation', cls.time_aggregation),
+            ('valid_aggregations', cls.valid_aggregations),
             ('variables', cls.variables),
             ('available_units', cls.available_units),
             ('default_units', cls.default_units),
