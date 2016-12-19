@@ -54,8 +54,8 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     description = 'Total precipitation'
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
-    agg_function = Avg
-    default_units = 'in/year'
+    agg_function = Sum
+    default_units = 'in/day'
 
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
