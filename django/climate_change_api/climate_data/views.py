@@ -2,6 +2,7 @@ from collections import OrderedDict
 import logging
 
 from django.contrib.gis.geos import Point
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.http import urlencode
@@ -97,10 +98,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
         """
         city = self.get_object()
-        if city.boundary:
+        try:
             serializer = CityBoundarySerializer(city.boundary)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
+        except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 
