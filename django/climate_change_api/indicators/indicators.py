@@ -11,7 +11,7 @@ from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnits
 
 
 ##########################
-# Yearly indicators
+# Aggregated indicators
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
@@ -69,7 +69,7 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
 
 class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     label = 'Yearly Max Consecutive Dry Days'
-    description = ('Maximum number of consecutive days with no precipitation per year')
+    description = ('Maximum number of consecutive days with no precipitation')
     variables = ('pr',)
     raw_condition = 'pr = 0'
 
@@ -200,7 +200,7 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
 
 
 ##########################
-# Daily indicators
+# Raw value indicators
 
 class LowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Low Temperature'

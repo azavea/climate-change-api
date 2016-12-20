@@ -14,7 +14,58 @@ from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
 
-MonthRange = namedtuple('MonthRange', ('label', 'start', 'length'))
+class MonthRangeConfig(object):
+    """ Utility class to generate and store a structure to convert dates to month
+
+    Intended for use in a Django When(Case(...)) ladder. See Indicator.monthly_case
+    """
+    MonthRange = namedtuple('MonthRange', ('label', 'start', 'length'))
+    range_config = None
+
+    @classmethod
+    def get_ranges(cls):
+        """ Build mapping from day of year to month.
+
+        Gets the year range by querying what data exists and builds MonthRange objects for each
+        month.
+
+        Caches the resulting range config as a class attribute.
+        """
+        if cls.range_config is None:
+            all_years = set(ClimateDataSource.objects.distinct('year')
+                                             .values_list('year', flat=True))
+            leap_years = set(filter(calendar.isleap, all_years))
+
+            def make_ranges(months):
+                return [cls.MonthRange('{:02d}'.format(i+1), sum(months[:i])+1, months[i])
+                        for i in range(len(months))]
+
+            cls.range_config = {
+                'leap': {
+                    'years': leap_years,
+                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
+                },
+                'nonleap': {
+                    'years': all_years - leap_years,
+                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
+                },
+            }
+        return cls.range_config
+
+    @classmethod
+    def monthly_case(cls):
+        """ Generates a nested Case aggregation that assigns the right (zero-padded) month to each
+        data point.  It first splits on leap year or not then checks day_of_year against ranges.
+        """
+        year_whens = []
+        for config in cls.get_ranges().values():
+            month_whens = [When(**{
+                'day_of_year__gte': month.start,
+                'day_of_year__lte': month.start + month.length,
+                'then': Value(month.label)
+            }) for month in config['ranges']]
+            year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
+        return Case(*year_whens, output_field=CharField())
 
 
 class Indicator(object):
@@ -27,15 +78,20 @@ class Indicator(object):
 
     # Filters define which rows match our query, conditions limit which rows
     # within that set fit the criteria. That is, if a filter excludes a row it is
-    # completely ignored, but if a condition excludes a row it is replaced with a
-    # default value.
+    # completely ignored, but if a condition excludes a row it is replaced with
+    # default_value.
     # This enables us to provide a value for timespans that have no matching
     # periods, but is imperfect and only works for aggregations where a default
     # value makes sense.
     filters = None
     conditions = None
-    agg_function = F
     default_value = 0
+
+    # The aggregation function defines how we should coalesce multiple data points
+    # from the same aggregation (Values within the same scenario, time span and model -
+    # note that per-model values are coalesced separately during serialization).
+    # For example Sum, Count, Avg, etc.
+    agg_function = F
 
     serializer_class = IndicatorSerializer
 
@@ -45,8 +101,6 @@ class Indicator(object):
     default_units = None
     available_units = (None,)
     parameters = None
-
-    monthly_range_config = None
 
     def __init__(self, city, scenario, models=None, years=None, time_aggregation=None,
                  serializer_aggregations=None, units=None, parameters=None):
@@ -120,53 +174,9 @@ class Indicator(object):
             queryset = queryset.filter(**self.filters)
 
         if self.time_aggregation == 'monthly':
-            queryset = queryset.annotate(month=self.monthly_case())
+            queryset = queryset.annotate(month=MonthRangeConfig.monthly_case())
 
         return queryset
-
-    @classmethod
-    def get_monthly_ranges(cls):
-        """ Build mapping from day of year to month.
-
-        Gets the year range by querying what data exists and builds MonthRange objects for each
-        month.
-
-        Caches the resulting range config as a class attribute.
-        """
-        if cls.monthly_range_config is None:
-            all_years = set(ClimateDataSource.objects.distinct('year')
-                                             .values_list('year', flat=True))
-            leap_years = set(filter(calendar.isleap, all_years))
-
-            def make_ranges(months):
-                return [MonthRange('{:02d}'.format(i+1), sum(months[:i])+1, months[i])
-                        for i in range(len(months))]
-
-            cls.monthly_range_config = {
-                'leap': {
-                    'years': leap_years,
-                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-                'nonleap': {
-                    'years': all_years - leap_years,
-                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-            }
-        return cls.monthly_range_config
-
-    def monthly_case(self):
-        """ Generates a nested Case aggregation that assigns the right (zero-padded) month to each
-        data point.  It first splits on leap year or not then checks day_of_year against ranges.
-        """
-        year_whens = []
-        for config in self.get_monthly_ranges().values():
-            month_whens = [When(**{
-                'day_of_year__gte': month.start,
-                'day_of_year__lte': month.start + month.length,
-                'then': Value(month.label)
-            }) for month in config['ranges']]
-            year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
-        return Case(*year_whens, output_field=CharField())
 
     @property
     def aggregate_keys(self):
@@ -257,7 +267,7 @@ class Indicator(object):
 class CountIndicator(Indicator):
     """ Class to count days on which a condition is met.
 
-    Essentially a specialized version of the YearlyAggregationIndicator where all values count as 1
+    Essentially a specialized version of the AggregationIndicator where all values count as 1
     if they match the conditions and 0 in all other cases.
     """
     agg_function = Sum
