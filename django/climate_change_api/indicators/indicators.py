@@ -60,7 +60,7 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
     label = 'Frost Days'
-    description = ('Number of days per year in which the daily low temperature is ' +
+    description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
@@ -76,7 +76,7 @@ class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
 
 class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
-    description = ('Total number of times per year that there are 5 or more consecutive ' +
+    description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
     raw_condition = 'pr = 0'
@@ -99,7 +99,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
 
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Precipitation Events'
-    description = ('Total number of times per year daily precipitation exceeds the specified '
+    description = ('Total number of times per period daily precipitation exceeds the specified '
                    '(Default 99th) percentile of observations from 1960 to 1995')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
@@ -114,8 +114,8 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
 
 class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Heat Events'
-    description = ('Total number of times per year daily maximum temperature exceeds the specified '
-                   '(Default 99th) percentile of observations from 1960 to 1995')
+    description = ('Total number of times per period daily maximum temperature exceeds the '
+                   'specified (Default 99th) percentile of observations from 1960 to 1995')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     parameters = {'percentile': 99}
@@ -129,8 +129,8 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
 
 class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Cold Events'
-    description = ('Total number of times per year daily minimum temperature is below the specified'
-                   ' (Default 1st) percentile of observations from 1960 to 1995')
+    description = ('Total number of times per period daily minimum temperature is below the '
+                   'specified (Default 1st) percentile of observations from 1960 to 1995')
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     parameters = {'percentile': 1}
