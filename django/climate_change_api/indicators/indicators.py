@@ -81,20 +81,14 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     variables = ('pr',)
     raw_condition = 'pr = 0'
 
-    def row_group_key(self, row):
-        """ Key function for groupby to use to break input stream into chunks."""
-        return (row['data_source__model'], row['data_source__year'])
-
     def aggregate(self):
         """ Calls get_streaks to get all sequences of zero or non-zero precip then counts
         the zero-precip ones that are at least 5 days long """
         sequences = self.get_streaks()
-        for (model, year), streaks in groupby(sequences, self.row_group_key):
+        for key_vals, streaks in groupby(sequences, self.row_group_key):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
 
-            yield {'data_source__year': year,
-                   'data_source__model': model,
-                   'value': num_dry_spells}
+            yield dict(zip(self.aggregate_keys, key_vals) + [('value', num_dry_spells)])
 
 
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
