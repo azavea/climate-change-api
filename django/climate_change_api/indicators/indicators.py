@@ -202,21 +202,21 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
 
 class LowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Low Temperature'
-    description = ('Daily low temperature averaged across all requested models')
+    description = ('Daily low temperature')
     valid_aggregations = ('daily',)
     variables = ('tasmin',)
 
 
 class HighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'High Temperature'
-    description = ('Daily high temperature averaged across all requested models')
+    description = ('Daily high temperature')
     valid_aggregations = ('daily',)
     variables = ('tasmax',)
 
 
 class Precipitation(PrecipRateUnitsMixin, Indicator):
     label = 'Precipitation'
-    description = ('Daily precipitation averaged across all requested models')
+    description = ('Daily precipitation')
     valid_aggregations = ('daily',)
     variables = ('pr',)
 
