@@ -1,6 +1,7 @@
 from django.test import TestCase
 from indicators.tests.mixins import ConverterTestMixin
-from indicators.unit_converters import TemperatureConverter, PrecipitationConverter
+from indicators.unit_converters import (TemperatureConverter, PrecipitationConverter,
+                                        PrecipitationRateConverter)
 
 
 class TemperatureConverterTestCase(ConverterTestMixin, TestCase):
@@ -18,8 +19,18 @@ class TemperatureConverterTestCase(ConverterTestMixin, TestCase):
     ]
 
 
+class PrecipitationRateConverterTestCase(ConverterTestMixin, TestCase):
+    converter_class = PrecipitationRateConverter
+    cases = [
+         {'kg/m^2/s': 1, 'kg/m^2/day': 86400},
+         {'kg/m^2/s': 0.00001157407, 'kg/m^2/day': 1}
+    ]
+
+
 class PrecipitationConverterTestCase(ConverterTestMixin, TestCase):
     converter_class = PrecipitationConverter
     cases = [
-        {'kg/m^2/s': 1, 'kg/m^2/day': 86400}
+        {'kg/m^2': 1, 'mm': 1, 'in': 0.0393701},
+        {'kg/m^2': 25.4, 'mm': 25.4, 'in': 1},
+        {'kg/m^2': 254, 'mm': 254, 'in': 10}
     ]
