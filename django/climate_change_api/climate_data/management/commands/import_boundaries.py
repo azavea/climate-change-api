@@ -4,7 +4,7 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 
-from climate_data.models import City
+from climate_data.models import City, CityBoundary
 from climate_data.geo_boundary.exceptions import GeoBoundaryError
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class Command(BaseCommand):
         total = 0
         for city in queryset:
             try:
-                city.import_boundary()
+                CityBoundary.objects.create_for_city(city)
                 logger.info('Created boundary for city: %s, %s', city.name, city.admin)
                 success += 1
                 # Short sleep to avoid hammering the boundary APIs
