@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from django.db.models import CASCADE, SET_NULL
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import CASCADE, SET_NULL
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
@@ -152,13 +153,19 @@ class ClimateDataBaseline(models.Model):
 
 class CityBoundaryManager(models.Manager):
 
-    def create_from_point(self, point):
-        """ Given a Point, find and create an appropriate CityBoundary for it """
-        geom, boundary_type = census.boundary_from_point(point)
+    def create_for_city(self, city):
+        """ Given a city, find and create an appropriate CityBoundary for it """
+        geom, boundary_type = census.boundary_from_point(city.geom)
 
         # TODO: Fall through to other boundary services here
 
-        city_boundary = self.create(geom=geom, boundary_type=boundary_type, source='US Census API')
+
+        # Delete any existing boundary before we create a new one
+        try:
+            city.boundary.delete()
+        except ObjectDoesNotExist:
+            pass
+        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')
         return city_boundary
 
 
@@ -174,6 +181,7 @@ class CityBoundary(models.Model):
     geom = models.MultiPolygonField()
     source = models.CharField(max_length=64)
     boundary_type = models.CharField(max_length=64)
+    city = models.OneToOneField('City', on_delete=CASCADE, related_name='boundary')
 
     objects = CityBoundaryManager()
 
@@ -188,7 +196,6 @@ class City(models.Model):
     _geog = models.PointField(geography=True)
 
     map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
-    boundary = models.OneToOneField(CityBoundary, on_delete=CASCADE, null=True)
 
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
@@ -205,11 +212,6 @@ class City(models.Model):
 
     def natural_key(self):
         return (self.name, self.admin)
-
-    def import_boundary(self):
-        """ Update the boundary field for the city """
-        self.boundary = CityBoundary.objects.create_from_point(self.geom)
-        self.save()
 
     def save(self, *args, **kwargs):
         """ Override save to keep the geography field up to date """
