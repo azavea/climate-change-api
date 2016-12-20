@@ -281,6 +281,11 @@ class YearlySequenceIndicator(CountIndicator):
 
     valid_aggregations = ('yearly',)
 
+    def row_group_key(self, row):
+        """ Key function for groupby to use to break input stream into chunks in indicators that
+        require processing in code."""
+        return tuple(row[key] for key in self.aggregate_keys)
+
     def get_streaks(self):
         """
         Uses a query to partition the data series into consecutive days on which the condition is
@@ -324,11 +329,6 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
     The query is done with raw SQL, so the condition has to be a string that constitutes a
     valid condition when dropped into the WHEN clause inside the query.
     """
-
-    def row_group_key(self, row):
-        """ Key function for groupby to use to break input stream into chunks in indicators that
-        require processing in code."""
-        return tuple(row[key] for key in self.aggregate_keys)
 
     def aggregate(self):
         """
