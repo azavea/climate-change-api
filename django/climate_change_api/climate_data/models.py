@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from django.db.models import CASCADE, SET_NULL
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import CASCADE, SET_NULL
 from django.utils.translation import ugettext_lazy as _
 from django.core import exceptions
 
@@ -208,8 +209,14 @@ class City(models.Model):
 
     def import_boundary(self):
         """ Update the boundary field for the city """
-        self.boundary = CityBoundary.objects.create_from_point(self.geom)
-        self.save()
+        boundary = CityBoundary.objects.create_from_point(self.geom)
+        # Delete old boundary before replacing
+        try:
+            self.boundary.delete()
+        except ObjectDoesNotExist:
+            pass
+        boundary.city = self
+        boundary.save()
 
     def save(self, *args, **kwargs):
         """ Override save to keep the geography field up to date """
