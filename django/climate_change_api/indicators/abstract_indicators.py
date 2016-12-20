@@ -4,7 +4,7 @@ import re
 from datetime import date, timedelta
 import calendar
 
-from django.db.models import F, Case, When, CharField, FloatField, Value, Sum
+from django.db.models import F, Case, When, IntegerField, FloatField, Value, Sum
 from django.db import connection
 
 
@@ -15,11 +15,9 @@ from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
 
 class MonthRangeConfig(object):
-    """ Utility class to generate and store a structure to convert dates to month
-
-    Intended for use in a Django When(Case(...)) ladder. See Indicator.monthly_case
+    """ Utility class to generate a Django Case(When(..)) object that converts day-of-year to month
     """
-    MonthRange = namedtuple('MonthRange', ('label', 'start', 'length'))
+    MonthRange = namedtuple('MonthRange', ('index', 'start', 'length'))
     range_config = None
 
     @classmethod
@@ -37,7 +35,7 @@ class MonthRangeConfig(object):
             leap_years = set(filter(calendar.isleap, all_years))
 
             def make_ranges(months):
-                return [cls.MonthRange('{:02d}'.format(i+1), sum(months[:i])+1, months[i])
+                return [cls.MonthRange(i, sum(months[:i])+1, months[i])
                         for i in range(len(months))]
 
             cls.range_config = {
@@ -54,18 +52,18 @@ class MonthRangeConfig(object):
 
     @classmethod
     def monthly_case(cls):
-        """ Generates a nested Case aggregation that assigns the right (zero-padded) month to each
+        """ Generates a nested Case aggregation that assigns the month index to each
         data point.  It first splits on leap year or not then checks day_of_year against ranges.
         """
         year_whens = []
         for config in cls.get_ranges().values():
             month_whens = [When(**{
                 'day_of_year__gte': month.start,
-                'day_of_year__lte': month.start + month.length,
-                'then': Value(month.label)
+                'day_of_year__lt': month.start + month.length,
+                'then': Value(month.index)
             }) for month in config['ranges']]
             year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
-        return Case(*year_whens, output_field=CharField())
+        return Case(*year_whens, output_field=IntegerField())
 
 
 class Indicator(object):
@@ -249,7 +247,7 @@ class Indicator(object):
 
         if self.time_aggregation == 'monthly':
             month = result['month']
-            return '{year}-{mo}'.format(year=year, mo=month)
+            return '{year}-{mo:02d}'.format(year=year, mo=(month+1))
 
         if self.time_aggregation == 'daily':
             day_of_year = result['day_of_year']
