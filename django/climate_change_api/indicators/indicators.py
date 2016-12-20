@@ -6,8 +6,9 @@ from django.db.models import F, Sum, Avg, Max, Min
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
-                              CountUnitsMixin, TemperatureDeltaUnitsMixin)
+from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, PrecipRateUnitsMixin,
+                              DaysUnitsMixin, CountUnitsMixin, TemperatureDeltaUnitsMixin,
+                              SECONDS_PER_DAY)
 
 
 ##########################
@@ -54,8 +55,11 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     description = 'Total precipitation'
     valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
+    # Precipitation is stored per-second, and we want a total for all days in the aggregation,
+    # so we need to multiple each day's value by 86400 to get the total for that day and then
+    # sum the results
+    expression = F('pr') * SECONDS_PER_DAY
     agg_function = Sum
-    default_units = 'in/day'
 
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
@@ -210,7 +214,7 @@ class HighTemperature(TemperatureUnitsMixin, Indicator):
     variables = ('tasmax',)
 
 
-class Precipitation(PrecipUnitsMixin, Indicator):
+class Precipitation(PrecipRateUnitsMixin, Indicator):
     label = 'Precipitation'
     description = ('Daily precipitation averaged across all requested models')
     valid_aggregations = ('daily',)

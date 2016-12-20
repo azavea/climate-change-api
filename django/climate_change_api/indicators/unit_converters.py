@@ -74,16 +74,8 @@ class TemperatureDeltaConverter(LinearConverter):
     }
 
 
-class PrecipitationConverter(LinearConverter):
-    """ Define units for precipitation
-
-    The units are rates, so cumulative totals can be had either by averaging the rates then
-    converting to the desired interval (i.e. average kg/m^2/s -> kg/m^2/year) or by converting
-    to an interval and summing all values for that interval across the desired interval
-    (i.e. convert each day's rate to kg/m^2/day and sum across the days in the month or year)
-
-    The former is to be preferred, since the latter is basically doing part of this unit conversion
-    by hand and will put the values out of sync with what the object believes its units to be.
+class PrecipitationRateConverter(LinearConverter):
+    """ Define units for rate of precipitation
 
     To convert from mass/area/second to height, we're assuming 1kg water == .001 m^3 which makes
     kg/m^2 equivalent to millimeters.
@@ -94,6 +86,22 @@ class PrecipitationConverter(LinearConverter):
         'kg/m^2/year': SECONDS_PER_DAY * DAYS_PER_YEAR,
         'in/day': INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
         'in/year': INCHES_PER_MILLIMETER * SECONDS_PER_DAY * DAYS_PER_YEAR,
+    }
+
+
+class PrecipitationConverter(LinearConverter):
+    """ Define units for precipitation
+
+    Internally precipitation is stored as mass per area per time, but for total precipitation
+    we need to present the result as a fixed amount... either a mass per area or linear distance.
+
+    To convert from mass/area to height, we're assuming 1kg water == .001 m^3 which makes
+    kg/m^2 equivalent to millimeters.
+    """
+    units = {
+        'kg/m^2': 1,
+        'mm': 1,
+        'in': INCHES_PER_MILLIMETER
     }
 
 
@@ -127,6 +135,12 @@ class TemperatureDeltaUnitsMixin(TemperatureUnitsMixin):
 
 class PrecipUnitsMixin(ConversionMixin):
     converter_class = PrecipitationConverter
+    storage_units = 'kg/m^2'
+    default_units = 'in'
+
+
+class PrecipRateUnitsMixin(ConversionMixin):
+    converter_class = PrecipitationRateConverter
     storage_units = 'kg/m^2/s'
     default_units = 'in/day'
 
