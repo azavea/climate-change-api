@@ -1,4 +1,5 @@
 from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 
 from rest_framework import status
@@ -171,9 +172,6 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertEqual(feature['properties']['name'], self.city1.name)
 
     def test_boundary_404_if_no_data(self):
-        self.city1.boundary = None
-        self.city1.save()
-
         url = reverse('city-boundary', args=[self.city1.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -181,10 +179,8 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
     def test_boundary(self):
 
         geom = MultiPolygon(Polygon([[0, 0], [1, 1], [2, 2], [0, 0]]))
-        boundary = CityBoundary.objects.create(geom=geom, boundary_type='TEST', source='TEST')
-
-        self.city1.boundary = boundary
-        self.city1.save()
+        CityBoundary.objects.create(city=self.city1, geom=geom,
+                                               boundary_type='TEST', source='TEST')
 
         url = reverse('city-boundary', args=[self.city1.id])
         response = self.client.get(url)
