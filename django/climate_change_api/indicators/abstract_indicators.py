@@ -4,7 +4,7 @@ import re
 from datetime import date, timedelta
 import calendar
 
-from django.db.models import F, Case, When, CharField, FloatField, Value, Sum
+from django.db.models import F, Case, When, IntegerField, FloatField, Value, Sum
 from django.db import connection
 
 
@@ -14,13 +14,83 @@ from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
 
+class MonthRangeConfig(object):
+    """ Utility class to generate a Django Case(When(..)) object that converts day-of-year to month
+    """
+    MonthRange = namedtuple('MonthRange', ('index', 'start', 'length'))
+    range_config = None
+
+    @classmethod
+    def get_ranges(cls):
+        """ Build mapping from day of year to month.
+
+        Gets the year range by querying what data exists and builds MonthRange objects for each
+        month.
+
+        Caches the resulting range config as a class attribute.
+        """
+        if cls.range_config is None:
+            all_years = set(ClimateDataSource.objects.distinct('year')
+                                             .values_list('year', flat=True))
+            leap_years = set(filter(calendar.isleap, all_years))
+
+            def make_ranges(months):
+                return [cls.MonthRange(i, sum(months[:i])+1, months[i])
+                        for i in range(len(months))]
+
+            cls.range_config = {
+                'leap': {
+                    'years': leap_years,
+                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
+                },
+                'nonleap': {
+                    'years': all_years - leap_years,
+                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
+                },
+            }
+        return cls.range_config
+
+    @classmethod
+    def monthly_case(cls):
+        """ Generates a nested Case aggregation that assigns the month index to each
+        data point.  It first splits on leap year or not then checks day_of_year against ranges.
+        """
+        year_whens = []
+        for config in cls.get_ranges().values():
+            month_whens = [When(**{
+                'day_of_year__gte': month.start,
+                'day_of_year__lt': month.start + month.length,
+                'then': Value(month.index)
+            }) for month in config['ranges']]
+            year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
+        return Case(*year_whens, output_field=IntegerField())
+
+
 class Indicator(object):
 
     label = ''
     description = ''
     time_aggregation = None     # One of 'daily'|'monthly'|'yearly'
+    valid_aggregations = ('yearly', 'monthly', 'daily', )
     variables = ClimateData.VARIABLE_CHOICES
+
+    # Filters define which rows match our query, conditions limit which rows
+    # within that set fit the criteria. That is, if a filter excludes a row it is
+    # completely ignored, but if a condition excludes a row it is replaced with
+    # default_value.
+    # This enables us to provide a value for timespans that have no matching
+    # periods, but is imperfect and only works for aggregations where a default
+    # value makes sense.
     filters = None
+    conditions = None
+    default_value = 0
+
+    # The aggregation function defines how we should coalesce multiple data points
+    # from the same aggregation (Values within the same scenario, time span and model -
+    # note that per-model values are coalesced separately during serialization).
+    # For example Sum, Count, Avg, etc.
+    agg_function = F
+
     serializer_class = IndicatorSerializer
 
     # Subclasses should use a units mixin from 'unit_converters' to define these units
@@ -30,7 +100,7 @@ class Indicator(object):
     available_units = (None,)
     parameters = None
 
-    def __init__(self, city, scenario, models=None, years=None,
+    def __init__(self, city, scenario, models=None, years=None, time_aggregation=None,
                  serializer_aggregations=None, units=None, parameters=None):
         if not city:
             raise ValueError('Indicator constructor requires a city instance')
@@ -54,8 +124,13 @@ class Indicator(object):
             self.parameters = {key: parameters.get(key, default)
                                for (key, default) in self.parameters.items()}
 
+        self.time_aggregation = (time_aggregation if time_aggregation is not None
+                                 else self.valid_aggregations[0])
+        if self.time_aggregation not in self.valid_aggregations:
+            raise ValueError('Cannot aggregate indicator by requested interval ({})'
+                             .format(self.time_aggregation))
+
         self.queryset = self.get_queryset()
-        self.queryset = self.filter_objects()
 
         self.serializer = self.serializer_class()
 
@@ -74,7 +149,7 @@ class Indicator(object):
             ('name', cls.name()),
             ('label', cls.label),
             ('description', cls.description),
-            ('time_aggregation', cls.time_aggregation),
+            ('valid_aggregations', cls.valid_aggregations),
             ('variables', cls.variables),
             ('available_units', cls.available_units),
             ('default_units', cls.default_units),
@@ -92,14 +167,26 @@ class Indicator(object):
                     .filter(data_source__scenario=self.scenario))
         queryset = filter_set.filter_years(queryset, self.years)
         queryset = filter_set.filter_models(queryset, self.models)
+
+        if self.filters is not None:
+            queryset = queryset.filter(**self.filters)
+
+        if self.time_aggregation == 'monthly':
+            queryset = queryset.annotate(month=MonthRangeConfig.monthly_case())
+
         return queryset
 
-    def filter_objects(self):
-        """ A subclass can override this to further filter the dataset before calling calculate """
-        if self.filters is not None:
-            return self.queryset.filter(**self.filters)
-        else:
-            return self.queryset
+    @property
+    def aggregate_keys(self):
+        return {
+            'daily': ['data_source__year', 'day_of_year', 'data_source__model'],
+            'monthly': ['data_source__year', 'month', 'data_source__model'],
+            'yearly': ['data_source__year', 'data_source__model']
+        }.get(self.time_aggregation)
+
+    @property
+    def expression(self):
+        return self.variables[0]
 
     def aggregate(self):
         """ Calculate the indicator aggregation
@@ -109,7 +196,15 @@ class Indicator(object):
         target value under the 'value' key.
         e.g. { 'data_source__year': 2077, 'data_source__model': 4, 'value': 74.59}
         """
-        raise NotImplementedError('Indicator subclass must implement aggregate()')
+
+        if self.conditions:
+            agg_function = self.agg_function(Case(When(then=self.expression, **self.conditions),
+                                             default=self.default_value,
+                                             output_field=FloatField()))
+        else:
+            agg_function = self.agg_function(self.expression)
+
+        return (self.queryset.values(*self.aggregate_keys).annotate(value=agg_function))
 
     def convert_units(self, aggregations):
         """ Convert aggregated results to the requested unit.
@@ -146,7 +241,18 @@ class Indicator(object):
                  * YYYY-MM for monthly data
                  * YYYY-MM-DD for daily data
         """
-        raise NotImplementedError()
+        year = result['data_source__year']
+        if self.time_aggregation == 'yearly':
+            return year
+
+        if self.time_aggregation == 'monthly':
+            month = result['month']
+            return '{year}-{mo:02d}'.format(year=year, mo=(month+1))
+
+        if self.time_aggregation == 'daily':
+            day_of_year = result['day_of_year']
+            day = date(year, 1, 1) + timedelta(days=day_of_year-1)
+            return day.isoformat()
 
     def calculate(self):
         aggregations = self.aggregate()
@@ -156,72 +262,30 @@ class Indicator(object):
                                                  aggregations=self.serializer_aggregations)
 
 
-class YearlyIndicator(Indicator):
-    """ Base class for yearly indicators. """
-
-    time_aggregation = 'yearly'
-
-    def key_result(self, result):
-        """ Get the row's year for use as a key in collate_results
-
-        @result A row of timeseries data generated by aggregate()
-        @returns The year for the result
-        """
-        return result['data_source__year']
-
-    def row_group_key(self, row):
-        """ Key function for groupby to use to break input stream into chunks in indicators that
-        require processing in code."""
-        return (row['data_source__model'], row['data_source__year'])
-
-
-class YearlyAggregationIndicator(YearlyIndicator):
-    default = 0
-    conditions = None
-
-    def aggregate(self):
-        if self.conditions:
-            agg_function = self.agg_function(
-                        Case(When(then=self.expression, **self.conditions),
-                             default=self.default,
-                             output_field=FloatField()))
-        else:
-            agg_function = self.agg_function(self.expression)
-
-        return (self.queryset.values('data_source__year', 'data_source__model')
-                .annotate(value=agg_function))
-
-    @property
-    def expression(self):
-        """ Lookup function to get the actual value used for aggregation
-
-        Defaults to the first variable mentioned in the variables variable, but can be overloaded
-        for complex queries.
-
-        This is necessary because the variables value is serialized for the /indicators/ endpoint,
-        but complex queries may require non-serializable components. Using the expression property
-        allows us to subsitute the variable specifically for the serialization instead.
-        """
-        return self.variables[0]
-
-
-class YearlyCountIndicator(YearlyAggregationIndicator):
+class CountIndicator(Indicator):
     """ Class to count days on which a condition is met.
 
-    Essentially a specialized version of the YearlyAggregationIndicator where all values count as 1
+    Essentially a specialized version of the AggregationIndicator where all values count as 1
     if they match the conditions and 0 in all other cases.
     """
     agg_function = Sum
-    default = 0
     expression = 1
 
 
-class YearlySequenceIndicator(YearlyCountIndicator):
+class YearlySequenceIndicator(CountIndicator):
     """ Abstract indicator to count series of consecutive days on which a condition is met.
 
     The query is done with raw SQL, so the condition has to be a string that constitutes a
     valid condition when dropped into the WHEN clause inside the query.
     """
+
+    valid_aggregations = ('yearly',)
+
+    def row_group_key(self, row):
+        """ Key function for groupby to use to break input stream into chunks in indicators that
+        require processing in code."""
+        return tuple(row[key] for key in self.aggregate_keys)
+
     def get_streaks(self):
         """
         Uses a query to partition the data series into consecutive days on which the condition is
@@ -265,144 +329,22 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
     The query is done with raw SQL, so the condition has to be a string that constitutes a
     valid condition when dropped into the WHEN clause inside the query.
     """
+
     def aggregate(self):
         """
         Gets streaks of matching and non-matching days then picks the longest matching streak
         and returns its length, or zero if there are no matching streaks.
         """
         sequences = self.get_streaks()
-        for (model, year), streaks in groupby(sequences, self.row_group_key):
+        for key_vals, streaks in groupby(sequences, self.row_group_key):
             try:
                 longest = max(seq['length'] for seq in streaks if seq['match'] == 1)
             except ValueError:
                 longest = 0
 
-            yield {'data_source__year': year,
-                   'data_source__model': model,
-                   'value': longest}
-
-
-class DailyIndicator(Indicator):
-    time_aggregation = 'daily'
-
-    def key_result(self, result):
-        """ Get the row's date as a Python date object and format as YYYY-MM-DD
-
-        @result A row of timeseries data generated by aggregate()
-        @returns The string representation of the date in the format YYYY-MM-DD
-        """
-        year = result['data_source__year']
-        day_of_year = result['day_of_year']
-        day = date(year, 1, 1) + timedelta(days=day_of_year-1)
-        return day.isoformat()
-
-
-class DailyRawIndicator(DailyIndicator):
-    def aggregate(self):
-        variable = self.variables[0]
-        return (self.queryset.values('data_source__year', 'day_of_year')
-                .annotate(value=F(variable))
-                .order_by('data_source__year', 'day_of_year'))
-
-
-class MonthlyIndicator(Indicator):
-    """ Base class for monthly indicators. """
-
-    time_aggregation = 'monthly'
-    MonthRange = namedtuple('MonthRange', ('label', 'start', 'length'))
-    range_config = None
-
-    @classmethod
-    def get_ranges(cls):
-        """ Build mapping from day of year to month.
-
-        Gets the year range by querying what data exists and builds MonthRange objects for each
-        month.
-
-        Caches the resulting range config as a class attribute.
-        """
-        if cls.range_config is None:
-            all_years = set(ClimateDataSource.objects.distinct('year')
-                                             .values_list('year', flat=True))
-            leap_years = set(filter(calendar.isleap, all_years))
-
-            def make_ranges(months):
-                return [cls.MonthRange('{:02d}'.format(i+1), sum(months[:i])+1, months[i])
-                        for i in range(len(months))]
-
-            cls.range_config = {
-                'leap': {
-                    'years': leap_years,
-                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-                'nonleap': {
-                    'years': all_years - leap_years,
-                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-            }
-        return cls.range_config
-
-    def monthly_case(self):
-        """ Generates a nested Case aggregation that assigns the right (zero-padded) month to each
-        data point.  It first splits on leap year or not then checks day_of_year against ranges.
-        """
-        year_whens = []
-        for config in self.get_ranges().values():
-            month_whens = [When(**{
-                'day_of_year__gte': month.start,
-                'day_of_year__lte': month.start + month.length,
-                'then': Value(month.label)
-            }) for month in config['ranges']]
-            year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
-        return Case(*year_whens, output_field=CharField())
-
-    @property
-    def monthly_queryset(self):
-        return (self.queryset.values('data_source__year', 'data_source__model')
-                .annotate(month=self.monthly_case()))
-
-    def key_result(self, result):
-        """ Get the row's year and month for use as a key in collate_results
-
-        @result A row of timeseries data generated by aggregate()
-        @returns The YYYY-MM for the result
-        """
-        return '{year}-{mo}'.format(year=result['data_source__year'], mo=result['month'])
-
-
-class MonthlyAggregationIndicator(MonthlyIndicator):
-    default = 0
-    conditions = None
-
-    def aggregate(self):
-        if self.conditions:
-            agg_function = self.agg_function(
-                        Case(When(then=self.expression, **self.conditions),
-                             default=self.default,
-                             output_field=FloatField()))
-        else:
-            agg_function = self.agg_function(self.expression)
-
-        return (self.monthly_queryset.annotate(value=agg_function))
-
-    @property
-    def expression(self):
-        """ Lookup function to get the actual value used for aggregation
-
-        Defaults to the first variable mentioned in the variables variable, but can be overloaded
-        for complex queries.
-
-        This is necessary because the variables value is serialized for the /indicators/ endpoint,
-        but complex queries may require non-serializable components. Using the expression property
-        allows us to subsitute the variable specifically for the serialization instead.
-        """
-        return self.variables[0]
-
-
-class MonthlyCountIndicator(MonthlyAggregationIndicator):
-    agg_function = Sum
-    default = 0
-    expression = 1
+            # Return an object with each of the keys and their values, along with the
+            # aggregated value
+            yield dict(zip(self.aggregate_keys, key_vals) + [('value', longest)])
 
 
 class BasetempIndicatorMixin(object):

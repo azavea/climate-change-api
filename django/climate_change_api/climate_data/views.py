@@ -256,6 +256,12 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: string
         paramType: query
+      - name: time_aggregation
+        description: Time granularity to group data by for result structure. Valid aggregations
+                     depend on indicator. Can be 'yearly', 'monthly' or 'daily'
+        required: false
+        type: string
+        paramType: query
       - name: units
         description: Units in which to return the data. Defaults to Imperial units (Fahrenheit for
                      temperature indicators and inches per day for precipitation).
@@ -298,18 +304,21 @@ def climate_indicator(request, *args, **kwargs):
     aggregations = agg_param.split(',') if agg_param else None
     years_param = request.query_params.get('years', None)
     units_param = request.query_params.get('units', None)
+    time_aggregation = request.query_params.get('time_aggregation', None)
 
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
         raise ParseError(detail='Must provide a valid indicator')
-    data = IndicatorClass(city,
-                          scenario,
-                          models=models_param,
-                          years=years_param,
-                          serializer_aggregations=aggregations,
-                          parameters=request.query_params,
-                          units=units_param).calculate()
+    indicator = IndicatorClass(city,
+                               scenario,
+                               models=models_param,
+                               years=years_param,
+                               time_aggregation=time_aggregation,
+                               serializer_aggregations=aggregations,
+                               parameters=request.query_params,
+                               units=units_param)
+    data = indicator.calculate()
 
     if units_param and units_param not in IndicatorClass.available_units:
         raise NotFound(detail='Cannot convert indicator {} to units {}.'.format(indicator_key,
@@ -323,6 +332,7 @@ def climate_indicator(request, *args, **kwargs):
         ('scenario', scenario.name),
         ('indicator', IndicatorClass.to_dict()),
         ('climate_models', [m.name for m in model_list]),
+        ('time_aggregation', indicator.time_aggregation),
         ('units', units_param),
         ('data', data),
     ]))
