@@ -265,6 +265,15 @@ def climate_indicator(request, *args, **kwargs):
         required: false
         type: string
         paramType: query
+      - name: intervals
+        description: A list of comma separated month-day pairs defining the time intervals to
+                     aggregate within. Data points will only be assigned to one aggregation, and for
+                     overlapping intervals the interval defined first will take precedence. Dates
+                     are formmatted MM-DD and pairs are formatted 'start:end'. For example, '3-1:5-31',
+                     '1-1:6-31,7-1:12-31'
+        required: false
+        type: string
+        paramType: query
       - name: units
         description: Units in which to return the data. Defaults to Imperial units (Fahrenheit for
                      temperature indicators and inches per day for precipitation).
