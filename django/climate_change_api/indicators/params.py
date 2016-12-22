@@ -11,9 +11,11 @@ YEARS_PARAM_DOCSTRING = "A list of comma separated year ranges to filter the res
 
 AGG_PARAM_DOCSTRING = "A list of comma separated aggregation types to return. Valid choices are 'min', 'max', 'avg', 'median', 'stddev', 'stdev', and 'XXth'. If using 'XXth', replace the XX with a number between 1-99 to return that percentile. For example, '99th' returns the value of the 99th percentile. The 'XXth' option can be provided multiple times with different values. 'stdev' is an alias to 'stddev'. Defaults to 'min,max,avg'."
 
-TIME_AGGREGATION_PARAM_DOCSTRING = "Time granularity to group data by for result structure. Valid aggregations depend on indicator. Can be 'yearly', 'monthly' or 'daily'. Defaults to 'yearly'."
+TIME_AGGREGATION_PARAM_DOCSTRING = "Time granularity to group data by for result structure. Valid aggregations depend on indicator. Can be 'yearly', 'monthly', 'daily' or 'custom'. Defaults to 'yearly'. If 'custom', 'intervals' parameter must be set."
 
 UNITS_PARAM_DOCSTRING = "Units in which to return the data. Defaults to Imperial units (Fahrenheit for temperature indicators and inches for precipitation)."
+
+INTERVALS_PARAM_DOCSTRING = "A list of comma separated month-day pairs defining the time intervals to aggregate within. Data points will only be assigned to one aggregation, and for overlapping intervals the interval defined first will take precedence. Dates are formmatted MM-DD and pairs are formatted 'start:end'. Examples: '3-1:5-31', '1-1:6-31,7-1:12-31'"
 
 PERCENTILE_PARAM_DOCSTRING = "The percentile threshold used to calculate the number of exceeding events compared to historic levels. Must be an integer in the range [0,100]."
 
@@ -100,6 +102,11 @@ class IndicatorParams(object):
                          required=False,
                          default='min,max,avg',
                          validators=None)
+
+    intervals = IndicatorParam('intervals',
+                               description=INTERVALS_PARAM_DOCSTRING,
+                               required=False,
+                               validators=None)
 
     def __init__(self, default_units, available_units, valid_aggregations):
         """ Initialize additional params that are instance specific
