@@ -14,6 +14,10 @@ class QueryRangeConfig(object):
 
     @staticmethod
     def get_years():
+        """ Builds objects that categorize years by a common feature
+
+        By default categorizes years by whether they are a leap year or not
+        """
         all_years = set(ClimateDataSource.objects.distinct('year')
                                                  .values_list('year', flat=True))
         leap_years = set(filter(calendar.isleap, all_years))
@@ -24,8 +28,20 @@ class QueryRangeConfig(object):
         ]
 
     @classmethod
-    def make_ranges(cls, label):
+    def get_intervals(cls, label):
+        """ Returns an ordered series intervals to map days to interval segments
+
+        Each value should be a tuple of (start, length), measured in day-of-year
+        """
         raise NotImplementedError()
+
+    @classmethod
+    def make_ranges(cls, label):
+        """ Takes the values of get_intervals and wraps them in CaseRange objects
+        """
+        cases = cls.get_intervals(label)
+        return [cls.CaseRange(i, start, length)
+                for (i, (start, length)) in enumerate(cases)]
 
     @classmethod
     def get_ranges(cls):
@@ -34,7 +50,6 @@ class QueryRangeConfig(object):
         Gets the year range by querying what data exists and builds CaseRange objects for each
         month.
         """
-
         return [
             {
                 'years': years,
@@ -62,74 +77,62 @@ class QueryRangeConfig(object):
         return Case(*year_whens, output_field=IntegerField())
 
 
-class ContinuousRangeConfig(QueryRangeConfig):
-    @classmethod
-    def get_lengths(cls, label):
-        raise NotImplementedError()
+class LengthRangeConfig(QueryRangeConfig):
+    """ RangeConfig based on a list of period lengths
+
+    Assumes that the periods are consecutive, and that each period takes place immediately
+    following the previous period.
+    """
+    lengths = {}
 
     @classmethod
-    def make_ranges(cls, label):
-        cases = cls.get_lengths(label)
-        return [cls.CaseRange(i, sum(cases[:i])+1, cases[i]-1)
-                for i in range(len(cases))]
+    def get_intervals(cls, label):
+        lengths = cls.lengths[label]
+        return [(sum(lengths[:i]), lengths[i]) for i in range(len(lengths))]
 
 
-class MonthRangeConfig(ContinuousRangeConfig):
-    @classmethod
-    def get_lengths(cls, label):
-        months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        if label == 'leap':
-            months[1] += 1
-        return months
+class MonthRangeConfig(LengthRangeConfig):
+    lengths = {
+        'leap': [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+        'noleap': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    }
 
 
-class QuarterRangeConfig(ContinuousRangeConfig):
-    @classmethod
-    def get_lengths(cls, label):
-        lengths = [90, 91, 92, 92]
-        if label == 'leap':
-            lengths[0] += 1
-        return lengths
+class QuarterRangeConfig(LengthRangeConfig):
+    lengths = {
+        'leap': [91, 91, 92, 92],
+        'noleap': [90, 91, 92, 92]
+    }
 
 
-class DiscreteRangeConfig(QueryRangeConfig):
-    @classmethod
-    def get_spans(cls, label):
-        raise NotImplementedError()
-
-    @classmethod
-    def make_ranges(cls, label):
-        cases = cls.get_spans(label)
-        return [cls.CaseRange(i, start, end - start)
-                for (i, (start, end)) in enumerate(cases)]
-
-
-class CustomRangeConfig(DiscreteRangeConfig):
+class CustomRangeConfig(QueryRangeConfig):
     custom_spans = None
 
-    @staticmethod
-    def day_of_year_from_date(date):
-        # These are all zero-based, so, for example, adding 1 for the 1st gives the true DOY
-        starts = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-        month, day = date
-        date = starts[month - 1] + day
-        assert (date < starts[month] + 1), "Invalid date provided"
-        return date
+    @classmethod
+    def day_of_year_from_date(cls, date, label):
+        starts = {
+            # These are all zero-based, so, for example, adding 1 for the 1st gives the true DOY
+            'leap': [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366],
+            'noleap': [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+        }.get(label)
+
+        # Date is a tuple of month and day of month (DOM)
+        month, dom = date
+
+        # Offset calculations by a month because weird human dates start with 1
+        doy = starts[month - 1] + dom
+        # Make sure we have a non-zero DOM
+        assert (dom > 0), "Invalid date provided"
+        # Make sure this date exists in the month given
+        assert (doy <= starts[month]), "Invalid date provided"
+
+        return doy
 
     @classmethod
-    def get_spans(cls, label):
+    def get_intervals(cls, label):
         for span in cls.custom_spans:
-            start, end = (cls.day_of_year_from_date(date) for date in span)
-            assert (start <= end), "End date must come after start date"
-
-            # Day 60 is normally March 1st, but in Leap Years it's February 29th
-            # If the span crosses over the end of February, we might need to extend the end date
-            if label == 'leap' and end >= 60:
-                end += 1
-                if start >= 60:
-                    start += 1
-
-            yield (start, end)
+            start, end = (cls.day_of_year_from_date(date, label) for date in span)
+            yield (start, end - start)
 
     @classmethod
     def cases(cls, intervals):
