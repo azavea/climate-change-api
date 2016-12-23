@@ -3,6 +3,7 @@ import logging
 
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.http import urlencode
@@ -22,6 +23,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateCityScenarioDataSerializer,
                                       ScenarioSerializer)
 from indicators import indicator_factory, list_available_indicators
+
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +260,8 @@ def climate_indicator(request, *args, **kwargs):
         paramType: query
       - name: time_aggregation
         description: Time granularity to group data by for result structure. Valid aggregations
-                     depend on indicator. Can be 'yearly', 'monthly' or 'daily'
+                     depend on indicator. Can be 'yearly', 'monthly' or 'daily'. Defaults to
+                     'yearly'.
         required: false
         type: string
         paramType: query
@@ -270,16 +273,23 @@ def climate_indicator(request, *args, **kwargs):
         paramType: query
       - name: percentile
         description: (Appropriate indicators only) The percentile threshold used to calculate
-                     the number of exceeding events compared to historic levels.
+                     the number of exceeding events compared to historic levels. Default depends on
+                     indicator.
         required: false
         type: integer
         paramType: query
       - name: basetemp
         description: (Appropriate indicators only) The base temperature used to calculate the daily
-                     difference for degree days sumations. Can be a number with a unit suffix (Such
-                     as 20C) or a bare number (Such as 65) measured in the request output units.
+                     difference for degree days summations. Defaults to 65. See the 'basetemp_units'
+                     for a discussion of the units this value uses.
         required: false
         type: integer
+        paramType: query
+      - name: basetemp_units
+        description: (Appropriate indicators only) Units for the value of the 'basetemp' parameter.
+                     Defaults to 'F'.
+        required: false
+        type: string
         paramType: query
 
     """
@@ -300,40 +310,28 @@ def climate_indicator(request, *args, **kwargs):
     else:
         model_list = ClimateModel.objects.all()
 
-    agg_param = request.query_params.get('agg', None)
-    aggregations = agg_param.split(',') if agg_param else None
-    years_param = request.query_params.get('years', None)
-    units_param = request.query_params.get('units', None)
-    time_aggregation = request.query_params.get('time_aggregation', None)
-
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
         raise ParseError(detail='Must provide a valid indicator')
-    indicator = IndicatorClass(city,
-                               scenario,
-                               models=models_param,
-                               years=years_param,
-                               time_aggregation=time_aggregation,
-                               serializer_aggregations=aggregations,
-                               parameters=request.query_params,
-                               units=units_param)
-    data = indicator.calculate()
-
-    if units_param and units_param not in IndicatorClass.available_units:
-        raise NotFound(detail='Cannot convert indicator {} to units {}.'.format(indicator_key,
-                                                                                units_param))
-
-    if not units_param:
-        units_param = IndicatorClass.default_units
+    try:
+        indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
+    except ValidationError as e:
+        # If indicator class/params fails validation, return error with help text for
+        # as much context as possible.
+        return Response(OrderedDict([
+            ('error', str(e)),
+            ('help', IndicatorClass.init_params_class().to_dict()),
+        ]), status=status.HTTP_400_BAD_REQUEST)
+    data = indicator_class.calculate()
 
     return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('indicator', IndicatorClass.to_dict()),
         ('climate_models', [m.name for m in model_list]),
-        ('time_aggregation', indicator.time_aggregation),
-        ('units', units_param),
+        ('time_aggregation', indicator_class.params.time_aggregation.value),
+        ('units', indicator_class.params.units.value),
         ('data', data),
     ]))
 
