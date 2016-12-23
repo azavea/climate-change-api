@@ -10,6 +10,7 @@ from django.db import connection
 
 from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
+from .params import IndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter
 
@@ -70,7 +71,6 @@ class Indicator(object):
 
     label = ''
     description = ''
-    time_aggregation = None     # One of 'daily'|'monthly'|'yearly'
     valid_aggregations = ('yearly', 'monthly', 'daily', )
     variables = ClimateData.VARIABLE_CHOICES
 
@@ -92,6 +92,7 @@ class Indicator(object):
     agg_function = F
 
     serializer_class = IndicatorSerializer
+    params_class = IndicatorParams
 
     # Subclasses should use a units mixin from 'unit_converters' to define these units
     # attributes and any necessary conversion functions
@@ -100,8 +101,7 @@ class Indicator(object):
     available_units = (None,)
     parameters = None
 
-    def __init__(self, city, scenario, models=None, years=None, time_aggregation=None,
-                 serializer_aggregations=None, units=None, parameters=None):
+    def __init__(self, city, scenario, parameters=None):
         if not city:
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
@@ -109,30 +109,22 @@ class Indicator(object):
 
         self.city = city
         self.scenario = scenario
-        self.models = models
-        self.years = years
-        self.serializer_aggregations = serializer_aggregations
 
-        # Set and validate desired units
-        self.units = units if units is not None else self.default_units
-        if self.units not in self.available_units:
-            raise ValueError('Cannot convert to requested units ({})'.format(self.units))
-
-        if self.parameters is not None:
-            # Because degree days changes the parameters object, we need to make sure we make a copy
-            parameters = parameters if parameters is not None else {}
-            self.parameters = {key: parameters.get(key, default)
-                               for (key, default) in self.parameters.items()}
-
-        self.time_aggregation = (time_aggregation if time_aggregation is not None
-                                 else self.valid_aggregations[0])
-        if self.time_aggregation not in self.valid_aggregations:
-            raise ValueError('Cannot aggregate indicator by requested interval ({})'
-                             .format(self.time_aggregation))
+        self.params = self.init_params_class()
+        self.params.validate(parameters)
 
         self.queryset = self.get_queryset()
 
         self.serializer = self.serializer_class()
+
+    @classmethod
+    def init_params_class(cls):
+        """ Return the instantiated IndicatorParams object for this class
+
+        Should not validate the IndicatorParams
+
+        """
+        return cls.params_class(cls.default_units, cls.available_units, cls.valid_aggregations)
 
     @classmethod
     def name(cls):
@@ -153,6 +145,7 @@ class Indicator(object):
             ('variables', cls.variables),
             ('available_units', cls.available_units),
             ('default_units', cls.default_units),
+            ('parameters', cls.init_params_class().to_dict()),
         ])
 
     def get_queryset(self):
@@ -165,13 +158,13 @@ class Indicator(object):
         filter_set = ClimateDataFilterSet()
         queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
                     .filter(data_source__scenario=self.scenario))
-        queryset = filter_set.filter_years(queryset, self.years)
-        queryset = filter_set.filter_models(queryset, self.models)
+        queryset = filter_set.filter_years(queryset, self.params.years.value)
+        queryset = filter_set.filter_models(queryset, self.params.models.value)
 
         if self.filters is not None:
             queryset = queryset.filter(**self.filters)
 
-        if self.time_aggregation == 'monthly':
+        if self.params.time_aggregation.value == 'monthly':
             queryset = queryset.annotate(month=MonthRangeConfig.monthly_case())
 
         return queryset
@@ -182,7 +175,7 @@ class Indicator(object):
             'daily': ['data_source__year', 'day_of_year', 'data_source__model'],
             'monthly': ['data_source__year', 'month', 'data_source__model'],
             'yearly': ['data_source__year', 'data_source__model']
-        }.get(self.time_aggregation)
+        }.get(self.params.time_aggregation.value)
 
     @property
     def expression(self):
@@ -211,9 +204,9 @@ class Indicator(object):
 
         @param aggregations list-of-dicts returned by aggregate method
         @returns Dict in same format as the aggregations parameter, with values converted
-                 to `self.units`
+                 to `self.params.units.value`
         """
-        converter = self.getConverter(self.storage_units, self.units)
+        converter = self.getConverter(self.storage_units, self.params.units.value)
         for item in aggregations:
             if item['value'] is not None:
                 item['value'] = converter(item['value'])
@@ -242,14 +235,14 @@ class Indicator(object):
                  * YYYY-MM-DD for daily data
         """
         year = result['data_source__year']
-        if self.time_aggregation == 'yearly':
+        if self.params.time_aggregation.value == 'yearly':
             return year
 
-        if self.time_aggregation == 'monthly':
+        if self.params.time_aggregation.value == 'monthly':
             month = result['month']
             return '{year}-{mo:02d}'.format(year=year, mo=(month+1))
 
-        if self.time_aggregation == 'daily':
+        if self.params.time_aggregation.value == 'daily':
             day_of_year = result['day_of_year']
             day = date(year, 1, 1) + timedelta(days=day_of_year-1)
             return day.isoformat()
@@ -259,7 +252,7 @@ class Indicator(object):
         aggregations = self.convert_units(aggregations)
         collations = self.collate_results(aggregations)
         return self.serializer.to_representation(collations,
-                                                 aggregations=self.serializer_aggregations)
+                                                 aggregations=self.params.agg.value.split(','))
 
 
 class CountIndicator(Indicator):
@@ -354,18 +347,10 @@ class BasetempIndicatorMixin(object):
     def __init__(self, *args, **kwargs):
         super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
 
-        available_units = TemperatureConverter.available_units
-        m = re.match(r'^(?P<value>-?\d+(\.\d+)?)(?P<unit>%s)?$' % '|'.join(available_units),
-                     self.parameters['basetemp'])
-        if not m:
-            raise ValueError('Parameter basetemp must be numeric and optionally end with %s'
-                             % str(available_units))
-
-        value = float(m.group('value'))
-        unit = m.group('unit')
-        if unit is None:
-            unit = self.parameters.get('units', self.default_units)
+        value = self.params.basetemp.value
+        basetemp_units = self.params.basetemp_units.value
+        unit = basetemp_units if basetemp_units is not None else self.params.units.value
 
         converter = TemperatureConverter.get(unit, self.storage_units)
-        self.parameters['basetemp'] = converter(value)
-        self.parameters['units'] = self.storage_units
+        self.params.basetemp.value = converter(float(value))
+        self.params.basetemp_units.value = self.storage_units

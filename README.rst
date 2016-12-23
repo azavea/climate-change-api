@@ -67,8 +67,8 @@ Run migrations::
 
 Load scenario and climate model data::
 
-    ./scripts/console django loaddata scenarios
-    ./scripts/console django loaddata climate-models
+    ./scripts/console django './manage.py loaddata scenarios'
+    ./scripts/console django './manage.py loaddata climate-models'
 
 
 Load cities::
@@ -116,7 +116,7 @@ Loading From Fixture
 ''''''''''''''''''''
 To load pre-computed historic aggregated values from the fixture::
 
-    ./scripts/console django loaddata historic_averages historic_baselines
+    ./scripts/console django './manage.py loaddata historic_averages historic_baselines'
 
 Loading From Remote Instance
 ''''''''''''''''''''''''''''
