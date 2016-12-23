@@ -5,25 +5,47 @@ from django.core.exceptions import ValidationError
 from .unit_converters import TemperatureConverter
 from .validators import ChoicesValidator, float_validator, percentile_range_validator
 
-MODELS_PARAM_DOCSTRING = "A list of comma separated model names to filter the indicator by. The indicator values in the response will only use the selected models. If not provided, defaults to all models."
+MODELS_PARAM_DOCSTRING = ("A list of comma separated model names to filter the indicator by. The "
+                          "indicator values in the response will only use the selected models. If "
+                          "not provided, defaults to all models.")
 
-YEARS_PARAM_DOCSTRING = "A list of comma separated year ranges to filter the response by. Defaults to all years available. A year range is of the form 'start[:end]'. Examples: '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'"
+YEARS_PARAM_DOCSTRING = ("A list of comma separated year ranges to filter the response by. "
+                         "Defaults to all years available. A year range is of the form "
+                         "'start[:end]'. Examples: '2010', '2010:2020', '2010:2020,2030', "
+                         "'2010:2020,2030:2040'")
 
-AGG_PARAM_DOCSTRING = "A list of comma separated aggregation types to return. Valid choices are 'min', 'max', 'avg', 'median', 'stddev', 'stdev', and 'XXth'. If using 'XXth', replace the XX with a number between 1-99 to return that percentile. For example, '99th' returns the value of the 99th percentile. The 'XXth' option can be provided multiple times with different values. 'stdev' is an alias to 'stddev'. Defaults to 'min,max,avg'."
+AGG_PARAM_DOCSTRING = ("A list of comma separated aggregation types to return. Valid choices are "
+                       "'min', 'max', 'avg', 'median', 'stddev', 'stdev', and 'XXth'. If using "
+                       "'XXth', replace the XX with a number between 1-99 to return that "
+                       "percentile. For example, '99th' returns the value of the 99th percentile. "
+                       "The 'XXth' option can be provided multiple times with different values. "
+                       "'stdev' is an alias to 'stddev'. Defaults to 'min,max,avg'.")
 
-TIME_AGGREGATION_PARAM_DOCSTRING = "Time granularity to group data by for result structure. Valid aggregations depend on indicator. Can be 'yearly', 'monthly', 'daily' or 'custom'. Defaults to 'yearly'. If 'custom', 'intervals' parameter must be set."
+TIME_AGGREGATION_PARAM_DOCSTRING = ("Time granularity to group data by for result structure. Valid "
+                                    "aggregations depend on indicator. Can be 'yearly', 'monthly', "
+                                    "'daily' or 'custom'. Defaults to 'yearly'. If 'custom', "
+                                    "'intervals' parameter must be set.")
 
-UNITS_PARAM_DOCSTRING = "Units in which to return the data. Defaults to Imperial units (Fahrenheit for temperature indicators and inches for precipitation)."
+UNITS_PARAM_DOCSTRING = ("Units in which to return the data. Defaults to Imperial units (Fahrenheit"
+                         " for temperature indicators and inches for precipitation).")
 
-INTERVALS_PARAM_DOCSTRING = "A list of comma separated month-day pairs defining the time intervals to aggregate within. Data points will only be assigned to one aggregation, and for overlapping intervals the interval defined first will take precedence. Dates are formmatted MM-DD and pairs are formatted 'start:end'. Examples: '3-1:5-31', '1-1:6-31,7-1:12-31'"
+INTERVALS_PARAM_DOCSTRING = ("A list of comma separated month-day pairs defining the time intervals"
+                             " to aggregate within. Data points will only be assigned to one "
+                             "aggregation, and for overlapping intervals the interval defined first"
+                             " will take precedence. Dates are formmatted MM-DD and pairs are "
+                             "formatted 'start:end'. Examples: '3-1:5-31', '1-1:6-31,7-1:12-31'")
 
-PERCENTILE_PARAM_DOCSTRING = "The percentile threshold used to calculate the number of exceeding events compared to historic levels. Must be an integer in the range [0,100]."
+PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to calculate the number of exceeding "
+                              "events compared to historic levels. Must be an integer in the range "
+                              "[0,100].")
 
 PERCENTILE_1_PARAM_DOCSTRING = PERCENTILE_PARAM_DOCSTRING + " Defaults to 1."
 
 PERCENTILE_99_PARAM_DOCSTRING = PERCENTILE_PARAM_DOCSTRING + " Defaults to 99."
 
-BASETEMP_PARAM_DOCSTRING = "The base temperature used to calculate the daily difference for degree days summations. Defaults to 65. See the 'basetemp_units' for a discussion of the units this value uses."
+BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily difference for degree"
+                            " days summations. Defaults to 65. See the 'basetemp_units' for a "
+                            "discussion of the units this value uses.")
 
 BASETEMP_UNITS_PARAM_DOCSTRING = "Units for the value of the 'basetemp' parameter. Defaults to 'F'."
 
