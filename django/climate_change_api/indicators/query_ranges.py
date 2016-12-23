@@ -70,7 +70,7 @@ class QueryRangeConfig(object):
         for config in cls.range_config:
             case_whens = [When(**{
                 'day_of_year__gte': case.start,
-                'day_of_year__lte': case.start + case.length,
+                'day_of_year__lt': case.start + case.length,
                 'then': Value(case.index)
             }) for case in config['ranges']]
             year_whens.append(When(data_source__year__in=config['years'], then=Case(*case_whens)))
@@ -88,7 +88,7 @@ class LengthRangeConfig(QueryRangeConfig):
     @classmethod
     def get_intervals(cls, label):
         lengths = cls.lengths[label]
-        return [(sum(lengths[:i]), lengths[i]) for i in range(len(lengths))]
+        return [(sum(lengths[:i]) + 1, lengths[i]) for i in range(len(lengths))]
 
 
 class MonthRangeConfig(LengthRangeConfig):
@@ -130,9 +130,16 @@ class CustomRangeConfig(QueryRangeConfig):
 
     @classmethod
     def get_intervals(cls, label):
-        for span in cls.custom_spans:
+        spans = [tuple(tuple(int(v) for v in date.split('-'))
+                       for date in span.split(':'))
+                 for span in cls.custom_spans.split(',')]
+
+        for span in spans:
             start, end = (cls.day_of_year_from_date(date, label) for date in span)
-            yield (start, end - start)
+            assert (start <= end), "Dates must be paired start:end"
+
+            # Add one to end date because the end point is inclusive
+            yield (start, end - start + 1)
 
     @classmethod
     def cases(cls, intervals):
@@ -141,8 +148,6 @@ class CustomRangeConfig(QueryRangeConfig):
         if cls.custom_spans != intervals:
             cls.range_config = None
             # Spans are in the format MM-DD:MM-DD, so break those into nested tuples
-            cls.custom_spans = [tuple(tuple(int(v) for v in date.split('-'))
-                                      for date in span.split(':'))
-                                for span in intervals.split(',')]
+            cls.custom_spans = intervals
 
         return super(CustomRangeConfig, cls).cases()
