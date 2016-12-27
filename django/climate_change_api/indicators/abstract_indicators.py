@@ -113,18 +113,18 @@ class Indicator(object):
             queryset = queryset.filter(**self.filters)
 
         # For certain time aggregations, add a field to track which interval a data point is in
-        interval_configs = {
+        time_aggregation_configs = {
             'monthly': MonthRangeConfig,
             'quarterly': QuarterRangeConfig,
             'custom': CustomRangeConfig
         }
-        if self.params.time_aggregation.value in interval_configs:
-            config = interval_configs[self.params.time_aggregation.value]
+        if self.params.time_aggregation.value in time_aggregation_configs:
+            config = time_aggregation_configs[self.params.time_aggregation.value]
             params = {}
 
             # The custom range config accepts a user-defined parameter to pick which dates to use
-            if self.params.intervals.value is not None:
-                params['intervals'] = self.params.intervals.value
+            if self.params.custom_time_agg.value is not None:
+                params['custom_time_agg'] = self.params.custom_time_agg.value
 
             queryset = (queryset
                         .annotate(interval=config.cases(**params))
