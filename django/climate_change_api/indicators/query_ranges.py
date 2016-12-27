@@ -130,6 +130,7 @@ class CustomRangeConfig(QueryRangeConfig):
 
     @classmethod
     def get_intervals(cls, label):
+        # Spans are in the format MM-DD:MM-DD, so break those into nested tuples
         spans = [tuple(tuple(int(v) for v in date.split('-'))
                        for date in span.split(':'))
                  for span in cls.custom_spans.split(',')]
@@ -147,7 +148,6 @@ class CustomRangeConfig(QueryRangeConfig):
         # Check if that happened, and if it did clear the cached config
         if cls.custom_spans != intervals:
             cls.range_config = None
-            # Spans are in the format MM-DD:MM-DD, so break those into nested tuples
             cls.custom_spans = intervals
 
         return super(CustomRangeConfig, cls).cases()
