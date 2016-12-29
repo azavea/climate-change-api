@@ -76,8 +76,8 @@ class TemperatureIndicatorTests(IndicatorTests):
 
 
 class DailyHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.HighTemperature
-    indicator_name = 'high_temperature'
+    indicator_class = indicators.AverageHighTemperature
+    indicator_name = 'average_high_temperature'
     time_aggregation = 'daily'
     units = 'K'
     test_indicator_rcp85_equals = {'2000-01-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
