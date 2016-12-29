@@ -6,7 +6,7 @@ from django.db.models import F, Sum, Avg, Max, Min
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
+from .params import BaseTempIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -61,7 +61,7 @@ class HotDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
     label = 'Hot Days'
     description = 'Number of days where tasmax exceeds a specified threshold'
     variables = ('tasmax',)
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):
@@ -72,7 +72,7 @@ class ColdDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
     label = 'Hot Days'
     description = 'Number of days where tasmin is below a specified threshold'
     variables = ('tasmin',)
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):
@@ -158,7 +158,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
     description = 'Total difference of daily low temperature to a reference base temperature'
     variables = ('tasmin',)
     agg_function = Sum
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):
@@ -174,7 +174,7 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
     description = 'Total difference of daily high temperature to a reference base temperature '
     variables = ('tasmax',)
     agg_function = Sum
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):
