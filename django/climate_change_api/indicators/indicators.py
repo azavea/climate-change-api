@@ -7,9 +7,8 @@ from django.db.models import F, Sum, Avg, Max, Min
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
 from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
-from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, PrecipRateUnitsMixin,
-                              DaysUnitsMixin, CountUnitsMixin, TemperatureDeltaUnitsMixin,
-                              SECONDS_PER_DAY)
+from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
+                              CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
 
 ##########################
@@ -19,7 +18,6 @@ class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Avg
 
@@ -28,7 +26,6 @@ class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Avg
 
@@ -37,7 +34,6 @@ class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Max
 
@@ -46,7 +42,6 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Min
 
@@ -54,7 +49,6 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
 class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
     # Precipitation is stored per-second, and we want a total for all days in the aggregation,
     # so we need to multiple each day's value by 86400 to get the total for that day and then
@@ -186,30 +180,6 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     def aggregate(self):
         self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
         return super(HeatWaveDurationIndex, self).aggregate()
-
-
-##########################
-# Raw value indicators
-
-class LowTemperature(TemperatureUnitsMixin, Indicator):
-    label = 'Low Temperature'
-    description = ('Daily low temperature')
-    valid_aggregations = ('daily',)
-    variables = ('tasmin',)
-
-
-class HighTemperature(TemperatureUnitsMixin, Indicator):
-    label = 'High Temperature'
-    description = ('Daily high temperature')
-    valid_aggregations = ('daily',)
-    variables = ('tasmax',)
-
-
-class Precipitation(PrecipRateUnitsMixin, Indicator):
-    label = 'Precipitation'
-    description = ('Daily precipitation')
-    valid_aggregations = ('daily',)
-    variables = ('pr',)
 
 
 def list_available_indicators():
