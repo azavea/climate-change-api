@@ -57,6 +57,28 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     agg_function = Sum
 
 
+class HotDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
+    label = 'Hot Days'
+    description = 'Number of days where tasmax exceeds a specified threshold'
+    variables = ('tasmax',)
+    params_class = DegreeDayIndicatorParams
+
+    @property
+    def conditions(self):
+            return {'tasmax__gte': self.params.basetemp.value}
+
+
+class ColdDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
+    label = 'Hot Days'
+    description = 'Number of days where tasmin is below a specified threshold'
+    variables = ('tasmin',)
+    params_class = DegreeDayIndicatorParams
+
+    @property
+    def conditions(self):
+            return {'tasmin__lte': self.params.basetemp.value}
+
+
 class FrostDays(DaysUnitsMixin, CountIndicator):
     label = 'Frost Days'
     description = ('Number of days per period in which the daily low temperature is ' +

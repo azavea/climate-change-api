@@ -11,7 +11,7 @@ from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin, TemperatureConverter
+from .unit_converters import DaysUnitsMixin, TemperatureConverter, TemperatureUnitsMixin
 from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
 
 
@@ -319,6 +319,6 @@ class BasetempIndicatorMixin(object):
         basetemp_units = self.params.basetemp_units.value
         unit = basetemp_units if basetemp_units is not None else self.params.units.value
 
-        converter = TemperatureConverter.get(unit, self.storage_units)
+        converter = TemperatureConverter.get(unit, TemperatureUnitsMixin.storage_units)
         self.params.basetemp.value = converter(float(value))
         self.params.basetemp_units.value = self.storage_units
