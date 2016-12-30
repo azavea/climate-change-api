@@ -7,9 +7,8 @@ from django.db.models import F, Sum, Avg, Max, Min
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
 from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
-from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, PrecipRateUnitsMixin,
-                              DaysUnitsMixin, CountUnitsMixin, TemperatureDeltaUnitsMixin,
-                              SECONDS_PER_DAY)
+from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
+                              CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
 
 ##########################
@@ -175,30 +174,6 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     def aggregate(self):
         self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
         return super(HeatWaveDurationIndex, self).aggregate()
-
-
-##########################
-# Raw value indicators
-
-class LowTemperature(TemperatureUnitsMixin, Indicator):
-    label = 'Low Temperature'
-    description = ('Daily low temperature')
-    valid_aggregations = ('daily',)
-    variables = ('tasmin',)
-
-
-class HighTemperature(TemperatureUnitsMixin, Indicator):
-    label = 'High Temperature'
-    description = ('Daily high temperature')
-    valid_aggregations = ('daily',)
-    variables = ('tasmax',)
-
-
-class Precipitation(PrecipRateUnitsMixin, Indicator):
-    label = 'Precipitation'
-    description = ('Daily precipitation')
-    valid_aggregations = ('daily',)
-    variables = ('pr',)
 
 
 def list_available_indicators():
