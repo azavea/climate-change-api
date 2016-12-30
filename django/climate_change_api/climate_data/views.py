@@ -260,8 +260,18 @@ def climate_indicator(request, *args, **kwargs):
         paramType: query
       - name: time_aggregation
         description: Time granularity to group data by for result structure. Valid aggregations
-                     depend on indicator. Can be 'yearly', 'monthly' or 'daily'. Defaults to
-                     'yearly'.
+                     depend on indicator. Can be 'yearly', 'quarterly', 'monthly', 'daily' or
+                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter must be
+                     set.
+        required: false
+        type: string
+        paramType: query
+      - name: custom_time_agg
+        description: Used in conjunction with the 'custom' time_aggregation value. A list of comma
+                     separated month-day pairs defining the time intervals to aggregate within. Data
+                     points will only be assigned to one aggregation, and for overlapping intervals
+                     the interval defined first will take precedence. Dates are formmatted MM-DD and
+                     pairs are formatted 'start:end'. For example, '3-1:5-31', '1-1:6-30,7-1:12-31'
         required: false
         type: string
         paramType: query

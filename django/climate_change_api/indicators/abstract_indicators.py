@@ -1,77 +1,25 @@
-from collections import OrderedDict, defaultdict, namedtuple
+from collections import OrderedDict, defaultdict
 from itertools import groupby
 import re
 from datetime import date, timedelta
-import calendar
 
-from django.db.models import F, Case, When, IntegerField, FloatField, Value, Sum
+from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
 
-from climate_data.models import ClimateData, ClimateDataSource
+from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter
-
-
-class MonthRangeConfig(object):
-    """ Utility class to generate a Django Case(When(..)) object that converts day-of-year to month
-    """
-    MonthRange = namedtuple('MonthRange', ('index', 'start', 'length'))
-    range_config = None
-
-    @classmethod
-    def get_ranges(cls):
-        """ Build mapping from day of year to month.
-
-        Gets the year range by querying what data exists and builds MonthRange objects for each
-        month.
-
-        Caches the resulting range config as a class attribute.
-        """
-        if cls.range_config is None:
-            all_years = set(ClimateDataSource.objects.distinct('year')
-                                             .values_list('year', flat=True))
-            leap_years = set(filter(calendar.isleap, all_years))
-
-            def make_ranges(months):
-                return [cls.MonthRange(i, sum(months[:i])+1, months[i])
-                        for i in range(len(months))]
-
-            cls.range_config = {
-                'leap': {
-                    'years': leap_years,
-                    'ranges': make_ranges([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-                'nonleap': {
-                    'years': all_years - leap_years,
-                    'ranges': make_ranges([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]),
-                },
-            }
-        return cls.range_config
-
-    @classmethod
-    def monthly_case(cls):
-        """ Generates a nested Case aggregation that assigns the month index to each
-        data point.  It first splits on leap year or not then checks day_of_year against ranges.
-        """
-        year_whens = []
-        for config in cls.get_ranges().values():
-            month_whens = [When(**{
-                'day_of_year__gte': month.start,
-                'day_of_year__lt': month.start + month.length,
-                'then': Value(month.index)
-            }) for month in config['ranges']]
-            year_whens.append(When(data_source__year__in=config['years'], then=Case(*month_whens)))
-        return Case(*year_whens, output_field=IntegerField())
+from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
 
 
 class Indicator(object):
 
     label = ''
     description = ''
-    valid_aggregations = ('yearly', 'monthly', 'daily', )
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'daily', 'custom')
     variables = ClimateData.VARIABLE_CHOICES
 
     # Filters define which rows match our query, conditions limit which rows
@@ -164,8 +112,23 @@ class Indicator(object):
         if self.filters is not None:
             queryset = queryset.filter(**self.filters)
 
-        if self.params.time_aggregation.value == 'monthly':
-            queryset = queryset.annotate(month=MonthRangeConfig.monthly_case())
+        # For certain time aggregations, add a field to track which interval a data point is in
+        time_aggregation_configs = {
+            'monthly': MonthRangeConfig,
+            'quarterly': QuarterRangeConfig,
+            'custom': CustomRangeConfig
+        }
+        if self.params.time_aggregation.value in time_aggregation_configs:
+            config = time_aggregation_configs[self.params.time_aggregation.value]
+            params = {}
+
+            # The custom range config accepts a user-defined parameter to pick which dates to use
+            if self.params.custom_time_agg.value is not None:
+                params['custom_time_agg'] = self.params.custom_time_agg.value
+
+            queryset = (queryset
+                        .annotate(interval=config.cases(**params))
+                        .filter(interval__isnull=False))
 
         return queryset
 
@@ -173,7 +136,9 @@ class Indicator(object):
     def aggregate_keys(self):
         return {
             'daily': ['data_source__year', 'day_of_year', 'data_source__model'],
-            'monthly': ['data_source__year', 'month', 'data_source__model'],
+            'monthly': ['data_source__year', 'interval', 'data_source__model'],
+            'quarterly': ['data_source__year', 'interval', 'data_source__model'],
+            'custom': ['data_source__year', 'interval', 'data_source__model'],
             'yearly': ['data_source__year', 'data_source__model']
         }.get(self.params.time_aggregation.value)
 
@@ -238,14 +203,17 @@ class Indicator(object):
         if self.params.time_aggregation.value == 'yearly':
             return year
 
-        if self.params.time_aggregation.value == 'monthly':
-            month = result['month']
-            return '{year}-{mo:02d}'.format(year=year, mo=(month+1))
-
         if self.params.time_aggregation.value == 'daily':
             day_of_year = result['day_of_year']
             day = date(year, 1, 1) + timedelta(days=day_of_year-1)
             return day.isoformat()
+
+        template = {
+            'monthly': '{year}-{int:02d}',
+            'quarterly': '{year}-Q{int:0d}',
+            'custom': '{year}-{int:02d}'
+        }.get(self.params.time_aggregation.value)
+        return template.format(year=year, int=(result['interval']+1))
 
     def calculate(self):
         aggregations = self.aggregate()

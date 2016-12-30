@@ -19,7 +19,6 @@ class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Avg
 
@@ -28,7 +27,6 @@ class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Avg
 
@@ -37,7 +35,6 @@ class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Max
 
@@ -46,7 +43,6 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Min
 
@@ -54,7 +50,6 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
 class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('pr',)
     # Precipitation is stored per-second, and we want a total for all days in the aggregation,
     # so we need to multiple each day's value by 86400 to get the total for that day and then
@@ -67,7 +62,6 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
     label = 'Frost Days'
     description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     conditions = {'tasmin__lt': 273.15}
 
@@ -100,7 +94,6 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Precipitation Events'
     description = ('Total number of times per period daily precipitation exceeds the specified '
                    'percentile of observations from 1960 to 1995')
-    valid_aggregations = ('yearly', 'monthly',)
     params_class = Percentile99IndicatorParams
     variables = ('pr',)
 
@@ -116,7 +109,6 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     description = ('Total number of times per period daily maximum temperature exceeds the '
                    'specified percentile of observations from 1960 to 1995')
     params_class = Percentile99IndicatorParams
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
 
     conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
@@ -131,7 +123,6 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     description = ('Total number of times per period daily minimum temperature is below the '
                    'specified percentile of observations from 1960 to 1995')
     params_class = Percentile1IndicatorParams
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
 
     conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
@@ -144,7 +135,6 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily low temperature to a reference base temperature'
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmin',)
     agg_function = Sum
     params_class = DegreeDayIndicatorParams
@@ -161,7 +151,6 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
 class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Cooling Degree Days'
     description = 'Total difference of daily high temperature to a reference base temperature '
-    valid_aggregations = ('yearly', 'monthly',)
     variables = ('tasmax',)
     agg_function = Sum
     params_class = DegreeDayIndicatorParams
