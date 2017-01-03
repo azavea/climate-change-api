@@ -3,23 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Azavea Climate Data API's documentation!
-===================================================
-
-Contents:
----------
+Getting Started
+===============
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
-   project_readme
-   climate_data_api/modules
+   overview
+   api_reference
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+TODO: Fill out this section
