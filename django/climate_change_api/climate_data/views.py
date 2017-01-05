@@ -9,12 +9,14 @@ from django.http import HttpResponseRedirect
 from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, detail_route, list_route
+from rest_framework.decorators import api_view, detail_route, list_route, throttle_classes
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
 
+from climate_change_api.throttling import (ClimateDataBurstRateThrottle,
+                                           ClimateDataSustainedRateThrottle)
 from climate_data.filters import ClimateDataFilterSet
 from climate_data.models import City, ClimateData, ClimateModel, Scenario
 from climate_data.serializers import (CitySerializer,
@@ -131,6 +133,7 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @api_view(['GET'])
+@throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 def climate_data_list(request, *args, **kwargs):
     """ Retrieve all of the climate data for a given city and scenario
 
@@ -226,6 +229,7 @@ def climate_indicator_list(request, *args, **kwargs):
 
 
 @api_view(['GET'])
+@throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 def climate_indicator(request, *args, **kwargs):
     """ Calculate and return the value of a climate indicator for a given city+scenario
 
