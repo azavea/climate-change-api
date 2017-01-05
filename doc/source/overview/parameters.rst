@@ -7,4 +7,4 @@ For GET requests that accept parameters, required parameters are specified in th
 
 Above, '1', 'RCP45', and 'average_high_temperature' are required parameters representing ``:city``, ``:scenario``, and ``:indicator`` while the optional parameters ``:years`` and ``:units`` are appended in the query string.
 
-For POST, PUT, PATCH, and DELETE requests, parameters not included in the URL should be encoded as JSON with a Content-Type of 'application/json'.
+For POST, PUT, PATCH, and DELETE requests, parameters not included in the URL should be encoded as JSON in the request body with a Content-Type of 'application/json'.
