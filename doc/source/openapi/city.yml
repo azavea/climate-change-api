@@ -3,19 +3,21 @@ info:
   title: Azavea Climate Data API
   version: "0.1.0"
 host: api.futurefeelslike.com
+produces:
+  - application/json
 paths:
   /city:
     get:
       summary: List Cities
       description: |
-        Retrieves a paginated GeoJson Feature Collection of available cities.
+        The City endpoint retrieves a paginated GeoJson Feature Collection of all available cities in the database.
       parameters:
         - name: page
           in: query
           type: integer
+          format: int64
           minimum: 1
           default: 1
-          format: int64
           required: false
           description: |
             Page of paginated results to return
@@ -34,3 +36,130 @@ paths:
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             type: object
+            $ref: "#/definitions/city"
+  /city/nearest:
+    get:
+      summary: Return nearest city or cities
+      description: |
+        The Nearest City endpoint returns the nearest city or cities to the provided lat/lon as a GeoJSON feature collection. Defaults to nearest 1 city unless other specified by the limit parameter.
+      parameters:
+        - name: lat
+          in: query
+          type: float
+          required: true
+          description: |
+            Latitude of search city
+        - name: lon
+          in: query
+          type: float
+          required: true
+          description: |
+            Longitude of search city
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+          required: false
+          description: |
+            The maximum number of cities to return
+      responses:
+        200:
+          description: A paginated GeoJson Feature Collection of City objects
+          schema:
+            type: object
+            $ref: "#/definitions/city"
+  /city/{pk}:
+    get:
+      summary: Return requested city
+      description: |
+        Look up a particular city by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: A City object
+          schema:
+            type: object
+            $ref: "#/definitions/city"
+  /city/{pk}/boundary:
+    get:
+      summary: Return the boundary of requested city
+      description: |
+        The City Boundary endpoint returns the boundary of the requested city as a MultiPolygon GeoJson Feature.
+        US boundaries come from the US Census API.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: |
+            A MultiPolygon GeoJson Feature
+          schema:
+            type: object
+            $ref: "#/definitions/boundary"
+definitions:
+  city:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/pointgeom"
+      properties:
+        type: object
+        properties:
+          map_cell:
+            $ref: "#/definitions/pointgeom"
+          name:
+            type: string
+          admin:
+            type: string
+        additionalProperties: true
+        required:
+        - map_cell
+        - name
+        - admin
+    additionalProperties: false
+    required:
+    - id
+    - type
+    - geometry
+    - properties
+  boundary:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/pointgeom"
+      properties:
+        type: object
+        properties:
+          source:
+            type: string
+          boundary_type:
+            type: string
+  pointgeom:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: number
+          minItems: 2
+          maxItems: 2
