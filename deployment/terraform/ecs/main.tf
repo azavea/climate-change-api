@@ -10,12 +10,12 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 #
 resource "aws_ecs_task_definition" "cc_web" {
   family = "cc-web-${var.ecs_stack_type}"
-  container_definitions = "${template_file.ecs_web_task.rendered}"
+  container_definitions = "${data.template_file.ecs_web_task.rendered}"
 }
 
 resource "aws_ecs_task_definition" "cc_management" {
   family = "cc-management-${var.ecs_stack_type}"
-  container_definitions = "${template_file.ecs_management_task.rendered}"
+  container_definitions = "${data.template_file.ecs_management_task.rendered}"
 }
 
 #
