@@ -8,3 +8,15 @@ City
 ----
 
 .. include:: api_reference/city.rst
+
+
+Climate Model
+-------------
+
+.. include:: api_reference/climate_model.rst
+
+
+Scenario
+--------
+
+.. include:: api_reference/scenario.rst
