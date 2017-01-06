@@ -10,7 +10,7 @@ paths:
     get:
       summary: List Cities
       description: |
-        The City endpoint retrieves a paginated GeoJson Feature Collection of all available cities in the database.
+        List all available cities as a paginated GeoJson Feature Collection
       parameters:
         - name: page
           in: query
@@ -33,28 +33,31 @@ paths:
             The maximum number of cities to be returned by the query.
       responses:
         200:
-          description: A paginated GeoJson Feature Collection of City objects
+          description: |
+            A paginated GeoJson Feature Collection of City objects.
+            See City model definition.
           schema:
             type: object
-            $ref: "#/definitions/city"
+            $ref: "#/definitions/PaginatedFeatureCollection"
   /city/nearest:
     get:
-      summary: Return nearest city or cities
+      summary: Nearest city or cities
       description: |
-        The Nearest City endpoint returns the nearest city or cities to the provided lat/lon as a GeoJSON feature collection. Defaults to nearest 1 city unless other specified by the limit parameter.
+        Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
+        Default to nearest 1 city unless otherwise specified by the limit parameter.
       parameters:
         - name: lat
           in: query
           type: float
           required: true
           description: |
-            Latitude of search city
+            Search latitude
         - name: lon
           in: query
           type: float
           required: true
           description: |
-            Longitude of search city
+            Search longitude
         - name: limit
           in: query
           type: integer
@@ -69,10 +72,10 @@ paths:
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             type: object
-            $ref: "#/definitions/city"
+            $ref: "#/definitions/PaginatedFeatureCollection"
   /city/{pk}:
     get:
-      summary: Return requested city
+      summary: Request city
       description: |
         Look up a particular city by primary key
       parameters:
@@ -87,13 +90,12 @@ paths:
           description: A City object
           schema:
             type: object
-            $ref: "#/definitions/city"
+            $ref: "#/definitions/City"
   /city/{pk}/boundary:
     get:
-      summary: Return the boundary of requested city
+      summary: Get city boundary
       description: |
-        The City Boundary endpoint returns the boundary of the requested city as a MultiPolygon GeoJson Feature.
-        US boundaries come from the US Census API.
+        Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
       parameters:
         - name: pk
           in: path
@@ -107,9 +109,31 @@ paths:
             A MultiPolygon GeoJson Feature
           schema:
             type: object
-            $ref: "#/definitions/boundary"
+            $ref: "#/definitions/Boundary"
+        404:
+          description: |
+            No valid boundary
 definitions:
-  city:
+  PaginatedFeatureCollection:
+    type: object
+    properties:
+      type:
+        type: string
+      count:
+        type: integer
+        description: Number of features in this response
+      next:
+        type: string
+        description: URL to next response page
+      previous:
+        type: string
+        description: URL to previous response page
+      features:
+        type: array
+        description: |
+          A list of GeoJson Features.
+          Feature type can vary and is specified in each endpoint's documentation.
+  City:
     type: object
     properties:
       id:
@@ -117,12 +141,12 @@ definitions:
       type:
         type: string
       geometry:
-        $ref: "#/definitions/pointgeom"
+        $ref: "#/definitions/Point"
       properties:
         type: object
         properties:
           map_cell:
-            $ref: "#/definitions/pointgeom"
+            $ref: "#/definitions/Point"
           name:
             type: string
           admin:
@@ -138,13 +162,13 @@ definitions:
     - type
     - geometry
     - properties
-  boundary:
+  Boundary:
     type: object
     properties:
       type:
         type: string
       geometry:
-        $ref: "#/definitions/pointgeom"
+        $ref: "#/definitions/MultiPolygon"
       properties:
         type: object
         properties:
@@ -152,7 +176,7 @@ definitions:
             type: string
           boundary_type:
             type: string
-  pointgeom:
+  Point:
     type: object
     properties:
       type:
@@ -163,3 +187,20 @@ definitions:
           type: number
           minItems: 2
           maxItems: 2
+  MultiPolygon:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                minItems: 2
+                maxItems: 2
