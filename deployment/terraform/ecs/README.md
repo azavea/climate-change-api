@@ -24,10 +24,12 @@ module "ecs" {
 - `ecs_image_tag` - tag of docker image to use (e.g. `develop`, `1.0.0`)
 - `ecs_elb_name` - name of load balancer that web service should use
 - `ecs_cluster_name` - name of cluster
-- `rds_host` - hostname of RDS instancce that task definitions should use
+- `rds_host` - hostname of RDS instance that task definitions should use
 - `rds_password` - password of RDS instance (inserted in environment for task definitions)
 - `rds_username` - user to access database
 - `rds_database_name` - name of database to use
+- `ec_memcached_host` - hostname of the ElastiCache Memcached instance
+- `ec_memcached_port` - port of the ElastiCache Memcached instance
 
 ## Outputs
 

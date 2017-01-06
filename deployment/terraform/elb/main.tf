@@ -96,6 +96,34 @@ resource "aws_security_group" "sg_ecs_asg" {
     protocol = "tcp"
     cidr_blocks = ["${var.vpc_cidr_block}"]
   }
+
+  egress {
+    from_port = "${var.cache_port}"
+    to_port = "${var.cache_port}"
+    protocol = "tcp"
+    security_groups = ["${var.cache_security_group_id}"]
+  }
+}
+
+# Configuration for Memcached security group
+resource "aws_security_group_rule" "memcached_instance_ingress" {
+    type = "ingress"
+    from_port = "${var.cache_port}"
+    to_port = "${var.cache_port}"
+    protocol = "tcp"
+
+    security_group_id = "${var.cache_security_group_id}"
+    source_security_group_id = "${aws_security_group.sg_ecs_asg.id}"
+}
+
+resource "aws_security_group_rule" "memcached_instance_egress" {
+    type = "egress"
+    from_port = "${var.cache_port}"
+    to_port = "${var.cache_port}"
+    protocol = "tcp"
+
+    security_group_id = "${var.cache_security_group_id}"
+    source_security_group_id = "${aws_security_group.sg_ecs_asg.id}"
 }
 
 # Launch Config for ECS Cluster
