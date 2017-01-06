@@ -1,0 +1,44 @@
+paths:
+  /climate-model:
+    get:
+      summary: Climate Model List
+      description: Lists all climate models available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of ClimateModel objects
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ClimateModel'
+  /climate-model/{name}/:
+    get:
+      summary: Climate Model Detail
+      description: Get information about a single Climate Model
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of climate model
+          required: true
+          type: string
+      responses:
+        "200":
+          description: ClimateModel object
+          schema:
+            $ref: '#/definitions/ClimateModel'
+definitions:
+  ClimateModel:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the climate model
+      label:
+        type: string
+        description: Human-readable name of the climate model, not necessarily unique
+      base_time:
+        type: string
+        description: The base reference time of the model, provided in ISO8061 format
