@@ -102,7 +102,7 @@ resource "aws_security_group" "sg_ecs_asg" {
 resource "aws_launch_configuration" "launchconf_ecs_cluster" {
   image_id = "${var.ecs_instance_ami_id}"
   instance_type = "${var.ecs_instance_type}"
-  user_data = "${template_file.ecs_user_data.rendered}"
+  user_data = "${data.template_file.ecs_user_data.rendered}"
   iam_instance_profile = "${var.ecs_iam_profile}"
   security_groups = ["${aws_security_group.sg_ecs_asg.id}"]
   key_name = "${var.key_name}"
