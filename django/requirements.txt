@@ -33,3 +33,4 @@ wcwidth==0.1.7
 django-storages==1.4.1
 boto==2.42.0
 jsonschema==2.5.1
+pylibmc==1.5.1
