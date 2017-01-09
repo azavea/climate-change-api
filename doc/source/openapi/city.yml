@@ -3,19 +3,21 @@ info:
   title: Azavea Climate Data API
   version: "0.1.0"
 host: api.futurefeelslike.com
+produces:
+  - application/json
 paths:
   /city:
     get:
       summary: List Cities
       description: |
-        Retrieves a paginated GeoJson Feature Collection of available cities.
+        List all available cities as a paginated GeoJson Feature Collection
       parameters:
         - name: page
           in: query
           type: integer
+          format: int64
           minimum: 1
           default: 1
-          format: int64
           required: false
           description: |
             Page of paginated results to return
@@ -31,6 +33,174 @@ paths:
             The maximum number of cities to be returned by the query.
       responses:
         200:
+          description: |
+            A paginated GeoJson Feature Collection of City objects.
+            See City model definition.
+          schema:
+            type: object
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /city/nearest:
+    get:
+      summary: Nearest city or cities
+      description: |
+        Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
+        Default to nearest 1 city unless otherwise specified by the limit parameter.
+      parameters:
+        - name: lat
+          in: query
+          type: float
+          required: true
+          description: |
+            Search latitude
+        - name: lon
+          in: query
+          type: float
+          required: true
+          description: |
+            Search longitude
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+          required: false
+          description: |
+            The maximum number of cities to return
+      responses:
+        200:
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             type: object
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /city/{pk}:
+    get:
+      summary: Request city
+      description: |
+        Look up a particular city by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: A City object
+          schema:
+            type: object
+            $ref: "#/definitions/City"
+  /city/{pk}/boundary:
+    get:
+      summary: Get city boundary
+      description: |
+        Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: |
+            A MultiPolygon GeoJson Feature
+          schema:
+            type: object
+            $ref: "#/definitions/Boundary"
+        404:
+          description: |
+            No valid boundary
+definitions:
+  PaginatedFeatureCollection:
+    type: object
+    properties:
+      type:
+        type: string
+      count:
+        type: integer
+        description: Number of features in this response
+      next:
+        type: string
+        description: URL to next response page
+      previous:
+        type: string
+        description: URL to previous response page
+      features:
+        type: array
+        description: |
+          A list of GeoJson Features.
+          Feature type can vary and is specified in each endpoint's documentation.
+  City:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/Point"
+      properties:
+        type: object
+        properties:
+          map_cell:
+            $ref: "#/definitions/Point"
+          name:
+            type: string
+          admin:
+            type: string
+        additionalProperties: true
+        required:
+        - map_cell
+        - name
+        - admin
+    additionalProperties: false
+    required:
+    - id
+    - type
+    - geometry
+    - properties
+  Boundary:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/MultiPolygon"
+      properties:
+        type: object
+        properties:
+          source:
+            type: string
+          boundary_type:
+            type: string
+  Point:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: number
+          minItems: 2
+          maxItems: 2
+  MultiPolygon:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                minItems: 2
+                maxItems: 2
