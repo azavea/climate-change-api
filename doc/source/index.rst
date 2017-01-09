@@ -34,17 +34,13 @@ From the command line, you may request your token by providing the Climate API y
 ``curl -k -X POST https://staging.api.futurefeelslike.com/api-token-auth/ -d email=<your_email> -d password=<your_password>``
 
 
-Using the token
-~~~~~~~~~~~~~~~
+Making your first request
+~~~~~~~~~~~~~~~~~~~~~~~~~
 Any API request must be made with an active account token in the request header.
 
 ``curl -i https://staging.api.futurefeelslike.com/api/scenario/ -H "Authorization: Token <your_token>"``
 
-
-Making your first request
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Voila! With your valid token, you are all set up to make your first API request.
+Voila! You've just make your first Climate API request.
 
 
 .. URLS:
