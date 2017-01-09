@@ -1,7 +1,7 @@
 /* template files for task definitions */
 
-resource "template_file" "ecs_web_task" {
-  filename = "${path.module}/templates/web.json"
+data "template_file" "ecs_web_task" {
+  template = "${file("${path.module}/templates/web.json")}"
 
   vars {
     stack_type = "${var.ecs_stack_type}"
@@ -18,8 +18,8 @@ resource "template_file" "ecs_web_task" {
   }
 }
 
-resource "template_file" "ecs_management_task" {
-  filename = "${path.module}/templates/management.json"
+data "template_file" "ecs_management_task" {
+  template = "${file("${path.module}/templates/management.json")}"
 
   vars {
     stack_type = "${var.ecs_stack_type}"
