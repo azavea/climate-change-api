@@ -20,3 +20,8 @@ Scenario
 --------
 
 .. include:: api_reference/scenario.rst
+
+Auth
+----
+
+.. include:: api_reference/auth.rst
