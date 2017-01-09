@@ -1,0 +1,25 @@
+paths:
+  /api-token-auth:
+    post:
+      summary: Retrieve auth token
+      description: |
+        Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
+      parameters:
+        - name: email
+          in: formData
+          type: string
+          format: email
+          required: true
+        - name: password
+          in: formData
+          type: string
+          format: password
+          required: true
+      responses:
+        200:
+          description: Auth token
+          schema:
+            type: object
+            properties:
+              token:
+                type: apiKey
