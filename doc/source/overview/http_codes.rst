@@ -13,4 +13,8 @@ The resource requested was found, but there was a problem with the query paramet
 _____________
 The requested data does not exist - either the URI doesn't match an API resource, or the API couldn't find the object referenced by a path parameter. If the URI matched a multi-parameter API action, the response will include a message detailing which parameter wasn't found. Otherwise, check the spelling or consult the `API Reference`_ for the path to use for the intended resource.
 
+429 Too Many Requests
+_____________________
+The rate of user requests exceeded API rate limits - check the error response for details explaining how to proceed. Consult the `API Reference`_ for greater detail.
+
 .. _`API Reference`: api_reference.html
