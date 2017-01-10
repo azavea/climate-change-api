@@ -1,7 +1,3 @@
-Cross-Origin Resource Sharing (`CORS`__)
-'''''''''''''''''''''''''''''''''''''
-
-__ https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 
 As this API is designed for public use, it supports HTTP requests from any origin. To demonstrate, a sample request from an outside domain::
 
