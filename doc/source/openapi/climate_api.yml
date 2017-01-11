@@ -1,0 +1,310 @@
+swagger: "2.0"
+info:
+  title: Azavea Climate Data API
+  version: "0.1.0"
+host: api.futurefeelslike.com
+produces:
+  - application/json
+paths:
+  /city:
+    get:
+      summary: List Cities
+      description: |
+        List all available cities as a paginated GeoJson Feature Collection
+      parameters:
+        - name: page
+          in: query
+          type: integer
+          format: int64
+          minimum: 1
+          default: 1
+          required: false
+          description: |
+            Page of paginated results to return
+        - name: page_size
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+          required: false
+          description: |
+            The maximum number of cities to be returned by the query.
+      responses:
+        200:
+          description: |
+            A paginated GeoJson Feature Collection of City objects.
+            See City model definition.
+          schema:
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /city/nearest:
+    get:
+      summary: Nearest city or cities
+      description: |
+        Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
+        Default to nearest 1 city unless otherwise specified by the limit parameter.
+      parameters:
+        - name: lat
+          in: query
+          type: float
+          required: true
+          description: |
+            Search latitude
+        - name: lon
+          in: query
+          type: float
+          required: true
+          description: |
+            Search longitude
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+          required: false
+          description: |
+            The maximum number of cities to return
+      responses:
+        200:
+          description: A paginated GeoJson Feature Collection of City objects
+          schema:
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /city/{pk}:
+    get:
+      summary: Request city
+      description: |
+        Look up a particular city by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: A City object
+          schema:
+            $ref: "#/definitions/City"
+  /city/{pk}/boundary:
+    get:
+      summary: Get city boundary
+      description: |
+        Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: |
+            Primary key of the city
+      responses:
+        200:
+          description: |
+            A MultiPolygon GeoJson Feature
+          schema:
+            $ref: "#/definitions/Boundary"
+        404:
+          description: |
+            No valid boundary
+  /climate-model:
+    get:
+      summary: Climate Model List
+      description: Lists all climate models available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of ClimateModel objects
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ClimateModel'
+  /climate-model/{name}/:
+    get:
+      summary: Climate Model Detail
+      description: Get information about a single Climate Model
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of climate model
+          required: true
+          type: string
+      responses:
+        "200":
+          description: ClimateModel object
+          schema:
+            $ref: '#/definitions/ClimateModel'
+  /scenario:
+    get:
+      summary: Scenario List
+      description: Lists all scenarios available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of Scenario objects
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Scenario'
+  /scenario/{name}/:
+    get:
+      summary: Scenario Detail
+      description: Get information about a single Scenario
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of scenario
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Scenario object
+          schema:
+            $ref: '#/definitions/Scenario'
+  /api-token-auth:
+    post:
+      summary: Retrieve auth token
+      description: |
+        Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
+      parameters:
+        - name: email
+          in: formData
+          type: string
+          format: email
+          required: true
+        - name: password
+          in: formData
+          type: string
+          format: password
+          required: true
+      responses:
+        "200":
+          description: Auth token
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+definitions:
+  Boundary:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/MultiPolygon"
+      properties:
+        type: object
+        properties:
+          source:
+            type: string
+          boundary_type:
+            type: string
+  City:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/Point"
+      properties:
+        type: object
+        properties:
+          map_cell:
+            $ref: "#/definitions/Point"
+          name:
+            type: string
+          admin:
+            type: string
+        additionalProperties: true
+        required:
+        - map_cell
+        - name
+        - admin
+    additionalProperties: false
+    required:
+    - id
+    - type
+    - geometry
+    - properties
+  ClimateModel:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the climate model
+      label:
+        type: string
+        description: Human-readable name of the climate model, not necessarily unique
+      base_time:
+        type: string
+        description: The base reference time of the model, provided in ISO8061 format
+  MultiPolygon:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                minItems: 2
+                maxItems: 2
+  PaginatedFeatureCollection:
+    type: object
+    properties:
+      type:
+        type: string
+      count:
+        type: integer
+        description: Number of features in this response
+      next:
+        type: string
+        description: URL to next response page
+      previous:
+        type: string
+        description: URL to previous response page
+      features:
+        type: array
+        description: |
+          A list of GeoJson Features.
+          Feature type can vary and is specified in each endpoint's documentation.
+  Point:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: number
+          minItems: 2
+          maxItems: 2
+  Scenario:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the scenario
+      label:
+        type: string
+        description: Human-readable name of the scenario, not necessarily unique
+      description:
+        type: string
+        description: A detailed description of the definition of a scenario
