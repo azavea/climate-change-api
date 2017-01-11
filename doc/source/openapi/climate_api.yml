@@ -6,7 +6,7 @@ host: api.futurefeelslike.com
 produces:
   - application/json
 paths:
-  /city:
+  /city/:
     get:
       summary: List Cities
       description: |
@@ -32,13 +32,13 @@ paths:
           description: |
             The maximum number of cities to be returned by the query.
       responses:
-        200:
+        "200":
           description: |
             A paginated GeoJson Feature Collection of City objects.
             See City model definition.
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/nearest:
+  /city/nearest/:
     get:
       summary: Nearest city or cities
       description: |
@@ -47,13 +47,13 @@ paths:
       parameters:
         - name: lat
           in: query
-          type: float
+          type: number
           required: true
           description: |
             Search latitude
         - name: lon
           in: query
-          type: float
+          type: number
           required: true
           description: |
             Search longitude
@@ -67,11 +67,11 @@ paths:
           description: |
             The maximum number of cities to return
       responses:
-        200:
+        "200":
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/{pk}:
+  /city/{pk}/:
     get:
       summary: Request city
       description: |
@@ -84,11 +84,11 @@ paths:
           description: |
             Primary key of the city
       responses:
-        200:
+        "200":
           description: A City object
           schema:
             $ref: "#/definitions/City"
-  /city/{pk}/boundary:
+  /city/{pk}/boundary/:
     get:
       summary: Get city boundary
       description: |
@@ -101,15 +101,15 @@ paths:
           description: |
             Primary key of the city
       responses:
-        200:
+        "200":
           description: |
             A MultiPolygon GeoJson Feature
           schema:
             $ref: "#/definitions/Boundary"
-        404:
+        "404":
           description: |
             No valid boundary
-  /climate-model:
+  /climate-model/:
     get:
       summary: Climate Model List
       description: Lists all climate models available via the Climate API
@@ -139,7 +139,7 @@ paths:
           description: ClimateModel object
           schema:
             $ref: '#/definitions/ClimateModel'
-  /scenario:
+  /scenario/:
     get:
       summary: Scenario List
       description: Lists all scenarios available via the Climate API
@@ -169,7 +169,7 @@ paths:
           description: Scenario object
           schema:
             $ref: '#/definitions/Scenario'
-  /api-token-auth:
+  /api-token-auth/:
     post:
       summary: Retrieve auth token
       description: |
@@ -282,6 +282,8 @@ definitions:
         description: URL to previous response page
       features:
         type: array
+        items:
+          type: object
         description: |
           A list of GeoJson Features.
           Feature type can vary and is specified in each endpoint's documentation.
