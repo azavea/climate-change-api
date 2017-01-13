@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.cache import caches
 from django.core.urlresolvers import reverse
+from django.test import override_settings
 
 from rest_framework import status
 
@@ -50,6 +52,46 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 0)
+
+    def test_404_if_city_invalid(self):
+        url = reverse('climatedata-list',
+                      kwargs={'scenario': self.rcp45.name, 'city': 999999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_if_scenario_invalid(self):
+        url = reverse('climatedata-list',
+                      kwargs={'scenario': 'BADSCENARIO', 'city': self.city1.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class IndicatorDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
+
+    def test_404_if_city_invalid(self):
+        url = reverse('climateindicator-get',
+                      kwargs={'scenario': self.rcp45.name,
+                              'city': 999999,
+                              'indicator': 'frost_days'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_if_scenario_invalid(self):
+        url = reverse('climateindicator-get',
+                      kwargs={'scenario': 'BADSCENARIO',
+                              'city': self.city1.id,
+                              'indicator': 'frost_days'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_if_indicator_invalid(self):
+        url = reverse('climateindicator-get',
+                      kwargs={'scenario': self.rcp45.name,
+                              'city': self.city1.id,
+                              'indicator': 'notanindicator'})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class ClimateModelViewSetTestCase(CCAPITestCase):

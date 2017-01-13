@@ -327,7 +327,7 @@ def climate_indicator(request, *args, **kwargs):
     indicator_key = kwargs['indicator']
     IndicatorClass = indicator_factory(indicator_key)
     if not IndicatorClass:
-        raise ParseError(detail='Must provide a valid indicator')
+        raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
     try:
         indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
     except ValidationError as e:
