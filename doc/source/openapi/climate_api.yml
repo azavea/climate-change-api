@@ -173,7 +173,7 @@ paths:
     get:
       summary: Climate data
       description: |
-        All query parameters are optional.
+        Daily data aggregated across all or specified models for a city and scenario. All query parameters are optional.
       parameters:
         - name: city
           description: Primary key of city
@@ -191,6 +191,7 @@ paths:
             A list of comma separated model names. Defaults to all models.
           in: query
           type: array
+          collectionFormat: csv
           items:
             type: string
           required: false
@@ -201,24 +202,27 @@ paths:
             Defaults to all variables.
           in: query
           type: array
+          collectionFormat: csv
           items:
             type: string
           required: false
         - name: years
           description: |
-            A list of comma separated year ranges.
-            A year range is of the form 'start[:end]'.
+            A list of comma separated year ranges. A year range is of the form 'start[:end]', inclusive.
+            Examples: '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'.
             Defaults to all years available.
           in: query
           type: array
+          collectionFormat: csv
           items:
             type: string
           required: false
         - name: agg
           description: |
-            Data aggregation method. Options: min, max, avg. Defaults to avg.
+            Get the minimum, maximum, or average of projected data across the included models. Options as: min, max, avg.
           in: query
           type: string
+          default: avg
           required: false
       responses:
         200:
@@ -385,4 +389,5 @@ definitions:
       data:
         type: object
         description: |
-            "year": { "variable": [ number ] }
+            "year": { "variable": [ day1_value, day2_value, ... , day366_value ] }
+            The variable array always has length 366. Days with no available data will be null at their index.
