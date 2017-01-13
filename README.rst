@@ -21,6 +21,14 @@ The Django app will be exposed on port 8080.
 All further commands assume you are first in the directory ``~/climate-change-api`` inside the vagrant vm.
 
 
+Running Tests
+-------------
+
+Run Django tests with::
+
+    ./scripts/console django './manage.py test --settings climate_change_api.settings_test'
+
+
 Documentation
 -------------
 
