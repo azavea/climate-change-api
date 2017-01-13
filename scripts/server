@@ -1,8 +1,8 @@
 #!/bin/bash
+
 set -eu
 
-
-DIR="$(dirname "$0")"
+cd `dirname "$0"`
 
 function usage() {
     echo -n \
@@ -10,7 +10,9 @@ function usage() {
 Serve application components in development.
 
 <component> is one of:
+  - app (default if not provided)
   - docs
+
 "
 }
 
@@ -22,9 +24,11 @@ then
         usage
     elif [ "${1:-}" = "docs" ]
     then
-      cd doc/build/html && python -m SimpleHTTPServer 8088
+      cd ../doc/build/html && python -m SimpleHTTPServer 8088
     else
-      usage
+        pushd ..
+            docker-compose up
+        popd
     fi
     exit
 fi

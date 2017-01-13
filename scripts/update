@@ -1,0 +1,86 @@
+#!/bin/bash
+
+set -eu
+
+cd `dirname "$0"`
+
+function usage() {
+    echo -n \
+"Usage: $(basename "$0")
+
+Pull and build container images using docker-compose
+
+Runs Django migrations.
+
+Loads initial Scenario and Climate Model data.
+
+See the Getting Data section of the README for importing additional data.
+
+"
+}
+
+function check_database() {
+    # Check if database is set up to continue
+
+    max=21 # 1 minute
+    counter=1
+    while true
+    do
+        echo "Checking if database is up yet (try ${counter})..."
+        set +e
+        docker-compose exec -T postgres gosu postgres psql -d climate -c 'select 1' >/dev/null 2>/dev/null
+        status_check=$?
+        if [ $status_check == 0 ]
+        then
+            echo "Connected to database successfully"
+            break
+        fi
+        set -e
+        if [[ ${counter} == "${max}" ]]
+        then
+            echo "Could not connect to database after some time"
+            exit 1
+        fi
+        sleep 3
+        (( counter++ ))
+    done
+}
+
+function run_database_migrations() {
+    docker-compose up -d postgres
+    check_database
+    docker-compose run --rm --entrypoint python django manage.py migrate --noinput
+    docker-compose stop postgres
+}
+
+function help_load_data() {
+    echo -n \
+"
+
+NOTE: Your development environment is ready, but has no city or climate data.
+
+Please see the 'Getting Data' section of the README to load additional necessary data.
+
+"
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]
+then
+    if [ "${1:-}" = "--help" ]
+    then
+        usage
+    else
+        pushd ..
+
+        docker-compose build
+        run_database_migrations
+
+        ./scripts/console django './manage.py loaddata scenarios'
+        ./scripts/console django './manage.py loaddata climate-models'
+
+        help_load_data
+
+        popd
+    fi
+    exit
+fi
