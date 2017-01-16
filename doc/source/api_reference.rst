@@ -21,6 +21,13 @@ Scenario
 
 .. include:: api_reference/scenario.rst
 
+
+Climate Data
+------------
+
+.. include:: api_reference/climate_data.rst
+
+
 Auth
 ----
 
