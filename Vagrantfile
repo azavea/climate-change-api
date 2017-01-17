@@ -56,8 +56,6 @@ Vagrant.configure(2) do |config|
       ansible-playbook -u vagrant -i 'localhost,' --extra-vars "dev_user=#{ENV.fetch("USER", "vagrant")} aws_profile=climate" \
           cc-api.yml
       cd "#{ROOT_VM_DIR}"
-      su vagrant ./scripts/console django './manage.py migrate'
-      su vagrant ./scripts/console django './manage.py loaddata scenarios'
     SHELL
   end
 end

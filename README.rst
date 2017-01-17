@@ -9,16 +9,19 @@ sign into your user in the azavea-climate AWS account and create a set of access
 
 Then, run ``aws configure --profile climate`` and follow the prompts.
 
-Once your AWS profile is setup, run these commands to configure the VM::
+Once your AWS profile is setup, run the following to configure the VM::
 
-    vagrant up
-    vagrant ssh
-    cd climate-change-api
-    docker-compose up
+    ./scripts/setup
 
-The Django app will be exposed on port 8080.
+Next, ssh into the VM with ``vagrant ssh``. Then run::
 
-All further commands assume you are first in the directory ``~/climate-change-api`` inside the vagrant vm.
+    ./scripts/console django './manage.py createsuperuser'
+
+and follow the prompts to create an initial user to login with.
+
+Once you have a new user, run ``./scripts/server`` inside the VM to begin serving the application on port 8080.
+
+This project conforms to the specification provided by `Azaveas Scripts to Rule Them All`_.
 
 
 Running Tests
@@ -105,10 +108,8 @@ Run migrations::
 Make sure database is clear for importing data::
 
     ./scripts/console django './manage.py shell_plus'
-    ClimateModel.objects.all().delete()
     ClimateDataCell.objects.all().delete()
     ClimateDataSource.objects.all().delete()
-    Scenario(name='RCP85').save()
 
 Import data (10 models, 100 cities)::
 
@@ -162,3 +163,6 @@ Afterwards you will need to compress the historic averages::
 Note that this will export all historic summary data you have for all cities and map cells. Conventionally this file
 is based off of the ``geonames_cities_top200_us.geojson`` list of cities, so please make sure you have the correct
 cities installed before updating the fixtures.
+
+
+.. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
