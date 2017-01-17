@@ -13,7 +13,6 @@ Example: ./scripts/console django \"./manage.py shell_plus\"
 "
 }
 
-
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]

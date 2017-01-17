@@ -1,10 +1,13 @@
 #!/bin/bash
+
 set -eu
 
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
-Builds documentation served in development
+
+Setup an initial development environment by setting up a VM and installing dependencies.
+
 "
 }
 
@@ -14,8 +17,8 @@ then
     then
         usage
     else
-      docker-compose run --rm --entrypoint "/bin/bash -c" "django" \
-                     "cd ../../doc; make html"
+        vagrant up --provision
+        vagrant ssh -c "cd climate-change-api && ./scripts/update"
     fi
     exit
 fi
