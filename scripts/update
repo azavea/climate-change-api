@@ -2,8 +2,6 @@
 
 set -eu
 
-cd `dirname "$0"`
-
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
@@ -70,8 +68,6 @@ then
     then
         usage
     else
-        pushd ..
-
         docker-compose build
         run_database_migrations
 
@@ -79,8 +75,6 @@ then
         ./scripts/console django './manage.py loaddata climate-models'
 
         help_load_data
-
-        popd
     fi
     exit
 fi

@@ -2,8 +2,6 @@
 
 set -eu
 
-cd `dirname "$0"`
-
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
@@ -13,19 +11,14 @@ Setup an initial development environment by setting up a VM and installing depen
 "
 }
 
-
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]
     then
         usage
     else
-        pushd ..
-
         vagrant up --provision
         vagrant ssh -c "cd climate-change-api && ./scripts/update"
-
-        popd
     fi
     exit
 fi
