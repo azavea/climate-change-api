@@ -21,9 +21,14 @@ then
         usage
     elif [ "${1:-}" = "docs" ]
     then
-      cd ../doc/build/html && python -m SimpleHTTPServer 8088
+        # Build the docs first if they don't yet exist
+        if [ ! -d "./doc/build/html" ]
+        then
+            ./scripts/docs
+        fi
+        cd ./doc/build/html && python -m SimpleHTTPServer 8088
     else
-            docker-compose up
+        docker-compose up
     fi
     exit
 fi
