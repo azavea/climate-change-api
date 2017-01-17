@@ -2,8 +2,6 @@
 
 set -eu
 
-cd `dirname "$0"`
-
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
@@ -19,11 +17,7 @@ then
     then
         usage
     else
-        pushd ..
-
         ./scripts/console django './manage.py test'
-
-        popd
     fi
     exit
 fi
