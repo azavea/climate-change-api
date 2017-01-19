@@ -6,4 +6,8 @@ A City object is a point feature of the center-most geographic coordinate of an 
 At this time, only US cities and their climate projection data are available.
 
 .. openapi:: /openapi/climate_api.yml
-    :paths: /city/, /city/nearest/, /city/{pk}/, /city/{pk}/boundary/
+    :paths:
+        /city/
+        /city/nearest/
+        /city/{pk}/
+        /city/{pk}/boundary/
