@@ -11,6 +11,7 @@ All resources that are rate limited will return HTTP 429 Too Many Requests along
         "detail": "Request was throttled. Expected available in 18.0 seconds."
     }
 
+In addition, the HTTP Header ``Retry-After`` will be set with an integer value in seconds that indicates how long to wait until retrying. For example: ``Retry-After: 43`` indicates that the client should retry the same request after waiting at least 43 seconds.
 
 If you have a use case that requires a call volume that exceeds the default rate limits, feel free to `contact us`_.
 
