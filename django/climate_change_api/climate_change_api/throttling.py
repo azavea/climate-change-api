@@ -11,6 +11,7 @@ class ClimateDataRateThrottle(UserRateThrottle):
 class ClimateDataBurstRateThrottle(ClimateDataRateThrottle):
     """ Set a relatively low 'burst' rate limit, data queries are relatively expensive """
     rate = '10/min'
+    scope = 'burst'
 
 
 class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
@@ -20,3 +21,4 @@ class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
 
     """
     rate = '5000/day'
+    scope = 'sustained'
