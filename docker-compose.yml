@@ -16,12 +16,16 @@ services:
       - "8080:8080"
       - "8082:8082"
     links:
+      - memcached
       - postgres
     depends_on:
+      - memcached
       - postgres
     volumes:
       - .:/opt
       - $HOME/.aws:/root/.aws:ro
+  memcached:
+    image: memcached:1.4-alpine
   postgres:
     image: quay.io/azavea/postgis:9.5.3
     environment:

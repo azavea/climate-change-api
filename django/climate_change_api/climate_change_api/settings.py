@@ -161,6 +161,12 @@ DATABASES = {
 # Cache
 # https://docs.djangoproject.com/en/1.9/ref/settings/#caches
 
+CACHE_LOCATION = os.getenv('CC_CACHE_HOST', 'memcached') + ':' + os.getenv('CC_CACHE_PORT', '11211')
+if DEBUG:
+    CACHE_BACKEND = 'django.core.cache.backends.memcached.PyLibMCCache'
+else:
+    CACHE_BACKEND = 'django_elasticache.memcached.ElastiCache'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
@@ -168,8 +174,8 @@ CACHES = {
     # Use a custom separate cache for custom DRF throttling classes, since these
     # don't require a heavyweight cache
     'api_throttling': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'api_throttling'
+        'BACKEND': CACHE_BACKEND,
+        'LOCATION': CACHE_LOCATION
     }
 }
 

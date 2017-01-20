@@ -13,3 +13,5 @@ variable "alarm_actions" { }
 variable "desired_instances" { }
 variable "max_instances" { }
 variable "bastion_security_group_id" { }
+variable "cache_security_group_id" { }
+variable "cache_port" { }

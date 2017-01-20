@@ -45,6 +45,36 @@ module "rds" {
   alarm_actions = "${aws_sns_topic.cc_sns_topic.arn}"
 }
 
+resource "aws_elasticache_subnet_group" "memcached" {
+  name = "cc-ec-subnet-group"
+  description = "Subnet Group for ElastiCache Memcached"
+  subnet_ids = ["${split(",", module.vpc.private_subnet_ids)}"]
+}
+
+resource "aws_elasticache_parameter_group" "memcached" {
+  name = "cc-ec-parameter-group"
+  description = "Parameter Group for ElastiCache Memcached"
+  family = "memcached1.4"
+}
+
+module "cache" {
+  source = "github.com/azavea/terraform-aws-memcached-elasticache?ref=0.1.0"
+
+  vpc_id                     = "${module.vpc.id}"
+  cache_identifier           = "cc-ec-memcached"
+  desired_clusters           = "1"
+  instance_type              = "cache.t2.micro"
+  engine_version             = "1.4.33"
+  parameter_group            = "${aws_elasticache_parameter_group.memcached.name}"
+  subnet_group               = "${aws_elasticache_subnet_group.memcached.name}"
+  maintenance_window         = "sun:02:30-sun:03:30"
+  notification_topic_arn     = "${aws_sns_topic.cc_sns_topic.arn}"
+
+  alarm_cpu_threshold_percent  = "75"
+  alarm_memory_threshold_bytes = "100000000"
+  alarm_actions                = ["${aws_sns_topic.cc_sns_topic.arn}"]
+}
+
 # Alarm for CPU credits for t2 instances
 resource "aws_cloudwatch_metric_alarm" "rds_cpu_credits_alarm" {
   alarm_name = "alarm-rds-${module.rds.id}-CPUCredits"
@@ -72,6 +102,8 @@ module "elb" {
   public_subnet_ids = "${module.vpc.public_subnet_ids}"
   private_subnet_ids = "${module.vpc.private_subnet_ids}"
   bastion_security_group_id = "${module.vpc.bastion_security_group_id}"
+  cache_security_group_id = "${module.cache.cache_security_group_id}"
+  cache_port = "${module.cache.port}"
   ssl_certificate_arn = "${var.elb_ssl_certificate_arn}"
   ecs_stack_type = "${var.stack_type}"
   ecs_iam_profile = "${var.ecs_iam_profile}"
@@ -97,6 +129,8 @@ module "ecs" {
   rds_password = "${var.rds_password}"
   rds_username = "${var.rds_username}"
   rds_database_name = "${var.rds_database_name}"
+  ec_memcached_host = "${module.cache.endpoint}"
+  ec_memcached_port = "${module.cache.port}"
 
   alarm_actions = "${aws_sns_topic.cc_sns_topic.arn}"
   django_secret_key = "${var.django_secret_key}"
