@@ -9,6 +9,9 @@ variable "rds_password" { }
 variable "rds_username" { }
 variable "rds_database_name" { }
 
+variable "ec_memcached_host" { }
+variable "ec_memcached_port" { }
+
 variable "alarm_actions" { }
 
 variable "django_secret_key" { }
