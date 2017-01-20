@@ -13,6 +13,7 @@ django-bootstrap3==7.0.1
 factory_boy==2.8.1
 sphinx==1.5.1
 sphinx_rtd_theme==0.1.9
+sphinx-jsondomain==0.0.2
 git+https://github.com/azavea/sphinxcontrib-openapi.git@feature/awf/param-paths#egg=sphinxcontrib-openapi
 django-watchman==0.10.1
 django-amazon-ses==0.1.3
