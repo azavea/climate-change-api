@@ -6,11 +6,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django.utils.cache import patch_cache_control
 from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, detail_route, list_route, throttle_classes
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
@@ -28,6 +29,19 @@ from indicators import indicator_factory, list_available_indicators
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_CLIMATE_DATA_MAX_AGE = 60 * 60 * 24 * 30     # 30 days
+
+
+def patch_climate_data_cache_control(response):
+    """ Method to consistently patch Cache-Control response headers for climate data endpoints """
+    cache_headers = {
+        'max-age': DEFAULT_CLIMATE_DATA_MAX_AGE,
+        'public': True
+    }
+    patch_cache_control(response, **cache_headers)
+    return response
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -209,13 +223,14 @@ def climate_data_list(request, *args, **kwargs):
 
     context = {'variables': cleaned_variables, 'aggregation': aggregation}
     serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
-    return Response(OrderedDict([
+    response = Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('climate_models', [m.name for m in model_list]),
         ('variables', cleaned_variables),
         ('data', serializer.data),
     ]))
+    return patch_climate_data_cache_control(response)
 
 
 @api_view(['GET'])
@@ -339,7 +354,7 @@ def climate_indicator(request, *args, **kwargs):
         ]), status=status.HTTP_400_BAD_REQUEST)
     data = indicator_class.calculate()
 
-    return Response(OrderedDict([
+    response = Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('indicator', IndicatorClass.to_dict()),
@@ -348,6 +363,7 @@ def climate_indicator(request, *args, **kwargs):
         ('units', indicator_class.params.units.value),
         ('data', data),
     ]))
+    return patch_climate_data_cache_control(response)
 
 
 def swagger_docs_permission_denied_handler(request):
