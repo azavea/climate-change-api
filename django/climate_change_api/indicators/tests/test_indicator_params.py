@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from climate_data.tests.mixins import ClimateDataSetupMixin
+from indicators import indicators
 from indicators.params import IndicatorParam, IndicatorParams, Percentile99IndicatorParams
 from indicators.utils import merge_dicts
 from indicators.validators import ChoicesValidator
@@ -92,6 +94,37 @@ class IndicatorParamsTestCase(TestCase):
             self.assertEqual(indicator_params.units.value, self.default_units)
             self.assertEqual(indicator_params.time_aggregation.value,
                              indicator_params.time_aggregation.default)
+
+
+class IndicatorParamsBeforeSerializerTestCase(ClimateDataSetupMixin, TestCase):
+
+    def setUp(self):
+        super(IndicatorParamsBeforeSerializerTestCase, self).setUp()
+
+    def test_parsing_single_agg_string_input(self):
+        """ tests a string input of single aggregation method """
+
+        self._test_parsing_agg_string_input('99th')
+
+    def test_parsing_multi_agg_string_input(self):
+        """ tests a comma-separated string input of multi aggregation methods """
+
+        self._test_parsing_agg_string_input('avg,99th,stdev')
+
+    def _test_parsing_agg_string_input(self, agg_input):
+        """ method should ensure a csv string input for the aggregation param gets
+            parsed into a list before serialization
+        """
+        parameters = merge_dicts({}, {'agg': agg_input})
+        # test string parsing on an arbitrary indicator
+        indicator = indicators.TotalPrecipitation(self.city1, self.rcp45, parameters=parameters)
+        results = indicator.calculate()
+
+        split_input = agg_input.split(',')
+        for idx in results:
+            # only need to check keys from one result since all results will have identical keys
+            return self.assertTrue(set(split_input) == set(results[idx].keys()),
+                                   msg="Agg inputs improperly formatted or parsed")
 
 
 class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
