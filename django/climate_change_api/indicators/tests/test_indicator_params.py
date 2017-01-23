@@ -123,7 +123,8 @@ class IndicatorParamsBeforeSerializerTestCase(ClimateDataSetupMixin, TestCase):
         split_input = agg_input.split(',')
         for idx in results:
             # only need to check keys from one result since all results will have identical keys
-            return self.assertTrue(set(split_input) == set(results[idx].keys()))
+            return self.assertTrue(set(split_input) == set(results[idx].keys()),
+                                   msg="Agg inputs improperly formatted or parsed")
 
 
 class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
