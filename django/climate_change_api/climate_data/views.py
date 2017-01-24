@@ -38,7 +38,7 @@ def patch_climate_data_cache_control(response):
     """ Method to consistently patch Cache-Control response headers for climate data endpoints """
     cache_headers = {
         'max-age': DEFAULT_CLIMATE_DATA_MAX_AGE,
-        'public': True
+        'private': True
     }
     patch_cache_control(response, **cache_headers)
     return response
