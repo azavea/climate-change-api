@@ -34,14 +34,24 @@ logger = logging.getLogger(__name__)
 DEFAULT_CLIMATE_DATA_MAX_AGE = 60 * 60 * 24 * 30     # 30 days
 
 
-def patch_climate_data_cache_control(response):
-    """ Method to consistently patch Cache-Control response headers for climate data endpoints """
-    cache_headers = {
-        'max-age': DEFAULT_CLIMATE_DATA_MAX_AGE,
-        'private': True
-    }
-    patch_cache_control(response, **cache_headers)
-    return response
+def climate_data_cache_control(func):
+    """ Decorator to consistently patch the Cache-Control headers for Climate API endpoints
+
+    Can be added to any Django Rest Framework view handler method.
+
+    If added to a method with multiple decorators, this one should be called last since it
+    invokes the function being decorated.
+
+    """
+    def handler(request, *args, **kwargs):
+        cache_headers = {
+            'max-age': DEFAULT_CLIMATE_DATA_MAX_AGE,
+            'private': True
+        }
+        response = func(request, *args, **kwargs)
+        patch_cache_control(response, **cache_headers)
+        return response
+    return handler
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -148,6 +158,7 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(['GET'])
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
+@climate_data_cache_control
 def climate_data_list(request, *args, **kwargs):
     """ Retrieve all of the climate data for a given city and scenario
 
@@ -223,14 +234,13 @@ def climate_data_list(request, *args, **kwargs):
 
     context = {'variables': cleaned_variables, 'aggregation': aggregation}
     serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
-    response = Response(OrderedDict([
+    return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('climate_models', [m.name for m in model_list]),
         ('variables', cleaned_variables),
         ('data', serializer.data),
     ]))
-    return patch_climate_data_cache_control(response)
 
 
 @api_view(['GET'])
@@ -245,6 +255,7 @@ def climate_indicator_list(request, *args, **kwargs):
 
 @api_view(['GET'])
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
+@climate_data_cache_control
 def climate_indicator(request, *args, **kwargs):
     """ Calculate and return the value of a climate indicator for a given city+scenario
 
@@ -280,8 +291,8 @@ def climate_indicator(request, *args, **kwargs):
       - name: time_aggregation
         description: Time granularity to group data by for result structure. Valid aggregations
                      depend on indicator. Can be 'yearly', 'quarterly', 'monthly', 'daily' or
-                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter must be
-                     set.
+                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter
+                     must be set.
         required: false
         type: string
         paramType: query
@@ -354,7 +365,7 @@ def climate_indicator(request, *args, **kwargs):
         ]), status=status.HTTP_400_BAD_REQUEST)
     data = indicator_class.calculate()
 
-    response = Response(OrderedDict([
+    return Response(OrderedDict([
         ('city', CitySerializer(city).data),
         ('scenario', scenario.name),
         ('indicator', IndicatorClass.to_dict()),
@@ -363,7 +374,6 @@ def climate_indicator(request, *args, **kwargs):
         ('units', indicator_class.params.units.value),
         ('data', data),
     ]))
-    return patch_climate_data_cache_control(response)
 
 
 def swagger_docs_permission_denied_handler(request):
