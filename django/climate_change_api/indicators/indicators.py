@@ -133,34 +133,36 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
 
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
-    description = 'Total difference of daily low temperature to a reference base temperature'
-    variables = ('tasmin',)
+    description = 'Total difference of daily average temperature to a reference base temperature'
+    variables = ('tasmax', 'tasmin',)
     agg_function = Sum
     params_class = DegreeDayIndicatorParams
 
     @property
     def conditions(self):
-        return {'tasmin__lte': self.params.basetemp.value}
+        # (A+B)/2 <= C translates to A <= 2C - B
+        return {'tasmin__lte': (2 * self.params.basetemp.value) - F('tasmax')}
 
     @property
     def expression(self):
-        return self.params.basetemp.value - F('tasmin')
+        return self.params.basetemp.value - (F('tasmax') + F('tasmin')) / 2
 
 
 class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Cooling Degree Days'
-    description = 'Total difference of daily high temperature to a reference base temperature '
-    variables = ('tasmax',)
+    description = 'Total difference of daily average temperature to a reference base temperature '
+    variables = ('tasmax', 'tasmin',)
     agg_function = Sum
     params_class = DegreeDayIndicatorParams
 
     @property
     def conditions(self):
-            return {'tasmax__gte': self.params.basetemp.value}
+        # (A+B)/2 >= C translates to A >= 2C - B
+        return {'tasmax__gte': (2 * self.params.basetemp.value) - F('tasmin')}
 
     @property
     def expression(self):
-        return F('tasmax') - self.params.basetemp.value
+        return (F('tasmax') + F('tasmin')) / 2 - self.params.basetemp.value
 
 
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
