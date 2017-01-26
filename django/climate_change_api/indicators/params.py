@@ -207,15 +207,17 @@ class DegreeDayIndicatorParams(IndicatorParams):
 
 class ThresholdIndicatorParams(IndicatorParams):
 
-    valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte', 'e')
+    valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte', 'e', 'none')
     threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
 
     threshold = IndicatorParam('threshold',
                                description=THRESHOLD_PARAM_DOCSTRING,
                                required=False,
+                               default=0,
                                validators=[float_validator])
 
     threshold_comparator = IndicatorParam('threshold_comparator',
                                description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
                                required=False,
+                               default='none',
                                validators=[threshold_comparator_validator])

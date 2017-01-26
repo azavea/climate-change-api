@@ -171,7 +171,7 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
         return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
-class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, ThresholdIndicator):
+class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature'
     variables = ('tasmax', 'tasmin',)
@@ -188,7 +188,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Thre
         return self.params.basetemp.value - (F('tasmax') + F('tasmin')) / 2
 
 
-class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, ThresholdIndicator):
+class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Cooling Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature '
     variables = ('tasmax', 'tasmin',)

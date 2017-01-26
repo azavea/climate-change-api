@@ -316,7 +316,7 @@ class ThresholdIndicator(Indicator):
 
     @property
     def has_threshold(self):
-        return True if self.params.threshold.value and self.params.threshold_comparator.value else False
+        return True if self.params.threshold_comparator.value is not 'none' else False
 
     @property
     def expression(self):
