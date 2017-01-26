@@ -5,9 +5,9 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
+from .abstract_indicators import (Indicator, CountIndicator, ThresholdIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
+from .params import DegreeDayIndicatorParams, PercentileIndicatorParams,ThresholdIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -15,7 +15,7 @@ from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnits
 ##########################
 # Aggregated indicators
 
-class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
+class AverageHighTemperature(TemperatureUnitsMixin, ThresholdIndicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
@@ -23,7 +23,7 @@ class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Avg
 
 
-class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
+class AverageLowTemperature(TemperatureUnitsMixin, ThresholdIndicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
@@ -31,7 +31,7 @@ class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Avg
 
 
-class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
+class MaxHighTemperature(TemperatureUnitsMixin, ThresholdIndicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
@@ -39,7 +39,7 @@ class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Max
 
 
-class MinLowTemperature(TemperatureUnitsMixin, Indicator):
+class MinLowTemperature(TemperatureUnitsMixin, ThresholdIndicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
@@ -71,7 +71,7 @@ class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
         return Percentile(expression, int(self.params.percentile.value) / 100.0)
 
 
-class TotalPrecipitation(PrecipUnitsMixin, Indicator):
+class TotalPrecipitation(PrecipUnitsMixin, ThresholdIndicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
     variables = ('pr',)
@@ -171,7 +171,7 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
         return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
-class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, ThresholdIndicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature'
     variables = ('tasmax', 'tasmin',)
@@ -188,7 +188,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
         return self.params.basetemp.value - (F('tasmax') + F('tasmin')) / 2
 
 
-class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, ThresholdIndicator):
     label = 'Cooling Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature '
     variables = ('tasmax', 'tasmin',)

@@ -9,9 +9,9 @@ from django.db import connection
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .params import IndicatorParams
+from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin, TemperatureConverter
+from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
 
 
@@ -308,6 +308,35 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
             # Return an object with each of the keys and their values, along with the
             # aggregated value
             yield dict(zip(self.aggregate_keys, key_vals) + [('value', longest)])
+
+
+class ThresholdIndicator(Indicator):
+
+    params_class = ThresholdIndicatorParams
+
+    @property
+    def has_threshold(self):
+        return True if self.params.threshold.value and self.params.threshold_comparator.value else False
+
+    @property
+    def expression(self):
+        return 1 if self.has_threshold else self.variables[0]
+
+    def calculate(self):
+
+        if self.has_threshold:
+            # Convert threshold value to appropriate format
+            if self.variables[0] is not 'pr':
+                converter = TemperatureConverter.get(self.params.units.value, self.storage_units)
+            else:
+                converter = PrecipitationConverter.get(self.params.units.value, self.storage_units)
+
+            self.agg_function = Sum
+            self.params.threshold.value = converter(float(self.params.threshold.value))
+            self.params.units.value = self.storage_units
+            self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+
+        return super(ThresholdIndicator, self).calculate()
 
 
 class BasetempIndicatorMixin(object):

@@ -103,7 +103,6 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         aggregation = self._context['aggregation']
         aggregation_function = getattr(django.db.models, aggregation.capitalize())
-
         aggregations = {variable: aggregation_function(variable)
                         for variable in self._context['variables']}
         queryset = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)

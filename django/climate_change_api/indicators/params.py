@@ -48,6 +48,11 @@ BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily di
 
 BASETEMP_UNITS_PARAM_DOCSTRING = "Units for the value of the 'basetemp' parameter. Defaults to 'F'."
 
+THRESHOLD_PARAM_DOCSTRING = ("The value against which to compare climate data values. Unit assumed 'units' param"
+                             "else the indicator default unit.")
+
+THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("The comparison type against the threshold value. Options: lt, gt, lte, gte, e"
+                                  "Signify: less than, greater than, less than or equals...")
 
 class IndicatorParam(object):
     """ Defines an individual query parameter for an Indicator request
@@ -198,3 +203,19 @@ class DegreeDayIndicatorParams(IndicatorParams):
                                     required=False,
                                     default='F',
                                     validators=[basetemp_units_validator])
+
+
+class ThresholdIndicatorParams(IndicatorParams):
+
+    valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte', 'e')
+    threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
+
+    threshold = IndicatorParam('threshold',
+                               description=THRESHOLD_PARAM_DOCSTRING,
+                               required=False,
+                               validators=[float_validator])
+
+    threshold_comparator = IndicatorParam('threshold_comparator',
+                               description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
+                               required=False,
+                               validators=[threshold_comparator_validator])
