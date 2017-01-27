@@ -334,22 +334,8 @@ class ThresholdIndicator(Indicator):
             self.agg_function = Sum
             self.params.threshold.value = converter(float(self.params.threshold.value))
             self.params.units.value = self.storage_units
-            self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+
+            if not self.conditions:
+                self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
 
         return super(ThresholdIndicator, self).calculate()
-
-
-class BasetempIndicatorMixin(object):
-    """ Framework for pre-processing the basetemp parameter to a native unit
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
-
-        value = self.params.basetemp.value
-        basetemp_units = self.params.basetemp_units.value
-        unit = basetemp_units if basetemp_units is not None else self.params.units.value
-
-        converter = TemperatureConverter.get(unit, self.storage_units)
-        self.params.basetemp.value = converter(float(value))
-        self.params.basetemp_units.value = self.storage_units
