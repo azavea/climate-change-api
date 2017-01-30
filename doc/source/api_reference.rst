@@ -28,6 +28,12 @@ Climate Data
 .. include:: api_reference/climate_data.rst
 
 
+Indicator
+---------
+
+.. include:: api_reference/indicator.rst
+
+
 Auth
 ----
 

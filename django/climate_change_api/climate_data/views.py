@@ -10,7 +10,7 @@ from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, detail_route, list_route, throttle_classes
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
@@ -49,6 +49,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         """ Given a lat/lon return the nearest city as a GeoJSON feature collection
 
         ---
+
         parameters:
           - name: lat
             description: The latitude to search at
