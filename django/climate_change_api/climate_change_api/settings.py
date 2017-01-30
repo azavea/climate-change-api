@@ -14,7 +14,7 @@ import os
 import requests
 import boto3
 
-import docker_helper
+from . import docker_helper
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

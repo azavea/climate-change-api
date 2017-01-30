@@ -30,7 +30,7 @@ def generate_baselines(mapcells, queryset):
                            for var in VARIABLES}
 
         # For precipitation we only want records for days that had rainfall
-        variable_values['pr'] = [filter(lambda x: x > 0, vals) for vals in variable_values['pr']]
+        variable_values['pr'] = [[x for x in vals if x > 0] for vals in variable_values['pr']]
 
         for percentile in PERCENTILES:
             try:

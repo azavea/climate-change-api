@@ -5,7 +5,7 @@ class ConverterTestMixin():
     def test_conversions(self):
         for case in self.cases:
             # Test all possible combinations and ensure that they all convert properly
-            for units, values in (zip(*v) for v in permutations(case.items(), 2)):
+            for units, values in (list(zip(*v)) for v in permutations(list(case.items()), 2)):
                 converter = self.converter_class.get(*units)
 
                 start, expected = values
