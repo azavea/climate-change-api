@@ -46,6 +46,8 @@ PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to determine the ap
 THRESHOLD_PARAM_DOCSTRING = ("The value against which to compare climate data values. Unit assumed 'units' param"
                              "else the indicator default unit.")
 
+THRESHOLD_UNITS_PARAM_DOCSTRING = ("Threshold unit type")
+
 THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("The comparison type against the threshold value. Options: lt, gt, lte, gte, e"
                                   "Signify: less than, greater than, less than or equals...")
 
@@ -193,6 +195,11 @@ class ThresholdIndicatorParams(IndicatorParams):
                                required=False,
                                default=0,
                                validators=[float_validator])
+
+    threshold_units = IndicatorParam('threshold_units',
+                               description=THRESHOLD_UNITS_PARAM_DOCSTRING,
+                               required=False,
+                               default=0)
 
     threshold_comparator = IndicatorParam('threshold_comparator',
                                           description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,

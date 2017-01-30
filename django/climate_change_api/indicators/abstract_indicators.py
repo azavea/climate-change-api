@@ -314,6 +314,26 @@ class ThresholdIndicator(Indicator):
 
     params_class = ThresholdIndicatorParams
 
+    def __init__(self, *args, **kwargs):
+        super(ThresholdIndicator, self).__init__(*args, **kwargs)
+
+        if self.has_threshold:
+            # Convert threshold value to appropriate format
+            value = self.params.threshold.value
+            unit = self.params.threshold_units.value if self.params.threshold_units.value else self.params.units.value
+
+            if self.variables[0] != 'pr':
+                converter = TemperatureConverter.get(unit, self.storage_units)
+            else:
+                converter = PrecipitationConverter.get(unit, self.storage_units)
+
+            self.agg_function = Sum
+            self.params.threshold.value = converter(float(value))
+            self.params.units.value = self.storage_units
+
+            if not self.conditions:
+                self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+
     @property
     def has_threshold(self):
         return True if self.params.threshold_comparator.value is not 'none' else False
@@ -321,21 +341,3 @@ class ThresholdIndicator(Indicator):
     @property
     def expression(self):
         return 1 if self.has_threshold else self.variables[0]
-
-    def calculate(self):
-
-        if self.has_threshold:
-            # Convert threshold value to appropriate format
-            if self.variables[0] is not 'pr':
-                converter = TemperatureConverter.get(self.params.units.value, self.storage_units)
-            else:
-                converter = PrecipitationConverter.get(self.params.units.value, self.storage_units)
-
-            self.agg_function = Sum
-            self.params.threshold.value = converter(float(self.params.threshold.value))
-            self.params.units.value = self.storage_units
-
-            if not self.conditions:
-                self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
-
-        return super(ThresholdIndicator, self).calculate()

@@ -5,9 +5,9 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator, ThresholdIndicator,
+from .abstract_indicators import (CountIndicator, ThresholdIndicator,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, PercentileIndicatorParams,ThresholdIndicatorParams
+from .params import PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -75,11 +75,14 @@ class TotalPrecipitation(PrecipUnitsMixin, ThresholdIndicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
     variables = ('pr',)
-    # Precipitation is stored per-second, and we want a total for all days in the aggregation,
-    # so we need to multiple each day's value by 86400 to get the total for that day and then
-    # sum the results
-    expression = F('pr') * SECONDS_PER_DAY
     agg_function = Sum
+
+    @property
+    def expression(self):
+        # Precipitation is stored per-second, and we want a total for all days in the aggregation,
+        # so we need to multiple each day's value by 86400 to get the total for that day and then
+        # sum the results IF requesting raw and not threshold indicator
+        return 1 if self.has_threshold else F('pr') * SECONDS_PER_DAY
 
 
 class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
@@ -178,7 +181,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     agg_function = Sum
 
     def __init__(self, *args, **kwargs):
-        super(ThresholdIndicator, self).__init__(*args, **kwargs)
+        super(HeatingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'lte'
 
     @property
@@ -198,7 +201,7 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     agg_function = Sum
 
     def __init__(self, *args, **kwargs):
-        super(ThresholdIndicator, self).__init__(*args, **kwargs)
+        super(CoolingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'gte'
 
     @property
