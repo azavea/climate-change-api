@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django.utils.cache import patch_cache_control
 from django.utils.http import urlencode
 
 from rest_framework import filters, status, viewsets
@@ -28,6 +29,29 @@ from indicators import indicator_factory, list_available_indicators
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_CLIMATE_DATA_MAX_AGE = 60 * 60 * 24 * 30     # 30 days
+
+
+def climate_data_cache_control(func):
+    """ Decorator to consistently patch the Cache-Control headers for Climate API endpoints
+
+    Can be added to any Django Rest Framework view handler method.
+
+    If added to a method with multiple decorators, this one should be called last since it
+    invokes the function being decorated.
+
+    """
+    def handler(request, *args, **kwargs):
+        cache_headers = {
+            'max-age': DEFAULT_CLIMATE_DATA_MAX_AGE,
+            'private': True
+        }
+        response = func(request, *args, **kwargs)
+        patch_cache_control(response, **cache_headers)
+        return response
+    return handler
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -135,6 +159,7 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(['GET'])
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
+@climate_data_cache_control
 def climate_data_list(request, *args, **kwargs):
     """ Retrieve all of the climate data for a given city and scenario
 
@@ -231,6 +256,7 @@ def climate_indicator_list(request, *args, **kwargs):
 
 @api_view(['GET'])
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
+@climate_data_cache_control
 def climate_indicator(request, *args, **kwargs):
     """ Calculate and return the value of a climate indicator for a given city+scenario
 
@@ -266,8 +292,8 @@ def climate_indicator(request, *args, **kwargs):
       - name: time_aggregation
         description: Time granularity to group data by for result structure. Valid aggregations
                      depend on indicator. Can be 'yearly', 'quarterly', 'monthly', 'daily' or
-                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter must be
-                     set.
+                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter
+                     must be set.
         required: false
         type: string
         paramType: query
