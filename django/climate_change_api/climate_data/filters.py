@@ -6,6 +6,7 @@ import django_filters
 from rest_framework import filters
 
 from climate_data.models import ClimateData, ClimateModel
+from functools import reduce
 
 logger = logging.getLogger(__name__)
 

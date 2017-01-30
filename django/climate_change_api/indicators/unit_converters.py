@@ -30,7 +30,7 @@ class UnitConverter(object):
 
     @classproperty
     def available_units(cls):
-        return cls.units.keys()
+        return list(cls.units.keys())
 
 
 class LinearConverter(UnitConverter):

@@ -239,7 +239,7 @@ class YearlySequenceIndicator(CountIndicator):
         with connection.cursor() as cursor:
             cursor.execute(query, base_query_params)
             columns = [col[0] for col in cursor.description]
-            sequences = (dict(zip(columns, row)) for row in cursor.fetchall())
+            sequences = (dict(list(zip(columns, row))) for row in cursor.fetchall())
         return sequences
 
 
@@ -264,7 +264,7 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
 
             # Return an object with each of the keys and their values, along with the
             # aggregated value
-            yield dict(zip(self.aggregate_keys, key_vals) + [('value', longest)])
+            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', longest)])
 
 
 class BasetempIndicatorMixin(object):

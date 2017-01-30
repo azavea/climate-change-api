@@ -150,7 +150,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
         for key_vals, streaks in groupby(sequences, self.row_group_key):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
 
-            yield dict(zip(self.aggregate_keys, key_vals) + [('value', num_dry_spells)])
+            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
 
 
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
