@@ -3,6 +3,8 @@ The Climate Data endpoint allows interaction with annual sets of raw projected t
 
 .. note:: Requests to this endpoint are `rate-limited`_.
 
+Climate data
+____________
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /climate-data/{city}/{scenario}/
