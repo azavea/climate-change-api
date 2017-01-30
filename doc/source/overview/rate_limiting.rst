@@ -1,9 +1,9 @@
 
-In order to ensure fair access to all users of the Climate API, certain resources are protected by rate limiting.
+In order to ensure fair access to all users of the Climate API, certain endpoints are protected by rate limiting.
 
-If a resource is rate limited, the rate limits will be described on that resource's API Reference page.
+If an endpoints is rate limited, the rate limits will be described on that endpoint's API Reference page.
 
-All resources that are rate limited will return HTTP 429 Too Many Requests along with a descriptive message indicating when the resource will be available again:
+All endpoints that are rate limited will return HTTP 429 Too Many Requests along with a descriptive message indicating when the endpoint will be available again:
 
 .. code-block:: json
 
