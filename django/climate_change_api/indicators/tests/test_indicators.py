@@ -170,9 +170,65 @@ class YearlyMinLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
+class YearlyPercentileLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.PercentileLowTemperature
+    indicator_name = 'percentile_low_temperature'
+    time_aggregation = 'yearly'
+    units = 'K'
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
+class YearlyPercentileHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.PercentileHighTemperature
+    indicator_name = 'percentile_high_temperature'
+    time_aggregation = 'yearly'
+    units = 'K'
+    test_indicator_rcp85_equals = {2000: {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                   2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {2001: {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {2000: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2001: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2002: {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 2003: {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
+
+
 class YearlyTotalPrecipitationTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.TotalPrecipitation
     indicator_name = 'total_precipitation'
+    time_aggregation = 'yearly'
+    units = 'kg/m^2'
+    test_indicator_rcp85_equals = {2000: {'avg': 3024000.0, 'min': 2592000, 'max': 3456000}}
+    test_indicator_rcp45_equals = {2000: {'max': 1728000, 'avg': 1296000, 'min': 864000},
+                                   2001: {'max': 1728000, 'avg': 1296000, 'min': 864000},
+                                   2002: {'avg': 864000, 'max': 864000, 'min': 864000},
+                                   2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_years_filter_equals = {2001: {'max': 1728000, 'avg': 1296000, 'min': 864000},
+                                2002: {'avg': 864000, 'max': 864000, 'min': 864000}}
+    test_models_filter_equals = {2000: {'avg': 864000, 'max': 864000, 'min': 864000},
+                                 2001: {'avg': 864000, 'max': 864000, 'min': 864000},
+                                 2002: {'avg': 864000, 'max': 864000, 'min': 864000},
+                                 2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+
+
+class YearlyPercentilePrecipitationTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.PercentilePrecipitation
+    indicator_name = 'percentile_precipitation'
     time_aggregation = 'yearly'
     units = 'kg/m^2'
     test_indicator_rcp85_equals = {2000: {'avg': 3024000.0, 'min': 2592000, 'max': 3456000}}

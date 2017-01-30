@@ -41,6 +41,7 @@ class Indicator(object):
 
     serializer_class = IndicatorSerializer
     params_class = IndicatorParams
+    params_class_kwargs = {}
 
     # Subclasses should use a units mixin from 'unit_converters' to define these units
     # attributes and any necessary conversion functions
@@ -72,7 +73,8 @@ class Indicator(object):
         Should not validate the IndicatorParams
 
         """
-        return cls.params_class(cls.default_units, cls.available_units, cls.valid_aggregations)
+        return cls.params_class(cls.default_units, cls.available_units, cls.valid_aggregations,
+                                **cls.params_class_kwargs)
 
     @classmethod
     def name(cls):

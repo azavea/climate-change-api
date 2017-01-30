@@ -6,6 +6,7 @@ django-cors-headers==1.1.0
 django-extensions==1.5.9
 djangorestframework==3.3.3
 djangorestframework-gis==0.10.1
+git+git://github.com/aras7/django-postgres-stats.git@8097815b91ff42bbf5fd44be84020deab0a416d9
 django-filter==0.13.0
 django-registration==2.0.4
 django-rest-swagger==0.3.7
