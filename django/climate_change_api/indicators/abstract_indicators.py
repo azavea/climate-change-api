@@ -310,6 +310,9 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
 
 
 class ThresholdIndicator(Indicator):
+    """ Enables results to be counted based on comparison to a static threshold value
+        Takes 3 optional additional parameters: threshold, threshold_units, threshold_comparator
+    """
 
     params_class = ThresholdIndicatorParams
 

@@ -181,6 +181,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     agg_function = Sum
 
     def __init__(self, *args, **kwargs):
+        """ Custom init for degree days indicator to manually set threshold_comparator """
         super(HeatingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'lte'
         self.set_threshold_values()
@@ -202,6 +203,7 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     agg_function = Sum
 
     def __init__(self, *args, **kwargs):
+        """ Custom init for degree days indicator to manually set threshold_comparator """
         super(CoolingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'gte'
         self.set_threshold_values()
