@@ -10,6 +10,54 @@ ______________
     :paths:
         /api/indicator/
 
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/indicator/
+    Host: example.org
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "results": [
+            {
+                "name": "example_temperature_indicator",
+                "label": "Example Temperature Indicator",
+                "description": "Simplified indicator to demonstrate the response format",
+                "valid_aggregations": [
+                    "yearly",
+                    "monthly"
+                ],
+                "variables": [
+                    "tasmax",
+                    "tasmin"
+                ],
+                "available_units": [
+                    "C",
+                    "K",
+                    "F"
+                ],
+                "default_units": "F",
+                "parameters": [
+                    {
+                        "name": "example",
+                        "description": "Example parameter",
+                        "required": false,
+                        "default": false
+                    }
+                ]
+            }
+        ]
+    }
+
 
 Indicator Data
 ______________
@@ -22,6 +70,88 @@ Returns data for a specified indicator and its unique required and optional quer
     :paths:
         /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/
 
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/climate-data/1/RCP85/example_temperature_indicator
+    Host: example.org
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "city": {
+            "id": 2,
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -74.00597,
+                    40.71427
+                ]
+            },
+            "properties": {
+                "map_cell": {
+                    "type": "Point",
+                    "coordinates": [
+                        285.875,
+                        40.625
+                    ]
+                },
+                "name": "New York City",
+                "admin": "NY",
+                "population": 8175133
+            }
+        },
+        "scenario": "RCP85",
+        "indicator": {
+            "name": "example_temperature_indicator",
+            "label": "Example Temperature Indicator",
+            "description": "Simplified indicator to demonstrate the response format",
+            "valid_aggregations": [
+                "yearly",
+                "monthly"
+            ],
+            "variables": [
+                "tasmax",
+                "tasmin"
+            ],
+            "available_units": [
+                "C",
+                "K",
+                "F"
+            ],
+            "default_units": "F",
+            "parameters": [
+                {
+                    "name": "example",
+                    "description": "Example parameter",
+                    "required": false,
+                    "default": false
+                }
+            ]
+        },
+        "climate_models": [
+            "ACCESS1-0",
+            "BNU-ESM",
+        ],
+        "time_aggregation": "yearly",
+        "units": "F",
+        "data": {
+            "2050": {
+                "max": 102.70332763671914,
+                "avg": 97.22591587611635,
+                "min": 92.67451293945382
+            }
+        }
+    }
 
 Indicator Data Parameters
 _________________________

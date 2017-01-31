@@ -9,10 +9,62 @@ __________________
     :paths:
         /api/climate-model/
 
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/climate-model/
+    Host: example.org
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    [
+        {
+            "name": "ACCESS1-0",
+            "label": "ACCESS1-0",
+            "base_time": null
+        },
+        {
+            "name": "BNU-ESM",
+            "label": "BNU-ESM",
+            "base_time": null
+        }
+    ]
+
+
 Climate Model Detail
 ____________________
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/climate-model/{name}/
+
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/climate-model/ACCESS1-0
+    Host: example.org
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "name": "ACCESS1-0",
+        "label": "ACCESS1-0",
+        "base_time": null
+    }
 
 .. _`CMIP5 model output specification`: http://cmip-pcmdi.llnl.gov/cmip5/docs/CMIP5_output_metadata_requirements.pdf
