@@ -183,6 +183,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     def __init__(self, *args, **kwargs):
         super(HeatingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'lte'
+        self.set_threshold_values()
 
     @property
     def conditions(self):
@@ -203,6 +204,7 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, ThresholdIndicator):
     def __init__(self, *args, **kwargs):
         super(CoolingDegreeDays, self).__init__(*args, **kwargs)
         self.params.threshold_comparator.value = 'gte'
+        self.set_threshold_values()
 
     @property
     def conditions(self):

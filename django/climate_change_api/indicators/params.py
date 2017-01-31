@@ -197,9 +197,8 @@ class ThresholdIndicatorParams(IndicatorParams):
                                validators=[float_validator])
 
     threshold_units = IndicatorParam('threshold_units',
-                               description=THRESHOLD_UNITS_PARAM_DOCSTRING,
-                               required=False,
-                               default=0)
+                                     description=THRESHOLD_UNITS_PARAM_DOCSTRING,
+                                     required=False)
 
     threshold_comparator = IndicatorParam('threshold_comparator',
                                           description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,

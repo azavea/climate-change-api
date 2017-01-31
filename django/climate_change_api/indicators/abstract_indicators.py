@@ -156,7 +156,6 @@ class Indicator(object):
         target value under the 'value' key.
         e.g. { 'data_source__year': 2077, 'data_source__model': 4, 'value': 74.59}
         """
-
         if self.conditions:
             agg_function = self.agg_function(Case(When(then=self.expression, **self.conditions),
                                              default=self.default_value,
@@ -316,7 +315,9 @@ class ThresholdIndicator(Indicator):
 
     def __init__(self, *args, **kwargs):
         super(ThresholdIndicator, self).__init__(*args, **kwargs)
+        self.set_threshold_values()
 
+    def set_threshold_values(self):
         if self.has_threshold:
             # Convert threshold value to appropriate format
             value = self.params.threshold.value
@@ -329,8 +330,7 @@ class ThresholdIndicator(Indicator):
 
             self.agg_function = Sum
             self.params.threshold.value = converter(float(value))
-            self.params.units.value = self.storage_units
-
+            self.params.threshold_units.value = self.storage_units
             if not self.conditions:
                 self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
 

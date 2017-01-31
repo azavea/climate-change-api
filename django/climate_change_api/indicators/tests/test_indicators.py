@@ -388,8 +388,8 @@ class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_name = 'heating_degree_days'
     time_aggregation = 'yearly'
     extra_params = {
-        'basetemp': '42.5',
-        'basetemp_units': 'K'
+        'threshold': 42.5,
+        'threshold_units': 'K'
     }
     test_indicator_rcp85_equals = {2000: {'avg': 13.5, 'min': 4.5, 'max': 22.5}}
     test_indicator_rcp45_equals = {2000: {'avg': 49.5, 'min': 40.5, 'max': 58.5},
@@ -409,8 +409,8 @@ class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_name = 'cooling_degree_days'
     time_aggregation = 'yearly'
     extra_params = {
-        'basetemp': '-265.85',  # 7.3K
-        'basetemp_units': 'C'
+        'threshold': -265.85,  # 7.3K
+        'threshold_units': 'C'
     }
     test_indicator_rcp85_equals = {2000: {'avg': 49.86, 'min': 40.86, 'max': 58.86000000000001}}
     test_indicator_rcp45_equals = {2000: {'avg': 13.860000000000046, 'min': 4.86000000000009,
@@ -606,7 +606,7 @@ class MonthlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
     time_aggregation = 'monthly'
     units = 'F'
     extra_params = {
-        'basetemp': '-384.07'
+        'threshold': -384.07
     }
     test_indicator_rcp85_equals = {'2000-01': {'avg': 12.60000000000001,
                                                'min': 3.6000000000000183, 'max': 21.6}}
@@ -628,8 +628,8 @@ class MonthlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
     time_aggregation = 'monthly'
     units = 'C'
     extra_params = {
-        'basetemp': '-273.15',
-        'basetemp_units': 'C'
+        'threshold': -273.15,
+        'threshold_units': 'C'
     }
     test_indicator_rcp85_equals = {'2000-01': {'max': 40.0, 'avg': 35.0, 'min': 30.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -642,3 +642,41 @@ class MonthlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
                                  '2003-01': {'max': 10.0, 'avg': 10.0, 'min': 10.0},
                                  '2001-01': {'max': 10.0, 'avg': 10.0, 'min': 10.0},
                                  '2002-01': {'max': 10.0, 'avg': 10.0, 'min': 10.0}}
+
+
+class DailyHighTemperatureThresholdTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.AverageHighTemperature
+    indicator_name = 'average_high_temperature'
+    time_aggregation = 'daily'
+    extra_params = {'threshold': 20.0, 'threshold_comparator': 'gte'}
+    units = 'K'
+    test_indicator_rcp85_equals = {'2000-01-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
+    test_indicator_rcp45_equals = {'2000-01-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
+                                   '2001-01-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
+                                   '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                   '2003-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_years_filter_equals = {'2001-01-01': {'avg': 0.5, 'max': 1.0, 'min': 0.0},
+                                '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_models_filter_equals = {'2000-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 '2001-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 '2003-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+
+
+class MonthlyTotalPrecipitationThresholdTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.TotalPrecipitation
+    indicator_name = 'total_precipitation'
+    time_aggregation = 'monthly'
+    extra_params = {'threshold': .5, 'threshold_comparator': 'lt', 'threshold_units': 'in'}
+    units = 'kg/m^2'
+    test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
+    test_indicator_rcp45_equals = {'2000-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
+                                   '2001-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
+                                   '2002-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
+                                   '2003-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
+    test_years_filter_equals = {'2001-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
+                                '2002-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
+    test_models_filter_equals = {'2000-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
+                                 '2001-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
+                                 '2002-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
+                                 '2003-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
