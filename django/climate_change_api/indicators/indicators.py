@@ -178,6 +178,25 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
         return super(HeatWaveDurationIndex, self).aggregate()
 
 
+class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
+    label = 'Heat Wave Incidents'
+    description = ('Number of times daily high temperature exceeds 5C above historic norm for at '
+                   'least 5 consecutive days')
+    variables = ('tasmax',)
+    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
+    raw_condition = 'tasmax > avg_tasmax + 5'
+
+    def aggregate(self):
+        """ Calls get_streaks to get all sequences of abnormally hot days and count the number
+            that are at least 5 days long """
+        self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
+        sequences = self.get_streaks()
+        for key_vals, streaks in groupby(sequences, self.row_group_key):
+            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
+
+            yield dict(zip(self.aggregate_keys, key_vals) + [('value', num_dry_spells)])
+
+
 def list_available_indicators():
     """ List the defined class members of this module as the available indicators """
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
