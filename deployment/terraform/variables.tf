@@ -5,6 +5,8 @@
 # Must be one of release, staging, production
 variable "stack_type" { }
 
+variable "r53_hosted_zone_id" { }
+
 # Scaling
 
 variable "desired_instances" { }
@@ -37,3 +39,9 @@ variable "django_allowed_hosts" { }
 variable "s3storage_bucket" { }
 variable "sqs_queue_name" { }
 variable "cloudwatch_logs_group" { }
+
+# Static docs site
+variable "climate_docs_site_bucket" { }
+variable "climate_docs_logs_bucket" { }
+variable "r53_public_dns_docs" { }
+variable "acm_certificate_arn_docs" { }

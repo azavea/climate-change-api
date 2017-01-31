@@ -151,3 +151,18 @@ resource "aws_sqs_queue" "sqs_queue" {
   receive_wait_time_seconds = 10
   visibility_timeout_seconds = 14400
 }
+
+# Static Site
+module "static-site" {
+  source = "./static-site"
+
+  region = "us-east-1"
+  stack_type = "${var.stack_type}"
+
+  r53_hosted_zone_id = "${var.r53_hosted_zone_id}"
+
+  climate_docs_site_bucket = "${var.climate_docs_site_bucket}"
+  climate_docs_logs_bucket = "${var.climate_docs_logs_bucket}"
+  r53_public_dns_docs = "${var.r53_public_dns_docs}"
+  acm_certificate_arn_docs = "${var.acm_certificate_arn_docs}"
+}
