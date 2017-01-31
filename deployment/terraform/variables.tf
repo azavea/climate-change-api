@@ -34,6 +34,8 @@ variable "rds_username" { }
 variable "rds_storage_size_gb" { }
 variable "rds_cpu_credit_alarm_threshold" { }
 
+variable "ec_memcached_max_item_size" { }
+
 variable "django_secret_key" { }
 variable "django_allowed_hosts" { }
 variable "s3storage_bucket" { }
