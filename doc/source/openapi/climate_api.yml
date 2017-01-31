@@ -16,7 +16,7 @@ securityDefinitions:
 security:
   - Token: []
 paths:
-  /city/:
+  /api/city/:
     get:
       description: |
         List all available cities as a paginated GeoJson Feature Collection
@@ -47,7 +47,7 @@ paths:
             See City model definition.
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/nearest/:
+  /api/city/nearest/:
     get:
       description: |
         Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
@@ -79,7 +79,7 @@ paths:
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/{pk}/:
+  /api/city/{pk}/:
     get:
       description: |
         Look up a particular city by primary key
@@ -95,7 +95,7 @@ paths:
           description: A City object
           schema:
             $ref: "#/definitions/City"
-  /city/{pk}/boundary/:
+  /api/city/{pk}/boundary/:
     get:
       description: |
         Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
@@ -115,7 +115,7 @@ paths:
         "404":
           description: |
             No valid boundary
-  /climate-model/:
+  /api/climate-model/:
     get:
       description: Lists all climate models available via the Climate API
       produces:
@@ -127,7 +127,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/ClimateModel'
-  /climate-model/{name}/:
+  /api/climate-model/{name}/:
     get:
       description: Get information about a single Climate Model
       produces:
@@ -143,7 +143,7 @@ paths:
           description: ClimateModel object
           schema:
             $ref: '#/definitions/ClimateModel'
-  /scenario/:
+  /api/scenario/:
     get:
       description: Lists all scenarios available via the Climate API
       produces:
@@ -155,7 +155,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Scenario'
-  /scenario/{name}/:
+  /api/scenario/{name}/:
     get:
       description: Get information about a single Scenario
       produces:
@@ -171,7 +171,7 @@ paths:
           description: Scenario object
           schema:
             $ref: '#/definitions/Scenario'
-  /climate-data/{city}/{scenario}/:
+  /api/climate-data/{city}/{scenario}/:
     get:
       description: |
         Daily data aggregated across all or specified models for a city and scenario. All query parameters are optional.
@@ -231,7 +231,7 @@ paths:
             Climate data
           schema:
             $ref: '#/definitions/ClimateData'
-  /indicator/:
+  /api/indicator/:
     get:
       description: Lists all available indicators
       produces:
@@ -243,7 +243,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Indicator'
-  /indicator/{name}/:
+  /api/indicator/{name}/:
     get:
       description: Get information about a single indicator
       produces:
@@ -259,7 +259,7 @@ paths:
           description: Indicator object
           schema:
             $ref: '#/definitions/Indicator'
-  /climate-data/{city}/{scenario}/indicator/{indicator-name}/:
+  /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/:
     get:
       description: |
         Retrieves derived climate indicator data for the requested indicator

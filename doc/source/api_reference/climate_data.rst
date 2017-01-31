@@ -7,6 +7,6 @@ Climate data
 ____________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /climate-data/{city}/{scenario}/
+        /api/climate-data/{city}/{scenario}/
 
 .. _`rate-limited`: overview.html#rate-limiting

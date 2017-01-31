@@ -7,13 +7,13 @@ Scenario List
 _____________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /scenario/
+        /api/scenario/
 
 Scenario Detail
 _______________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /scenario/{name}/
+        /api/scenario/{name}/
 
 
 .. _`fifth IPCC Assessment Report`: https://en.wikipedia.org/wiki/IPCC_Fifth_Assessment_Report

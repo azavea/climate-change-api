@@ -8,7 +8,7 @@ ______________
 
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /indicator/
+        /api/indicator/
 
 Indicator Detail
 ________________
@@ -17,7 +17,7 @@ Detailed information about each indicator. The ``parameters`` attribute of the I
 
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /indicator/{name}/
+        /api/indicator/{name}/
 
 Indicator Data
 ______________
@@ -28,7 +28,7 @@ Returns data for a specified indicator and its unique required and optional quer
 
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /climate-data/{city}/{scenario}/indicator/{indicator-name}/
+        /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/
 
 
 Indicator Data Parameters
