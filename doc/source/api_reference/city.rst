@@ -9,22 +9,22 @@ List Cities
 ___________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /city/
+        /api/city/
 
 Nearest city or cities
 ______________________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /city/nearest/
+        /api/city/nearest/
 
 Request city
 ____________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /city/{pk}/
+        /api/city/{pk}/
 
 Get city boundary
 _________________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /city/{pk}/boundary/
+        /api/city/{pk}/boundary/

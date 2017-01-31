@@ -7,12 +7,12 @@ Climate Model List
 __________________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /climate-model/
+        /api/climate-model/
 
 Climate Model Detail
 ____________________
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /climate-model/{name}/
+        /api/climate-model/{name}/
 
 .. _`CMIP5 model output specification`: http://cmip-pcmdi.llnl.gov/cmip5/docs/CMIP5_output_metadata_requirements.pdf
