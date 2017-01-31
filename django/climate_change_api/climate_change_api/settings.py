@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'storages',
     'django_filters',
     'rest_framework',
+    'rest_framework_extensions',
     'rest_framework_gis',
     'rest_framework.authtoken',
     'corsheaders',
@@ -169,15 +170,20 @@ else:
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     },
-    # Use a custom separate cache for custom DRF throttling classes, since these
-    # don't require a heavyweight cache
+    'api_views': {
+        'BACKEND': CACHE_BACKEND,
+        'LOCATION': CACHE_LOCATION,
+    },
+    # Separation of concerns for throttling cache
     'api_throttling': {
         'BACKEND': CACHE_BACKEND,
         'LOCATION': CACHE_LOCATION
     }
 }
+
+API_VIEW_DEFAULT_CACHE_TIMEOUT = 60 * 60 * 24
 
 
 # Password validation
@@ -273,6 +279,16 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+
+
+# Django Rest Framework extensions
+# http://chibisov.github.io/drf-extensions/docs/
+REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_CACHE_ERRORS': False,
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': API_VIEW_DEFAULT_CACHE_TIMEOUT,
+    'DEFAULT_USE_CACHE': 'api_views',
+}
+
 
 # Watchman
 # http://django-watchman.readthedocs.io/en/latest/
