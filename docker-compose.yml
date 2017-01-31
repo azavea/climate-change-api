@@ -26,6 +26,7 @@ services:
       - $HOME/.aws:/root/.aws:ro
   memcached:
     image: memcached:1.4-alpine
+    command: [memcached, -I, 8M, -m, '256']
   postgres:
     image: quay.io/azavea/postgis:9.5.3
     environment:
