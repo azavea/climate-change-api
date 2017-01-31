@@ -7,7 +7,8 @@ from climate_data.tests.factories import (CityFactory,
                                           ClimateDataFactory,
                                           ClimateDataSourceFactory,
                                           ClimateDataCellFactory,
-                                          ClimateDataBaselineFactory)
+                                          ClimateDataBaselineFactory,
+                                          HistoricAverageClimateDataFactory)
 
 
 class CityDataSetupMixin(object):
@@ -119,6 +120,9 @@ class ClimateDataSetupMixin(object):
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=1,
                                    tasmax=10, tasmin=15, pr=15)
+
+        HistoricAverageClimateDataFactory(map_cell=self.mapcell, day_of_year=1,
+                                          tasmax=0, tasmin=0, pr=0)
 
         self.city1 = CityFactory(name='city1', admin='city1', map_cell=self.mapcell)
         self.city2 = CityFactory(name='city2', admin='city2')
