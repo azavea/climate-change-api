@@ -6,7 +6,7 @@ from django.db.models import F, Sum, Avg, Max, Min
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
+from .params import BaseTempIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -55,6 +55,28 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     # sum the results
     expression = F('pr') * SECONDS_PER_DAY
     agg_function = Sum
+
+
+class HotDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
+    label = 'Hot Days'
+    description = 'Number of days where tasmax exceeds a specified threshold'
+    variables = ('tasmax',)
+    params_class = BaseTempIndicatorParams
+
+    @property
+    def conditions(self):
+            return {'tasmax__gte': self.params.basetemp.value}
+
+
+class ColdDays(BasetempIndicatorMixin, DaysUnitsMixin, CountIndicator):
+    label = 'Hot Days'
+    description = 'Number of days where tasmin is below a specified threshold'
+    variables = ('tasmin',)
+    params_class = BaseTempIndicatorParams
+
+    @property
+    def conditions(self):
+            return {'tasmin__lte': self.params.basetemp.value}
 
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
@@ -136,7 +158,7 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
     description = 'Total difference of daily average temperature to a reference base temperature'
     variables = ('tasmax', 'tasmin',)
     agg_function = Sum
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):
@@ -153,7 +175,7 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
     description = 'Total difference of daily average temperature to a reference base temperature '
     variables = ('tasmax', 'tasmin',)
     agg_function = Sum
-    params_class = DegreeDayIndicatorParams
+    params_class = BaseTempIndicatorParams
 
     @property
     def conditions(self):

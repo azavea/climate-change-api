@@ -191,7 +191,7 @@ class Percentile99IndicatorParams(IndicatorParams):
                                 validators=[percentile_range_validator])
 
 
-class DegreeDayIndicatorParams(IndicatorParams):
+class BaseTempIndicatorParams(IndicatorParams):
 
     basetemp_units_validator = ChoicesValidator(TemperatureConverter.available_units)
 

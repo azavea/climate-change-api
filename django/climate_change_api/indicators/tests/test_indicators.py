@@ -293,6 +293,48 @@ class YearlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 1.0, 'min': 1, 'max': 1}}
 
 
+class YearlyHotDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.HotDays
+    indicator_name = 'hot_days'
+    time_aggregation = 'yearly'
+    extra_params = {
+        'basetemp': '10.5',
+        'basetemp_units': 'K'
+    }
+    test_indicator_rcp85_equals = {2000: {'avg': 1.0, 'min': 1.0, 'max': 1.0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                   2001: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                   2002: {'avg': 0.0, 'min': 0.0, 'max': 0.0},
+                                   2003: {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
+    test_years_filter_equals = {2001: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                2002: {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
+    test_models_filter_equals = {2000: {'avg': 0.0, 'min': 0.0, 'max': 0.0},
+                                 2001: {'avg': 0.0, 'min': 0.0, 'max': 0.0},
+                                 2002: {'avg': 0.0, 'min': 0.0, 'max': 0.0},
+                                 2003: {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
+
+
+class YearlyColdDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.ColdDays
+    indicator_name = 'cold_days'
+    time_aggregation = 'yearly'
+    extra_params = {
+        'basetemp': '10.5',
+        'basetemp_units': 'K'
+    }
+    test_indicator_rcp85_equals = {2000: {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                   2001: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                   2002: {'avg': 1.0, 'min': 1.0, 'max': 1.0},
+                                   2003: {'avg': 1.0, 'min': 1.0, 'max': 1.0}}
+    test_years_filter_equals = {2001: {'avg': 0.5, 'min': 0.0, 'max': 1.0},
+                                2002: {'avg': 1.0, 'min': 1.0, 'max': 1.0}}
+    test_models_filter_equals = {2000: {'avg': 1.0, 'min': 1.0, 'max': 1.0},
+                                 2001: {'avg': 1.0, 'min': 1.0, 'max': 1.0},
+                                 2002: {'avg': 1.0, 'min': 1.0, 'max': 1.0},
+                                 2003: {'avg': 1.0, 'min': 1.0, 'max': 1.0}}
+
+
 class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.HeatingDegreeDays
     indicator_name = 'heating_degree_days'
