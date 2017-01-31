@@ -13,7 +13,7 @@ test: build
 	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "migrate"
 	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "test" "--settings" "climate_change_api.settings_test"
 
-push: build test login
+push: build test docs login
 	docker-compose -f docker-compose.yml -f docker-compose.$(STACK_TYPE).yml run --rm --entrypoint "./manage.py" django "collectstatic" "--noinput"
 	docker tag django:$(COMMIT) $(REPO):$(COMMIT)
 	docker push $(REPO):$(COMMIT)
@@ -27,7 +27,7 @@ docs:
 login:
 	`aws $(AWSCLI_OPTS) ecr get-login`
 
-deploy: docs push
+deploy: push
 	cd deployment/terraform; $(MAKE) apply
 	aws s3 sync --delete ./doc/build/html "s3://${S3_BUCKET_DOCS}"
 
