@@ -9,11 +9,63 @@ _____________
     :paths:
         /api/scenario/
 
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/scenario/
+    Host: example.org
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+
+    [
+        {
+            "name": "RCP85",
+            "label": "RCP 8.5",
+            "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php"
+        },
+        {
+            "name": "historical",
+            "label": "Historical",
+            "description": "A historical dataset from NEX GDDP for 1950 to 2005 that blends reanalysis data with observations"
+        }
+    ]
+
 Scenario Detail
 _______________
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/scenario/{name}/
 
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/scenario/RCP85/
+    Host: example.org
+
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+      "name": "RCP85",
+      "label": "RCP 8.5",
+      "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php"
+    }
 
 .. _`fifth IPCC Assessment Report`: https://en.wikipedia.org/wiki/IPCC_Fifth_Assessment_Report
