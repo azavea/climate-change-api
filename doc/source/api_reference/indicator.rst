@@ -10,14 +10,6 @@ ______________
     :paths:
         /api/indicator/
 
-Indicator Detail
-________________
-
-Detailed information about each indicator. The ``parameters`` attribute of the Indicator response contains an array of `IndicatorParam`_ objects, which provides details about the paramaters that can be sent to the `Indicator data`_ endpoint.
-
-.. openapi:: /openapi/climate_api.yml
-    :paths:
-        /api/indicator/{name}/
 
 Indicator Data
 ______________

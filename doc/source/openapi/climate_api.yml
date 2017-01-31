@@ -243,22 +243,6 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Indicator'
-  /api/indicator/{name}/:
-    get:
-      description: Get information about a single indicator
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: name
-          description: Name of indicator
-          required: true
-          type: string
-      responses:
-        "200":
-          description: Indicator object
-          schema:
-            $ref: '#/definitions/Indicator'
   /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/:
     get:
       description: |
