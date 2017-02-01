@@ -239,6 +239,40 @@ class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 0, 'min': 0, 'max': 0}}
 
 
+class YearlyHeatWaveDurationIndexTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.HeatWaveDurationIndex
+    indicator_name = 'heat_wave_duration_index'
+    time_aggregation = 'yearly'
+    test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
+    test_indicator_rcp45_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
+                                   2001: {'avg': 1, 'min': 1, 'max': 1},
+                                   2002: {'avg': 1, 'min': 1, 'max': 1},
+                                   2003: {'avg': 1, 'min': 1, 'max': 1}}
+    test_years_filter_equals = {2001: {'avg': 1, 'min': 1, 'max': 1},
+                                2002: {'avg': 1, 'min': 1, 'max': 1}}
+    test_models_filter_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
+                                 2001: {'avg': 1, 'min': 1, 'max': 1},
+                                 2002: {'avg': 1, 'min': 1, 'max': 1},
+                                 2003: {'avg': 1, 'min': 1, 'max': 1}}
+
+
+class YearlyHeatWaveIncidentsTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.HeatWaveIncidents
+    indicator_name = 'heat_wave_incidents'
+    time_aggregation = 'yearly'
+    test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
+    test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                   2001: {'avg': 0, 'min': 0, 'max': 0},
+                                   2002: {'avg': 0, 'min': 0, 'max': 0},
+                                   2003: {'avg': 0, 'min': 0, 'max': 0}}
+    test_years_filter_equals = {2001: {'avg': 0, 'min': 0, 'max': 0},
+                                2002: {'avg': 0, 'min': 0, 'max': 0}}
+    test_models_filter_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
+                                 2001: {'avg': 0, 'min': 0, 'max': 0},
+                                 2002: {'avg': 0, 'min': 0, 'max': 0},
+                                 2003: {'avg': 0, 'min': 0, 'max': 0}}
+
+
 class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremePrecipitationEvents
     indicator_name = 'extreme_precipitation_events'
