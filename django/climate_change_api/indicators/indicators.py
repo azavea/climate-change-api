@@ -5,7 +5,7 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (CountIndicator, ThresholdIndicator,
+from .abstract_indicators import (CountIndicator, ThresholdIndicator, Indicator,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
 from .params import PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
