@@ -3,7 +3,6 @@ info:
   title: Azavea Climate Data API
   version: "0.1.0"
 host: staging.api.futurefeelslike.com
-basePath: /api
 schemes:
   - https
 produces:
