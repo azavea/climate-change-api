@@ -14,8 +14,9 @@ then
     then
         usage
     else
-      docker-compose run --rm --entrypoint "/bin/bash -c" "django" \
-                     "cd ../../doc; make html"
+        docker-compose build django
+        docker-compose run --rm --entrypoint "/bin/bash -c" "django" \
+                                             "cd ../../doc; make html"
     fi
     exit
 fi
