@@ -12,7 +12,7 @@ Example usage
 
 .. code-block:: http
 
-    POST /api-token-auth/
+    POST /api-token-auth/ HTTP/1.1
     Host: example.org
     Content-Type: application/x-www-form-urlencoded
     Content-Length: 40

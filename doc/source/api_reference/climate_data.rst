@@ -14,8 +14,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-data/1/RCP85/
+    GET /api/climate-data/1/RCP85/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -63,7 +64,7 @@ Response:
             "2050": {
                 "tasmax": [
                     279.064025878906,
-                    281.310546875
+                    281.310546875,
                 ],
                 "tasmin": [
                     271.326614379883,
