@@ -14,8 +14,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/scenario/
+    GET /api/scenario/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -50,8 +51,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/scenario/RCP85/
+    GET /api/scenario/RCP85/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 
 Response:

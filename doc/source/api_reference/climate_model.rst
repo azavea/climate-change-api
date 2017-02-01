@@ -14,8 +14,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-model/
+    GET /api/climate-model/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -50,8 +51,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-model/ACCESS1-0
+    GET /api/climate-model/ACCESS1-0 HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 

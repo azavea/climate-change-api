@@ -16,8 +16,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/city/
+    GET /api/city/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -70,8 +71,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/city/nearest/?lat=40&lon=285
+    GET /api/city/nearest/?lat=40&lon=285 HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -124,8 +126,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/city/2/
+    GET /api/city/2/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
@@ -178,8 +181,9 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/city/2/boundary/
+    GET /api/city/2/boundary/ HTTP/1.1
     Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
 
