@@ -249,7 +249,9 @@ paths:
         "200":
           description: A list of Indicator objects
           schema:
-            $ref: '#/definitions/IndicatorList'
+            type: array
+            items:
+              $ref: '#/definitions/Indicator'
   /indicator/{name}/:
     get:
       description: Get information about a single indicator
@@ -426,14 +428,6 @@ definitions:
         description: |
           A list of all of the query parameters that this indicator supports on the indicator
           data endpoint.
-  IndicatorList:
-    type: object
-    properties:
-      results:
-        type: array
-        items:
-          $ref: '#/definitions/Indicator'
-        description: List of available Indicator objects
   IndicatorParameter:
     type: object
     properties:
