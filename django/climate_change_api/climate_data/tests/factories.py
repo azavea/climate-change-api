@@ -6,7 +6,8 @@ from factory.django import DjangoModelFactory
 import factory
 
 from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
-                                 ClimateDataSource, Scenario, ClimateDataCell)
+                                 ClimateDataSource, Scenario, ClimateDataCell,
+                                 HistoricAverageClimateData)
 
 
 class CityFactory(DjangoModelFactory):
@@ -96,3 +97,16 @@ class ClimateDataBaselineFactory(DjangoModelFactory):
     class Meta:
         model = ClimateDataBaseline
         django_get_or_create = ('map_cell', 'percentile',)
+
+
+class HistoricAverageClimateDataFactory(DjangoModelFactory):
+
+    map_cell = ClimateDataCellFactory()
+    day_of_year = 1
+    tasmin = 0
+    tasmax = 0
+    pr = 0
+
+    class Meta:
+        model = HistoricAverageClimateData
+        django_get_or_create = ('map_cell', 'day_of_year',)
