@@ -3,7 +3,7 @@ from django.test import TestCase
 
 from climate_data.tests.mixins import ClimateDataSetupMixin
 from indicators import indicators
-from indicators.params import IndicatorParam, IndicatorParams, Percentile99IndicatorParams
+from indicators.params import IndicatorParam, IndicatorParams, PercentileIndicatorParams
 from indicators.utils import merge_dicts
 from indicators.validators import ChoicesValidator
 
@@ -44,13 +44,15 @@ class IndicatorParamsTestCase(TestCase):
 
     def setUp(self):
         self.default_parameters = {}
+        self.params_class_kwargs = {}
         self.default_units = 'F'
         self.available_units = ('F', 'C', 'K',)
         self.valid_aggregations = ('yearly', 'monthly', 'daily',)
         self.params_class = IndicatorParams
 
     def _get_params_class(self):
-        return self.params_class(self.default_units, self.available_units, self.valid_aggregations)
+        return self.params_class(self.default_units, self.available_units, self.valid_aggregations,
+                                 **self.params_class_kwargs)
 
     def test_validate_valid_only_expected_params(self):
         """ it should ensure indicator_params sets values for each of the base params """
@@ -131,7 +133,8 @@ class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
 
     def setUp(self):
         super(PercentileIndicatorParamsTestCase, self).setUp()
-        self.params_class = Percentile99IndicatorParams
+        self.params_class = PercentileIndicatorParams
+        self.params_class_kwargs = {'percentile': 99}
 
     def test_validate_percentile_default(self):
         """ It should use a default value if required param is missing """

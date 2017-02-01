@@ -38,13 +38,9 @@ CUSTOM_TIME_AGG_PARAM_DOCSTRING = ("Used in conjunction with the 'custom' time_a
                                    "formmatted MM-DD and pairs are formatted 'start:end'. Examples:"
                                    " '3-1:5-31', '1-1:6-30,7-1:12-31'")
 
-PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to calculate the number of exceeding "
-                              "events compared to historic levels. Must be an integer in the range "
-                              "[0,100].")
-
-PERCENTILE_1_PARAM_DOCSTRING = PERCENTILE_PARAM_DOCSTRING + " Defaults to 1."
-
-PERCENTILE_99_PARAM_DOCSTRING = PERCENTILE_PARAM_DOCSTRING + " Defaults to 99."
+PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to determine the appropriate "
+                              "comparative level of an event or measurement. Must be an integer in "
+                              "the range [0,100]. Defaults to %d")
 
 BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily difference for degree"
                             " days summations. Defaults to 65. See the 'basetemp_units' for a "
@@ -173,22 +169,18 @@ class IndicatorParams(object):
         return str(self.to_dict())
 
 
-class Percentile1IndicatorParams(IndicatorParams):
-    """ Extend IndicatorParams with a 'percentile' parameter, defaulting to 1 """
-    percentile = IndicatorParam('percentile',
-                                description=PERCENTILE_1_PARAM_DOCSTRING,
-                                required=False,
-                                default=1,
-                                validators=[percentile_range_validator])
+class PercentileIndicatorParams(IndicatorParams):
+    percentile = None
 
+    def __init__(self, *args, **kwargs):
+        percentile = kwargs.pop('percentile')
+        self.percentile = IndicatorParam('percentile',
+                                         description=PERCENTILE_PARAM_DOCSTRING % (percentile,),
+                                         required=False,
+                                         default=percentile,
+                                         validators=[percentile_range_validator])
 
-class Percentile99IndicatorParams(IndicatorParams):
-    """ Extend IndicatorParams with a 'percentile' parameter, defaulting to 99 """
-    percentile = IndicatorParam('percentile',
-                                description=PERCENTILE_99_PARAM_DOCSTRING,
-                                required=False,
-                                default=99,
-                                validators=[percentile_range_validator])
+        super(PercentileIndicatorParams, self).__init__(*args, **kwargs)
 
 
 class DegreeDayIndicatorParams(IndicatorParams):
