@@ -251,7 +251,7 @@ def climate_indicator_list(request, *args, **kwargs):
     Used to request indicators via /api/climate-data/:city/:scenario/indicator/:name/
 
     """
-    return Response({'results': list_available_indicators()})
+    return Response(list_available_indicators())
 
 
 @api_view(['GET'])
