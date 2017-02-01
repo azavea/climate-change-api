@@ -139,35 +139,27 @@ Response:
     Content-Type: application/json
 
     {
-        "type": "FeatureCollection",
-        "count": 1,
-        "next": null,
-        "previous": null,
-        "features": [
-            {
-                "id": 2,
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [
-                        -75.16379,
-                        39.95233
-                    ]
-                },
-                "properties": {
-                    "map_cell": {
-                        "type": "Point",
-                        "coordinates": [
-                            284.875,
-                            39.875
-                        ]
-                    },
-                    "name": "Philadelphia",
-                    "admin": "PA",
-                    "population": 1526006
-                }
-            }
-        ]
+        "id": 2,
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [
+                -75.16379,
+                39.95233
+            ]
+        },
+        "properties": {
+            "map_cell": {
+                "type": "Point",
+                "coordinates": [
+                    284.875,
+                    39.875
+                ]
+            },
+            "name": "Philadelphia",
+            "admin": "PA",
+            "population": 1526006
+        }
     }
 
 Get city boundary
