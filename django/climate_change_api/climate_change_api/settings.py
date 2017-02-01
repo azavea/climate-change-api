@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'bootstrap3',
     'watchman',
+    'postgres_stats',
 
     # Apps
     'climate_data',

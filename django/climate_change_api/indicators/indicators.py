@@ -3,10 +3,11 @@ import sys
 from itertools import groupby
 
 from django.db.models import F, Sum, Avg, Max, Min
+from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, Percentile1IndicatorParams, Percentile99IndicatorParams
+from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -46,6 +47,30 @@ class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Min
 
 
+class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Percentile High Temperature'
+    description = ('The specified percentile of high temperature for each timespan. '
+                   'Defaults to 50th percentile (Median)')
+    variables = ('tasmax',)
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 50}
+
+    def agg_function(self, expression):
+        return Percentile(expression, int(self.params.percentile.value) / 100.0)
+
+
+class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
+    label = 'Percentile Low Temperature'
+    description = ('The specified percentile of low temperature for each timespan. '
+                   'Defaults to 50th percentile (Median)')
+    variables = ('tasmin',)
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 50}
+
+    def agg_function(self, expression):
+        return Percentile(expression, int(self.params.percentile.value) / 100.0)
+
+
 class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
@@ -55,6 +80,18 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
     # sum the results
     expression = F('pr') * SECONDS_PER_DAY
     agg_function = Sum
+
+
+class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
+    label = 'Percentile Precipitation'
+    description = ('The specified percentile of precipitation for each timespan. '
+                   'Defaults to 50th percentile (Median)')
+    variables = ('pr',)
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 50}
+
+    def agg_function(self, expression):
+        return Percentile(expression, int(self.params.percentile.value) / 100.0) * SECONDS_PER_DAY
 
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
@@ -93,7 +130,8 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Precipitation Events'
     description = ('Total number of times per period daily precipitation exceeds the specified '
                    'percentile of observations from 1960 to 1995')
-    params_class = Percentile99IndicatorParams
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 99}
     variables = ('pr',)
 
     conditions = {'pr__gt': F('map_cell__baseline__pr')}
@@ -107,7 +145,8 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Heat Events'
     description = ('Total number of times per period daily maximum temperature exceeds the '
                    'specified percentile of observations from 1960 to 1995')
-    params_class = Percentile99IndicatorParams
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 99}
     variables = ('tasmax',)
 
     conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
@@ -121,7 +160,8 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Cold Events'
     description = ('Total number of times per period daily minimum temperature is below the '
                    'specified percentile of observations from 1960 to 1995')
-    params_class = Percentile1IndicatorParams
+    params_class = PercentileIndicatorParams
+    params_class_kwargs = {'percentile': 1}
     variables = ('tasmin',)
 
     conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
