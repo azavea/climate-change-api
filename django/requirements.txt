@@ -10,7 +10,6 @@ djangorestframework-gis==0.10.1
 git+git://github.com/aras7/django-postgres-stats.git@8097815b91ff42bbf5fd44be84020deab0a416d9
 django-filter==0.13.0
 django-registration==2.0.4
-django-rest-swagger==0.3.7
 django-bootstrap3==7.0.1
 factory_boy==2.8.1
 sphinx==1.5.1

@@ -47,7 +47,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # 3rd party
-    url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^healthcheck/', include('watchman.urls'))
 ]
 
