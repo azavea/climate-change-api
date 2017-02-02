@@ -70,8 +70,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(methods=['GET'])
     def nearest(self, request):
-        """ Given a lat/lon return the nearest city as a GeoJSON feature collection
-        """
+        """ Given a lat/lon return the nearest city as a GeoJSON feature collection """
         try:
             lat = float(request.query_params.get('lat', None))
         except (TypeError, ValueError):
@@ -141,8 +140,7 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 @climate_data_cache_control
 def climate_data_list(request, *args, **kwargs):
-    """ Retrieve all of the climate data for a given city and scenario
-    """
+    """ Retrieve all of the climate data for a given city and scenario """
     def filter_variables_list(variables):
         if variables:
             valid_variables = set(ClimateData.VARIABLE_CHOICES)
@@ -206,8 +204,7 @@ def climate_indicator_list(request, *args, **kwargs):
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 @climate_data_cache_control
 def climate_indicator(request, *args, **kwargs):
-    """ Calculate and return the value of a climate indicator for a given city+scenario
-    """
+    """ Calculate and return the value of a climate indicator for a given city+scenario """
     try:
         city = City.objects.get(id=kwargs['city'])
     except (City.DoesNotExist, City.MultipleObjectsReturned):
