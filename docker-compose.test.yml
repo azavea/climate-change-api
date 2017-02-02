@@ -4,3 +4,5 @@ services:
     image: django:${COMMIT}
     environment:
       COMMIT: ''
+  nginx:
+    image: nginx:${COMMIT}

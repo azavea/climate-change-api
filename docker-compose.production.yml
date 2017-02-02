@@ -4,3 +4,5 @@ services:
     image: django:${COMMIT}
     environment:
       CC_S3STORAGE_BUCKET: 'climate-change-api'
+  nginx:
+    image: nginx:${COMMIT}
