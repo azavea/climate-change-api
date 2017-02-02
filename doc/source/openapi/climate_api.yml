@@ -3,7 +3,6 @@ info:
   title: Azavea Climate Data API
   version: "0.1.0"
 host: staging.api.futurefeelslike.com
-basePath: /api
 schemes:
   - https
 produces:
@@ -16,9 +15,8 @@ securityDefinitions:
 security:
   - Token: []
 paths:
-  /city/:
+  /api/city/:
     get:
-      summary: List Cities
       description: |
         List all available cities as a paginated GeoJson Feature Collection
       parameters:
@@ -48,9 +46,8 @@ paths:
             See City model definition.
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/nearest/:
+  /api/city/nearest/:
     get:
-      summary: Nearest city or cities
       description: |
         Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
         Default to nearest 1 city unless otherwise specified by the limit parameter.
@@ -81,9 +78,8 @@ paths:
           description: A paginated GeoJson Feature Collection of City objects
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
-  /city/{pk}/:
+  /api/city/{pk}/:
     get:
-      summary: Request city
       description: |
         Look up a particular city by primary key
       parameters:
@@ -98,9 +94,8 @@ paths:
           description: A City object
           schema:
             $ref: "#/definitions/City"
-  /city/{pk}/boundary/:
+  /api/city/{pk}/boundary/:
     get:
-      summary: Get city boundary
       description: |
         Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
       parameters:
@@ -119,9 +114,8 @@ paths:
         "404":
           description: |
             No valid boundary
-  /climate-model/:
+  /api/climate-model/:
     get:
-      summary: Climate Model List
       description: Lists all climate models available via the Climate API
       produces:
         - application/json
@@ -132,9 +126,8 @@ paths:
             type: array
             items:
               $ref: '#/definitions/ClimateModel'
-  /climate-model/{name}/:
+  /api/climate-model/{name}/:
     get:
-      summary: Climate Model Detail
       description: Get information about a single Climate Model
       produces:
         - application/json
@@ -149,9 +142,8 @@ paths:
           description: ClimateModel object
           schema:
             $ref: '#/definitions/ClimateModel'
-  /scenario/:
+  /api/scenario/:
     get:
-      summary: Scenario List
       description: Lists all scenarios available via the Climate API
       produces:
         - application/json
@@ -162,9 +154,8 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Scenario'
-  /scenario/{name}/:
+  /api/scenario/{name}/:
     get:
-      summary: Scenario Detail
       description: Get information about a single Scenario
       produces:
         - application/json
@@ -179,9 +170,8 @@ paths:
           description: Scenario object
           schema:
             $ref: '#/definitions/Scenario'
-  /climate-data/{city}/{scenario}/:
+  /api/climate-data/{city}/{scenario}/:
     get:
-      summary: Climate data
       description: |
         Daily data aggregated across all or specified models for a city and scenario. All query parameters are optional.
       parameters:
@@ -240,7 +230,7 @@ paths:
             Climate data
           schema:
             $ref: '#/definitions/ClimateData'
-  /indicator/:
+  /api/indicator/:
     get:
       description: Lists all available indicators
       produces:
@@ -252,23 +242,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Indicator'
-  /indicator/{name}/:
-    get:
-      description: Get information about a single indicator
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: name
-          description: Name of indicator
-          required: true
-          type: string
-      responses:
-        "200":
-          description: Indicator object
-          schema:
-            $ref: '#/definitions/Indicator'
-  /climate-data/{city}/{scenario}/indicator/{indicator-name}/:
+  /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/:
     get:
       description: |
         Retrieves derived climate indicator data for the requested indicator
@@ -306,7 +280,6 @@ paths:
             request can be retried.
   /api-token-auth/:
     post:
-      summary: Retrieve auth token
       description: |
         Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
       parameters:
