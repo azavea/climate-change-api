@@ -35,8 +35,6 @@ Vagrant.configure(2) do |config|
   # django runserver/debugging
   config.vm.network :forwarded_port, guest: 8082, host: Integer(ENV.fetch("CC_PORT_8082", 8082))
 
-  # Docs
-  config.vm.network :forwarded_port, guest: 8089, host: Integer(ENV.fetch("CC_PORT_8089", 8089))
   config.ssh.forward_x11 = true
 
   config.vm.provision "shell" do |s|
