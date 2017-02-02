@@ -70,28 +70,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(methods=['GET'])
     def nearest(self, request):
-        """ Given a lat/lon return the nearest city as a GeoJSON feature collection
-
-        ---
-
-        parameters:
-          - name: lat
-            description: The latitude to search at
-            required: true
-            type: float
-            paramType: query
-          - name: lon
-            description: The longitude to search at
-            required: true
-            type: float
-            paramType: query
-          - name: limit
-            description: The number of results to return. Defaults to 1.
-            required: false
-            type: int
-            paramType: query
-
-        """
+        """ Given a lat/lon return the nearest city as a GeoJSON feature collection """
         try:
             lat = float(request.query_params.get('lat', None))
         except (TypeError, ValueError):
@@ -161,40 +140,7 @@ class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 @climate_data_cache_control
 def climate_data_list(request, *args, **kwargs):
-    """ Retrieve all of the climate data for a given city and scenario
-
-    ---
-
-    omit_serializer: true
-    parameters:
-      - name: models
-        description: A list of comma separated model names to filter the response data by.
-                     The data values in the response will be an average of the selected models.
-                     If not provided, defaults to all models.
-        required: false
-        type: string
-        paramType: query
-      - name: variables
-        description: A list of comma separated variables to filter by. Available values are
-                     'tasmax', 'tasmin' and 'pr'. If not provided, defaults to all variables.
-        required: false
-        type: string
-        paramType: query
-      - name: years
-        description: A list of comma separated year ranges to filter the response by. Defaults
-                     to all years available. A year range is of the form 'start[:end]'. These are
-                     some examples - '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'
-        required: false
-        type: string
-        paramType: query
-      - name: agg
-        description: Use a different aggregation to generate the data values across models. Can
-                     be one of [min,max,avg]. If not provided, defaults to 'avg'.
-        required: false
-        type: string
-        paramType: query
-
-    """
+    """ Retrieve all of the climate data for a given city and scenario """
     def filter_variables_list(variables):
         if variables:
             valid_variables = set(ClimateData.VARIABLE_CHOICES)
@@ -258,82 +204,7 @@ def climate_indicator_list(request, *args, **kwargs):
 @throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
 @climate_data_cache_control
 def climate_indicator(request, *args, **kwargs):
-    """ Calculate and return the value of a climate indicator for a given city+scenario
-
-    ---
-
-    omit_serializer: true
-    parameters:
-      - name: models
-        description: A list of comma separated model names to filter the indicator by.
-                     The indicator values in the response will only use the selected models.
-                     If not provided, defaults to all models.
-        required: false
-        type: string
-        paramType: query
-      - name: years
-        description: A list of comma separated year ranges to filter the response by. Defaults
-                     to all years available. A year range is of the form 'start[:end]'. These are
-                     some examples - '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'
-        required: false
-        type: string
-        paramType: query
-      - name: agg
-        description: A list of comma separated aggregation types to return. Valid choices are
-                     'min', 'max', 'avg', 'median', 'stddev', 'stdev', and 'XXth'. If using 'XXth',
-                     replace the XX with a number between 1-99 to return that percentile. For
-                     example, '99th' returns the value of the 99th percentile. The 'XXth' option
-                     can be provided multiple times with different values. 'stdev' is an alias to
-                     'stddev'.
-                     Defaults to 'min', 'max', 'avg'.
-        required: false
-        type: string
-        paramType: query
-      - name: time_aggregation
-        description: Time granularity to group data by for result structure. Valid aggregations
-                     depend on indicator. Can be 'yearly', 'quarterly', 'monthly', 'daily' or
-                     'custom'. Defaults to  'yearly'. If 'custom', 'custom_time_agg' parameter
-                     must be set.
-        required: false
-        type: string
-        paramType: query
-      - name: custom_time_agg
-        description: Used in conjunction with the 'custom' time_aggregation value. A list of comma
-                     separated month-day pairs defining the time intervals to aggregate within. Data
-                     points will only be assigned to one aggregation, and for overlapping intervals
-                     the interval defined first will take precedence. Dates are formmatted MM-DD and
-                     pairs are formatted 'start:end'. For example, '3-1:5-31', '1-1:6-30,7-1:12-31'
-        required: false
-        type: string
-        paramType: query
-      - name: units
-        description: Units in which to return the data. Defaults to Imperial units (Fahrenheit for
-                     temperature indicators and inches per day for precipitation).
-        required: false
-        type: string
-        paramType: query
-      - name: percentile
-        description: (Appropriate indicators only) The percentile threshold used to calculate
-                     the number of exceeding events compared to historic levels. Default depends on
-                     indicator.
-        required: false
-        type: integer
-        paramType: query
-      - name: basetemp
-        description: (Appropriate indicators only) The base temperature used to calculate the daily
-                     difference for degree days summations. Defaults to 65. See the 'basetemp_units'
-                     for a discussion of the units this value uses.
-        required: false
-        type: integer
-        paramType: query
-      - name: basetemp_units
-        description: (Appropriate indicators only) Units for the value of the 'basetemp' parameter.
-                     Defaults to 'F'.
-        required: false
-        type: string
-        paramType: query
-
-    """
+    """ Calculate and return the value of a climate indicator for a given city+scenario """
     try:
         city = City.objects.get(id=kwargs['city'])
     except (City.DoesNotExist, City.MultipleObjectsReturned):
@@ -375,10 +246,3 @@ def climate_indicator(request, *args, **kwargs):
         ('units', indicator_class.params.units.value),
         ('data', data),
     ]))
-
-
-def swagger_docs_permission_denied_handler(request):
-    """ Redirect to login when accessing docs if not logged in """
-    path = u'{}?{}'.format(reverse('django.contrib.auth.views.login'),
-                           urlencode({'next': request.path}))
-    return HttpResponseRedirect(path)
