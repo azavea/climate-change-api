@@ -18,6 +18,7 @@ from rest_framework_extensions.cache.mixins import CacheResponseMixin
 
 from climate_change_api.throttling import (ClimateDataBurstRateThrottle,
                                            ClimateDataSustainedRateThrottle)
+from climate_data.caching import full_url_cache_key_func
 from climate_data.filters import ClimateDataFilterSet
 from climate_data.models import City, ClimateData, ClimateModel, Scenario
 from climate_data.serializers import (CitySerializer,
@@ -69,7 +70,7 @@ class CityViewSet(CacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     distance_filter_convert_meters = True
 
     @list_route(methods=['GET'])
-    @cache_response()
+    @cache_response(key_func=full_url_cache_key_func)
     def nearest(self, request):
         """ Given a lat/lon return the nearest city as a GeoJSON feature collection """
         try:
@@ -100,7 +101,7 @@ class CityViewSet(CacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     @detail_route(methods=['GET'])
-    @cache_response()
+    @cache_response(key_func=full_url_cache_key_func)
     def boundary(self, request, pk=None):
         """ Return the geographical boundary associated with this city as GeoJSON
 
@@ -142,7 +143,7 @@ class ClimateDataView(APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
-    @cache_response()
+    @cache_response(key_func=full_url_cache_key_func)
     @climate_data_cache_control
     def get(self, request, *args, **kwargs):
         """ Retrieve all of the climate data for a given city and scenario """
@@ -212,7 +213,7 @@ class IndicatorDataView(APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
-    @cache_response()
+    @cache_response(key_func=full_url_cache_key_func)
     @climate_data_cache_control
     def get(self, request, *args, **kwargs):
         """ Calculate and return the value of a climate indicator for a given city+scenario """
