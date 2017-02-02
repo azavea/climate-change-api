@@ -21,4 +21,9 @@ Optional. Ancillary topics, caveats, alternative strategies that didn't work out
  * Include any setup required, such as bundling scripts, restarting services, etc.
  * Include test case, and expected output
 
+## Checklist
+
+ - [ ] Do tests pass?
+ - [ ] Does this PR require an update to the API Documentation?
+
 See|Connects|Closes #XXX
