@@ -1,20 +1,16 @@
 from collections import OrderedDict
 import logging
 
-from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.utils.cache import patch_cache_control
-from django.utils.http import urlencode
-from django.views.decorators.cache import cache_page
 
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, detail_route, list_route, throttle_classes
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_extensions.cache.decorators import cache_response
@@ -142,116 +138,122 @@ class ScenarioViewSet(CacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('name',)
 
 
-@api_view(['GET'])
-@throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
-@cache_page(settings.API_VIEW_DEFAULT_CACHE_TIMEOUT, cache='api_views')
-@climate_data_cache_control
-def climate_data_list(request, *args, **kwargs):
-    """ Retrieve all of the climate data for a given city and scenario """
-    def filter_variables_list(variables):
-        if variables:
-            valid_variables = set(ClimateData.VARIABLE_CHOICES)
-            params_variables = set(variables.split(','))
-            return valid_variables.intersection(params_variables)
-        else:
-            return set(ClimateData.VARIABLE_CHOICES)
+class ClimateDataView(APIView):
 
-    try:
-        city = City.objects.get(id=kwargs['city'])
-    except (City.DoesNotExist, City.MultipleObjectsReturned):
-        raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
-    try:
-        scenario = Scenario.objects.get(name=kwargs['scenario'])
-    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
-        raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+    @cache_response()
+    @climate_data_cache_control
+    def get(self, request, *args, **kwargs):
+        """ Retrieve all of the climate data for a given city and scenario """
+        def filter_variables_list(variables):
+            if variables:
+                valid_variables = set(ClimateData.VARIABLE_CHOICES)
+                params_variables = set(variables.split(','))
+                return valid_variables.intersection(params_variables)
+            else:
+                return set(ClimateData.VARIABLE_CHOICES)
 
-    queryset = ClimateData.objects.filter(map_cell=city.map_cell, data_source__scenario=scenario)
+        try:
+            city = City.objects.get(id=kwargs['city'])
+        except (City.DoesNotExist, City.MultipleObjectsReturned):
+            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
 
-    # Get valid model params list to use in response
-    models_param = request.query_params.get('models', None)
-    model_list = ClimateModel.objects.all().only('name')
-    if models_param:
-        model_list = model_list.filter(name__in=models_param.split(','))
+        try:
+            scenario = Scenario.objects.get(name=kwargs['scenario'])
+        except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
+            raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-    # Get valid variable params list to use in response & serializer context
-    variables = request.query_params.get('variables', None)
-    cleaned_variables = filter_variables_list(variables)
+        queryset = ClimateData.objects.filter(map_cell=city.map_cell,
+                                              data_source__scenario=scenario)
 
-    # Get valid aggregation param
-    AGGREGATION_CHOICES = ('avg', 'min', 'max',)
-    aggregation = request.query_params.get('agg', 'avg')
-    aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
+        # Get valid model params list to use in response
+        models_param = request.query_params.get('models', None)
+        model_list = ClimateModel.objects.all().only('name')
+        if models_param:
+            model_list = model_list.filter(name__in=models_param.split(','))
 
-    # Filter on the ClimateData filter set
-    data_filter = ClimateDataFilterSet(request.query_params, queryset)
+        # Get valid variable params list to use in response & serializer context
+        variables = request.query_params.get('variables', None)
+        cleaned_variables = filter_variables_list(variables)
 
-    context = {'variables': cleaned_variables, 'aggregation': aggregation}
-    serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
-    return Response(OrderedDict([
-        ('city', CitySerializer(city).data),
-        ('scenario', scenario.name),
-        ('climate_models', [m.name for m in model_list]),
-        ('variables', cleaned_variables),
-        ('data', serializer.data),
-    ]))
+        # Get valid aggregation param
+        AGGREGATION_CHOICES = ('avg', 'min', 'max',)
+        aggregation = request.query_params.get('agg', 'avg')
+        aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
 
+        # Filter on the ClimateData filter set
+        data_filter = ClimateDataFilterSet(request.query_params, queryset)
 
-@api_view(['GET'])
-@cache_page(settings.API_VIEW_DEFAULT_CACHE_TIMEOUT, cache='api_views')
-def climate_indicator_list(request, *args, **kwargs):
-    """ Return the list of available indicators
-
-    Used to request indicators via /api/climate-data/:city/:scenario/indicator/:name/
-
-    """
-    return Response(list_available_indicators())
-
-
-@api_view(['GET'])
-@throttle_classes([ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle])
-@cache_page(settings.API_VIEW_DEFAULT_CACHE_TIMEOUT, cache='api_views')
-@climate_data_cache_control
-def climate_indicator(request, *args, **kwargs):
-    """ Calculate and return the value of a climate indicator for a given city+scenario """
-    try:
-        city = City.objects.get(id=kwargs['city'])
-    except (City.DoesNotExist, City.MultipleObjectsReturned):
-        raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
-
-    try:
-        scenario = Scenario.objects.get(name=kwargs['scenario'])
-    except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
-        raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
-
-    # Get valid model params list to use in response
-    models_param = request.query_params.get('models', None)
-    if models_param:
-        model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
-    else:
-        model_list = ClimateModel.objects.all()
-
-    indicator_key = kwargs['indicator']
-    IndicatorClass = indicator_factory(indicator_key)
-    if not IndicatorClass:
-        raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
-    try:
-        indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
-    except ValidationError as e:
-        # If indicator class/params fails validation, return error with help text for
-        # as much context as possible.
+        context = {'variables': cleaned_variables, 'aggregation': aggregation}
+        serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
         return Response(OrderedDict([
-            ('error', str(e)),
-            ('help', IndicatorClass.init_params_class().to_dict()),
-        ]), status=status.HTTP_400_BAD_REQUEST)
-    data = indicator_class.calculate()
+            ('city', CitySerializer(city).data),
+            ('scenario', scenario.name),
+            ('climate_models', [m.name for m in model_list]),
+            ('variables', cleaned_variables),
+            ('data', serializer.data),
+        ]))
 
-    return Response(OrderedDict([
-        ('city', CitySerializer(city).data),
-        ('scenario', scenario.name),
-        ('indicator', IndicatorClass.to_dict()),
-        ('climate_models', [m.name for m in model_list]),
-        ('time_aggregation', indicator_class.params.time_aggregation.value),
-        ('units', indicator_class.params.units.value),
-        ('data', data),
-    ]))
+
+class IndicatorListView(APIView):
+
+    @cache_response()
+    def get(self, request, *args, **kwargs):
+        """ Return the list of available indicators
+
+        Used to request indicators via /api/climate-data/:city/:scenario/indicator/:name/
+
+        """
+        return Response(list_available_indicators())
+
+
+class IndicatorDataView(APIView):
+
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
+
+    @cache_response()
+    @climate_data_cache_control
+    def get(self, request, *args, **kwargs):
+        """ Calculate and return the value of a climate indicator for a given city+scenario """
+        try:
+            city = City.objects.get(id=kwargs['city'])
+        except (City.DoesNotExist, City.MultipleObjectsReturned):
+            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+
+        try:
+            scenario = Scenario.objects.get(name=kwargs['scenario'])
+        except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
+            raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+
+        # Get valid model params list to use in response
+        models_param = request.query_params.get('models', None)
+        if models_param:
+            model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
+        else:
+            model_list = ClimateModel.objects.all()
+
+        indicator_key = kwargs['indicator']
+        IndicatorClass = indicator_factory(indicator_key)
+        if not IndicatorClass:
+            raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
+        try:
+            indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
+        except ValidationError as e:
+            # If indicator class/params fails validation, return error with help text for
+            # as much context as possible.
+            return Response(OrderedDict([
+                ('error', str(e)),
+                ('help', IndicatorClass.init_params_class().to_dict()),
+            ]), status=status.HTTP_400_BAD_REQUEST)
+        data = indicator_class.calculate()
+
+        return Response(OrderedDict([
+            ('city', CitySerializer(city).data),
+            ('scenario', scenario.name),
+            ('indicator', IndicatorClass.to_dict()),
+            ('climate_models', [m.name for m in model_list]),
+            ('time_aggregation', indicator_class.params.time_aggregation.value),
+            ('units', indicator_class.params.units.value),
+            ('data', data),
+        ]))
