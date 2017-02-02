@@ -27,37 +27,35 @@ Response:
     Vary: Accept
     Content-Type: application/json
 
-    {
-        "results": [
-            {
-                "name": "example_temperature_indicator",
-                "label": "Example Temperature Indicator",
-                "description": "Simplified indicator to demonstrate the response format",
-                "valid_aggregations": [
-                    "yearly",
-                    "monthly"
-                ],
-                "variables": [
-                    "tasmax",
-                    "tasmin"
-                ],
-                "available_units": [
-                    "C",
-                    "K",
-                    "F"
-                ],
-                "default_units": "F",
-                "parameters": [
-                    {
-                        "name": "example",
-                        "description": "Example parameter",
-                        "required": false,
-                        "default": false
-                    }
-                ]
-            }
-        ]
-    }
+    [
+        {
+            "name": "example_temperature_indicator",
+            "label": "Example Temperature Indicator",
+            "description": "Simplified indicator to demonstrate the response format",
+            "valid_aggregations": [
+                "yearly",
+                "monthly"
+            ],
+            "variables": [
+                "tasmax",
+                "tasmin"
+            ],
+            "available_units": [
+                "C",
+                "K",
+                "F"
+            ],
+            "default_units": "F",
+            "parameters": [
+                {
+                    "name": "example",
+                    "description": "Example parameter",
+                    "required": false,
+                    "default": false
+                }
+            ]
+        }
+    ]
 
 
 Indicator Data
