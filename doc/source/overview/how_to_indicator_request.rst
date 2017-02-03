@@ -83,9 +83,15 @@ Each indicator provides a description, parameters, and parameter options. Any sp
 Get Indicator Data
 __________________
 
-To access the `climate data endpoint`_ and retrieve data, we need a city ID and scenario. See examples on fetching `city`_ and `scenario`_ info.
+To access the `indicator data endpoint`_ and retrieve data, we need a city ID, scenario, and indicator. See examples on fetching `city`_ and `scenario`_ info. The indicator is your choice from the previous indicator list request. Since we're investigating drought, we'll look at the ``total_precipitation`` indicator, shown above.
 
 Next, let's use the available parameters to better answer your question. Maybe you'd just like medium and long term annual snapshots, say 2050-2059 and 2090-2099. Maybe you want to prepare for worst and best case scenarios, so you request the minimum and 95th percentile aggregations across models. And maybe you're Canadian, so we'll request the data in metric units.
+
+The three paramaters (city id ``16``, scenario ``RCP85``, and indicator ``total_precipitation``) go directly in the request path::
+
+    /api/climate-data/16/RCP85/indicator/total_precipitation/
+
+The remaining parmeters are appended to the above request as a query string, order agnostic, as ``parameter.name=your_comma_separated_values``. For example, the years 2050-2059, 2090-2099 will be ``years=2050:2059,2090:2099``, the aggregation methods ``agg=min,95th`` and units ``units=mm``. We do not specify the optional parameters whose default values are acceptable. The final request after appending the query parameters to the request:
 
 .. code-block:: http
 
@@ -195,12 +201,11 @@ Response:
         }
     }
 
-
-Note that we did not specify the optional path parameters whose default values were acceptable.
+Success! To answer our question, we can expect continued, consistent drought mid century and noteworthy turbulence to the norm in precipitation end of century. Notwithstanding, Los Angeles can expect its current drought patterns to be a fairly good measure for future planning. Now that you've successfully made this request, consider adjusting the parameters yourself on ``total_precipitation`` or query other indicators to get more perspectives on precipitation to further explore drought in Los Angeles.
 
 
 .. _get the full list: api_reference.html#indicator-list
-.. _climate data endpoint: api_reference.html#get--api-climate-data-city-scenario-
+.. _indicator data endpoint: api_reference.html#indicator-data
 .. _city: api_reference.html#nearest-city-or-cities
 .. _scenario: api_reference.html#scenario-list
 
