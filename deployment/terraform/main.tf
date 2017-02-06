@@ -55,6 +55,11 @@ resource "aws_elasticache_parameter_group" "memcached" {
   name = "cc-ec-parameter-group"
   description = "Parameter Group for ElastiCache Memcached"
   family = "memcached1.4"
+
+  parameter {
+    name = "max_item_size"
+    value = "${var.ec_memcached_max_item_size}"
+  }
 }
 
 module "cache" {
@@ -63,7 +68,7 @@ module "cache" {
   vpc_id                     = "${module.vpc.id}"
   cache_identifier           = "cc-ec-memcached"
   desired_clusters           = "1"
-  instance_type              = "cache.t2.micro"
+  instance_type              = "cache.t2.small"
   engine_version             = "1.4.33"
   parameter_group            = "${aws_elasticache_parameter_group.memcached.name}"
   subnet_group               = "${aws_elasticache_subnet_group.memcached.name}"

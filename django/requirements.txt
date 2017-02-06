@@ -4,8 +4,9 @@ boto3==1.2.3
 ipdb==0.10.0
 django-cors-headers==1.1.0
 django-extensions==1.5.9
-djangorestframework==3.3.3
-djangorestframework-gis==0.10.1
+djangorestframework==3.4.7
+djangorestframework-gis==0.11.0
+drf-extensions==0.3.1
 # Using hash for Python 2 support - see https://github.com/rtidatascience/django-postgres-stats/pull/2
 git+git://github.com/aras7/django-postgres-stats.git@8097815b91ff42bbf5fd44be84020deab0a416d9
 django-filter==0.13.0
