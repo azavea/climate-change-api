@@ -5,15 +5,39 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
+from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin, ThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
+from .params import DegreeDayIndicatorParams, PercentileIndicatorParams, ThresholdIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
 
 ##########################
 # Aggregated indicators
+
+class MaxTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+    label = 'Max Temperature Threshold'
+    description = ('Number of days where high temperature, generated from daily data ' +
+                   'using all requested models, fulfils the comparison')
+    variables = ('tasmax',)
+    params_class = ThresholdIndicatorParams
+
+
+class MinTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+    label = 'Min Temperature Threshold'
+    description = ('Number of days where min temperature, generated from daily data ' +
+                   'using all requested models, fulfils the comparison')
+    variables = ('tasmin',)
+    params_class = ThresholdIndicatorParams
+
+
+class PrecipitationThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+    label = 'Precipitation Threshold'
+    description = ('Number of days where precipitation, generated from daily data ' +
+                   'using all requested models, fulfils the comparison')
+    variables = ('pr',)
+    params_class = ThresholdIndicatorParams
+
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
@@ -94,12 +118,13 @@ class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
         return Percentile(expression, int(self.params.percentile.value) / 100.0) * SECONDS_PER_DAY
 
 
-class FrostDays(DaysUnitsMixin, CountIndicator):
+class FrostDays(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
     label = 'Frost Days'
     description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
     variables = ('tasmin',)
-    conditions = {'tasmin__lt': 273.15}
+    params_class = ThresholdIndicatorParams
+    params_class_kwargs = {'threshold': 0, 'threshold_units': 'C', 'threshold_comparator': 'lt'}
 
 
 class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
