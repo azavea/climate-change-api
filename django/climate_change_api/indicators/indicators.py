@@ -118,13 +118,12 @@ class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
         return Percentile(expression, int(self.params.percentile.value) / 100.0) * SECONDS_PER_DAY
 
 
-class FrostDays(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+class FrostDays(DaysUnitsMixin, CountIndicator):
     label = 'Frost Days'
     description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
     variables = ('tasmin',)
-    params_class = ThresholdIndicatorParams
-    params_class_kwargs = {'threshold': 0, 'threshold_units': 'C', 'threshold_comparator': 'lt'}
+    conditions = {'tasmin__lte': 273.15}
 
 
 class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
