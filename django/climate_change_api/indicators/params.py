@@ -42,12 +42,14 @@ PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to determine the ap
                               "comparative level of an event or measurement. Must be an integer in "
                               "the range [0,100]. Defaults to %d")
 
-BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily difference for degree"
-                            " days summations. Defaults to 65. See the 'basetemp_units' for a "
-                            "discussion of the units this value uses.")
 
-BASETEMP_UNITS_PARAM_DOCSTRING = "Units for the value of the 'basetemp' parameter. Defaults to 'F'."
+THRESHOLD_PARAM_DOCSTRING = ("The value against which to compare climate data values. Unit assumed 'units' param"
+                             "else the indicator default unit.")
 
+THRESHOLD_UNITS_PARAM_DOCSTRING = ("Threshold unit type")
+
+THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("The comparison type against the threshold value. Options: lt, gt, lte, gte, e"
+                                  "Signify: less than, greater than, less than or equals...")
 
 class IndicatorParam(object):
     """ Defines an individual query parameter for an Indicator request
@@ -183,18 +185,23 @@ class PercentileIndicatorParams(IndicatorParams):
         super(PercentileIndicatorParams, self).__init__(*args, **kwargs)
 
 
-class DegreeDayIndicatorParams(IndicatorParams):
+class ThresholdIndicatorParams(IndicatorParams):
 
-    basetemp_units_validator = ChoicesValidator(TemperatureConverter.available_units)
+    valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte', 'e', 'none')
+    threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
 
-    basetemp = IndicatorParam('basetemp',
-                              description=BASETEMP_PARAM_DOCSTRING,
-                              required=False,
-                              default=65,
-                              validators=[float_validator])
+    threshold = IndicatorParam('threshold',
+                               description=THRESHOLD_PARAM_DOCSTRING,
+                               required=False,
+                               default=0,
+                               validators=[float_validator])
 
-    basetemp_units = IndicatorParam('basetemp_units',
-                                    description=BASETEMP_UNITS_PARAM_DOCSTRING,
-                                    required=False,
-                                    default='F',
-                                    validators=[basetemp_units_validator])
+    threshold_units = IndicatorParam('threshold_units',
+                                     description=THRESHOLD_UNITS_PARAM_DOCSTRING,
+                                     required=False)
+
+    threshold_comparator = IndicatorParam('threshold_comparator',
+                                          description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
+                                          required=False,
+                                          default='none',
+                                          validators=[threshold_comparator_validator])

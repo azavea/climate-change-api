@@ -9,9 +9,9 @@ from django.db import connection
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .params import IndicatorParams
+from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin, TemperatureConverter
+from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
 
 
@@ -156,7 +156,6 @@ class Indicator(object):
         target value under the 'value' key.
         e.g. { 'data_source__year': 2077, 'data_source__model': 4, 'value': 74.59}
         """
-
         if self.conditions:
             agg_function = self.agg_function(Case(When(then=self.expression, **self.conditions),
                                              default=self.default_value,
@@ -310,17 +309,38 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
             yield dict(zip(self.aggregate_keys, key_vals) + [('value', longest)])
 
 
-class BasetempIndicatorMixin(object):
-    """ Framework for pre-processing the basetemp parameter to a native unit
+class ThresholdIndicator(Indicator):
+    """ Enables results to be counted based on comparison to a static threshold value
+        Takes 3 optional additional parameters: threshold, threshold_units, threshold_comparator
     """
 
+    params_class = ThresholdIndicatorParams
+
     def __init__(self, *args, **kwargs):
-        super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
+        super(ThresholdIndicator, self).__init__(*args, **kwargs)
+        self.set_threshold_values()
 
-        value = self.params.basetemp.value
-        basetemp_units = self.params.basetemp_units.value
-        unit = basetemp_units if basetemp_units is not None else self.params.units.value
+    def set_threshold_values(self):
+        if self.has_threshold:
+            # Convert threshold value to appropriate format
+            value = self.params.threshold.value
+            unit = self.params.threshold_units.value if self.params.threshold_units.value else self.params.units.value
 
-        converter = TemperatureConverter.get(unit, self.storage_units)
-        self.params.basetemp.value = converter(float(value))
-        self.params.basetemp_units.value = self.storage_units
+            if self.variables[0] != 'pr':
+                converter = TemperatureConverter.get(unit, self.storage_units)
+            else:
+                converter = PrecipitationConverter.get(unit, self.storage_units)
+
+            self.agg_function = Sum
+            self.params.threshold.value = converter(float(value))
+            self.params.threshold_units.value = self.storage_units
+            if not self.conditions:
+                self.conditions = {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+
+    @property
+    def has_threshold(self):
+        return True if self.params.threshold_comparator.value is not 'none' else False
+
+    @property
+    def expression(self):
+        return 1 if self.has_threshold else self.variables[0]
