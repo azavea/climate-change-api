@@ -123,7 +123,7 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
     description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
     variables = ('tasmin',)
-    conditions = {'tasmin__lte': 273.15}
+    conditions = {'tasmin__lt': 273.15}
 
 
 class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
