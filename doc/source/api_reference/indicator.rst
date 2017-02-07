@@ -169,7 +169,7 @@ The Indicator object describes all query parameters available for that indicator
 
 These parameters can be used to tweak the `Indicator data`_ request for any indicator.
 
-TODO: Add a note here linking to the example indicator workflow in Overview once that exists.
+To see this in action, step through `how to make an indicator request`_.
 
 .. _`contact us`: support@futurefeelslike.com
 .. _`Climate Data`: api_reference.html#climate-data
@@ -178,3 +178,4 @@ TODO: Add a note here linking to the example indicator workflow in Overview once
 .. _`Indicator data`: api_reference.html#indicator-data
 .. _`IndicatorParam`: api_reference.html#indicator-data-parameters
 .. _`rate-limited`: overview.html#rate-limiting
+.. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
