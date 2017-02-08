@@ -9,7 +9,7 @@ from django.db import connection
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .params import IndicatorParams
+from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
@@ -327,6 +327,8 @@ class BasetempIndicatorMixin(object):
 
 class ThresholdIndicatorMixin(object):
     """ Framework for capturing and pre-processing threshold parameters """
+
+    params_class = ThresholdIndicatorParams
 
     def __init__(self, *args, **kwargs):
         super(ThresholdIndicatorMixin, self).__init__(*args, **kwargs)
