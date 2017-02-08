@@ -1,0 +1,14 @@
+---
+- name: Install dredd
+  command: "npm install --global --force dredd@stable"
+
+- name: Symlink dredd into /usr/local/bin
+  file: >
+    src=/usr/local/node-v{{ nodejs_version }}-{{ nodejs_os }}-{{ nodejs_arch }}/bin/{{ item }}
+    dest={{ nodejs_symlink_path }}/{{ item }}
+    state=link
+  with_items:
+    - dredd
+
+- name: Install dredd hooks
+  pip: name=dredd_hooks version={{ dredd_hooks_version }}
