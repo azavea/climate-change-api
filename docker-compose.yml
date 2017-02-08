@@ -11,7 +11,7 @@ services:
       AWS_PROFILE: '${AWS_PROFILE}'
       AWS_CACHE_DURATION: 31536000
       CC_REGISTRATION_OPEN:
-      COMMIT:
+      COMMIT: '${GIT_COMMIT}'
     ports:
       - "8080:8080"
       - "8082:8082"
