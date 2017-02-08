@@ -9,9 +9,9 @@ from django.db import connection
 
 from climate_data.models import ClimateData
 from climate_data.filters import ClimateDataFilterSet
-from .params import IndicatorParams
+from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import DaysUnitsMixin, TemperatureConverter
+from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .query_ranges import MonthRangeConfig, QuarterRangeConfig, CustomRangeConfig
 
 
@@ -311,8 +311,7 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
 
 
 class BasetempIndicatorMixin(object):
-    """ Framework for pre-processing the basetemp parameter to a native unit
-    """
+    """ Framework for pre-processing the basetemp parameter to a native unit """
 
     def __init__(self, *args, **kwargs):
         super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
@@ -324,3 +323,34 @@ class BasetempIndicatorMixin(object):
         converter = TemperatureConverter.get(unit, self.storage_units)
         self.params.basetemp.value = converter(float(value))
         self.params.basetemp_units.value = self.storage_units
+
+
+class ThresholdIndicatorMixin(object):
+    """ Framework for capturing and pre-processing threshold parameters """
+
+    params_class = ThresholdIndicatorParams
+
+    def __init__(self, *args, **kwargs):
+        super(ThresholdIndicatorMixin, self).__init__(*args, **kwargs)
+        self.set_threshold_values()
+
+    def set_threshold_values(self):
+            # Convert threshold value to appropriate format
+            value = self.params.threshold.value
+            unit = self.params.threshold_units.value
+
+            if self.variables[0] != 'pr':
+                default_unit = 'K'
+                converter_type = TemperatureConverter
+            else:
+                default_unit = 'kg/m^2'
+                converter_type = PrecipitationConverter
+
+            converter = converter_type.get(unit, default_unit)
+
+            self.params.threshold.value = converter(float(value))
+            self.params.threshold_units.value = default_unit
+
+    @property
+    def conditions(self):
+        return {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
