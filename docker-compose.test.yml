@@ -1,6 +1,9 @@
 version: '2'
 services:
   django:
-    image: django:${COMMIT}
+    image: cc-api:${GIT_COMMIT}
     environment:
-      COMMIT: ''
+      COMMIT: ${GIT_COMMIT}
+      CC_S3STORAGE_BUCKET: ${CC_S3STORAGE_BUCKET}
+  nginx:
+    image: cc-nginx:${GIT_COMMIT}

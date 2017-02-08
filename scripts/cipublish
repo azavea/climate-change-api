@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -e
+
+if [[ -n "${CC_DEBUG}" ]]; then
+    set -x
+fi
+
+function usage() {
+    echo -n \
+"Usage: $(basename "$0")
+
+Publish container images to Elastic Container Registry (ECR) and
+other artifacts to S3.
+"
+}
+
+if [[ -n "${GIT_COMMIT}" ]]; then
+    GIT_COMMIT="${GIT_COMMIT:0:7}"
+else
+    GIT_COMMIT="$(git rev-parse --short HEAD)"
+fi
+
+# CC_DOCS_FILES_BUCKET=${CC_DOCS_FILES_BUCKET:-"staging-us-east-1-climate-docs"}
+# CC_S3STORAGE_BUCKET=${CC_S3STORAGE_BUCKET:-"climate-change-api-staging"}
+
+DIR="$(dirname "$0")"
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    if [ "${1:-}" = "--help" ]; then
+        usage
+    else
+        if [[ -n "${AWS_ECR_ENDPOINT}" ]]; then
+            # Evaluate the return value of the get-login subcommand, which
+            # is a docker login command with temporarily ECR credentials.
+            eval "$(aws ecr get-login)"
+
+            docker tag "cc-nginx:${GIT_COMMIT}" \
+                   "${AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
+            docker tag "cc-api:${GIT_COMMIT}" \
+                   "${AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+
+            docker push "${AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
+            docker push "${AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+
+            echo "Uploading docs and static files to S3..."
+            aws --profile "${AWS_PROFILE}" s3 sync --delete \
+              "${DIR}/../nginx/srv/dist/html" "s3://${CC_DOCS_FILES_BUCKET}"
+
+            CC_S3STORAGE_BUCKET="${CC_S3STORAGE_BUCKET}" \
+            GIT_COMMIT="${GIT_COMMIT}" \
+            docker-compose -f docker-compose.yml \
+                           -f docker-compose.test.yml \
+                           run --rm --entrypoint "./manage.py" \
+                           django "collectstatic" "--noinput"
+
+            echo "Upload complete!"
+
+        else
+            echo "ERROR: No AWS_ECR_ENDPOINT variable defined."
+            exit 1
+        fi
+    fi
+fi
