@@ -21,8 +21,6 @@ else
     GIT_COMMIT="$(git rev-parse --short HEAD)"
 fi
 
-# CC_DOCS_FILES_BUCKET=${CC_DOCS_FILES_BUCKET:-"staging-us-east-1-climate-docs"}
-# CC_S3STORAGE_BUCKET=${CC_S3STORAGE_BUCKET:-"climate-change-api-staging"}
 
 DIR="$(dirname "$0")"
 
