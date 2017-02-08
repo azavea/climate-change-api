@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from django.core.exceptions import ValidationError
 
-from .unit_converters import TemperatureConverter
+from .unit_converters import TemperatureConverter, PrecipitationConverter
 from .validators import ChoicesValidator, float_validator, percentile_range_validator
 
 MODELS_PARAM_DOCSTRING = ("A list of comma separated model names to filter the indicator by. The "
@@ -47,6 +47,16 @@ BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily di
                             "discussion of the units this value uses.")
 
 BASETEMP_UNITS_PARAM_DOCSTRING = "Units for the value of the 'basetemp' parameter. Defaults to 'F'."
+
+THRESHOLD_PARAM_DOCSTRING = ("Required. The value against which to compare climate data values in the"
+                             " unit specified by the 'threshold_units' parameter.")
+
+THRESHOLD_UNITS_PARAM_DOCSTRING = ("Required. Units for the value of the 'threshold' parameter."
+                                   " Must be a valid unit recognized by the API.")
+
+THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("Required. The comparison type against the value of the 'threshold'"
+                                        "parameter. Options: lt, gt, lte, gte. Signify: less than, greater"
+                                        " than, less than or equals...")
 
 
 class IndicatorParam(object):
@@ -198,3 +208,25 @@ class DegreeDayIndicatorParams(IndicatorParams):
                                     required=False,
                                     default='F',
                                     validators=[basetemp_units_validator])
+
+
+class ThresholdIndicatorParams(IndicatorParams):
+
+    valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte')
+    threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
+    threshold_units_validator = ChoicesValidator(TemperatureConverter.available_units + PrecipitationConverter.available_units)
+
+    threshold = IndicatorParam('threshold',
+                               description=THRESHOLD_PARAM_DOCSTRING,
+                               required=True,
+                               validators=[float_validator])
+
+    threshold_units = IndicatorParam('threshold_units',
+                                     description=THRESHOLD_UNITS_PARAM_DOCSTRING,
+                                     required=True,
+                                     validators=[threshold_units_validator])
+
+    threshold_comparator = IndicatorParam('threshold_comparator',
+                                          description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
+                                          required=True,
+                                          validators=[threshold_comparator_validator])
