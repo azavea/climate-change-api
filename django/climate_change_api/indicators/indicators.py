@@ -7,7 +7,7 @@ from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin, ThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
-from .params import DegreeDayIndicatorParams, PercentileIndicatorParams, ThresholdIndicatorParams
+from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
 
@@ -20,7 +20,6 @@ class MaxTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndi
     description = ('Number of days where high temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmax',)
-    params_class = ThresholdIndicatorParams
 
 
 class MinTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
@@ -28,7 +27,6 @@ class MinTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndi
     description = ('Number of days where min temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmin',)
-    params_class = ThresholdIndicatorParams
 
 
 class PrecipitationThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
@@ -36,7 +34,6 @@ class PrecipitationThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndic
     description = ('Number of days where precipitation, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('pr',)
-    params_class = ThresholdIndicatorParams
 
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):

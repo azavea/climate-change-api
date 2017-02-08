@@ -214,6 +214,7 @@ class ThresholdIndicatorParams(IndicatorParams):
 
     valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte')
     threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
+    threshold_units_validator = ChoicesValidator(TemperatureConverter.available_units + PrecipitationConverter.available_units)
 
     threshold = IndicatorParam('threshold',
                                description=THRESHOLD_PARAM_DOCSTRING,
@@ -222,7 +223,8 @@ class ThresholdIndicatorParams(IndicatorParams):
 
     threshold_units = IndicatorParam('threshold_units',
                                      description=THRESHOLD_UNITS_PARAM_DOCSTRING,
-                                     required=True)
+                                     required=True,
+                                     validators=[threshold_units_validator])
 
     threshold_comparator = IndicatorParam('threshold_comparator',
                                           description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
