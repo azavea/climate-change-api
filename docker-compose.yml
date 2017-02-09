@@ -1,26 +1,32 @@
-version: '2'
+version: '2.1'
 services:
+  postgres:
+    image: quay.io/azavea/postgis:postgres9.5-postgis2.2
+    environment:
+      POSTGRES_USER: climate
+      POSTGRES_PASSWORD: climate
+      POSTGRES_DB: climate
+    expose:
+      - "5432"
+
   django:
     build:
       context: ./django
       dockerfile: Dockerfile
-    environment:
-      CC_DEBUG: 'true'
-      DEV_USER: '${DEV_USER}'
-      DJANGO_LOG_LEVEL: 'INFO'
-      AWS_PROFILE: '${AWS_PROFILE}'
-      AWS_CACHE_DURATION: 31536000
-      CC_REGISTRATION_OPEN:
-      COMMIT:
     ports:
       - "8080:8080"
       - "8082:8082"
     links:
       - memcached
       - postgres
-    depends_on:
-      - memcached
-      - postgres
+    environment:
+      - CC_DEBUG=true
+      - DEV_USER=$DEV_USER
+      - DJANGO_LOG_LEVEL=INFO
+      - AWS_PROFILE=$AWS_PROFILE
+      - AWS_CACHE_DURATION=31536000
+      - CC_REGISTRATION_OPEN=
+      - COMMIT=
     volumes:
       - .:/opt
       - ./nginx/srv/dist:/opt/doc/build
@@ -30,15 +36,6 @@ services:
     image: memcached:1.4-alpine
     command: [memcached, -I, 8M, -m, '256']
 
-  postgres:
-    image: quay.io/azavea/postgis:9.5.3
-    environment:
-      POSTGRES_USER: climate
-      POSTGRES_PASSWORD: climate
-      POSTGRES_DB: climate
-    ports:
-      - "5432:5432"
-  
   docs:
     build:
       context: ./nginx
@@ -55,11 +52,9 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
-    links:
-      - django
     ports:
       - "8088:443"
-    depends_on:
+    links:
       - django
     volumes:
       - ./nginx/srv/dist/:/srv/dist/
