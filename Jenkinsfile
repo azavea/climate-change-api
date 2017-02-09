@@ -59,7 +59,7 @@ node {
       slackMessage += "\n${env.CHANGE_TITLE} - ${env.CHANGE_AUTHOR}"
     }
     slackMessage += "\n<${env.BUILD_URL}|View Build>"
-    slackSend color: 'danger', message: slackMessage
+    slackSend  channel: '#doe-climate-change', color: 'danger', message: slackMessage
 
     // Re-raise the exception so that the failure is propagated to
     // Jenkins.
