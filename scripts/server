@@ -26,9 +26,9 @@ then
         then
             ./scripts/docs
         fi
-        cd ./doc/build/html && python -m SimpleHTTPServer 8088
+        docker-compose up docs
     else
-        docker-compose up
+        docker-compose up nginx
     fi
     exit
 fi

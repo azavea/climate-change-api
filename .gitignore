@@ -4,5 +4,10 @@
 *.pyc
 
 /doc/build/*
-
+/nginx/srv/dist/*
 *.DS_Store
+
+# Terraform
+*.tfvars
+*.tfstate
+*.tfplan
