@@ -1,15 +1,30 @@
 from collections import namedtuple
 import calendar
 
-from django.db.models import Case, When, IntegerField, Value
+from django.db.models.functions import Concat
+from django.db.models import Case, When, CharField, Value, F
 from climate_data.models import ClimateDataSource
+
+
+class YearRangeConfig(object):
+    """ Special case generator for yearly annotations
+    Yearly annotations don't need any special logic, so we can short-circuit the whole process
+    """
+
+    @classmethod
+    def keys(cls):
+        return F('data_source__year')
+
+    @classmethod
+    def years(cls):
+        return F('data_source__year')
 
 
 class QueryRangeConfig(object):
     """ Utility class to generate a Django Case object that converts day-of-year to a specific bucket
     """
 
-    CaseRange = namedtuple('CaseRange', ('index', 'start', 'length'))
+    CaseRange = namedtuple('CaseRange', ('key', 'start', 'length'))
     range_config = None
 
     @staticmethod
@@ -28,6 +43,10 @@ class QueryRangeConfig(object):
         ]
 
     @classmethod
+    def get_interval_key(cls, index):
+        return Concat(F('data_source__year'), Value('-{:02d}'.format(index + 1)))
+
+    @classmethod
     def get_intervals(cls, label):
         """ Returns an ordered series intervals to map days to interval segments
 
@@ -40,7 +59,7 @@ class QueryRangeConfig(object):
         """ Takes the values of get_intervals and wraps them in CaseRange objects
         """
         cases = cls.get_intervals(label)
-        return [cls.CaseRange(i, start, length)
+        return [cls.CaseRange(cls.get_interval_key(i), start, length)
                 for (i, (start, length)) in enumerate(cases)]
 
     @classmethod
@@ -59,8 +78,8 @@ class QueryRangeConfig(object):
         ]
 
     @classmethod
-    def cases(cls):
-        """ Generates a nested Case aggregation that assigns the month index to each
+    def keys(cls):
+        """ Generates a nested Case aggregation that assigns the range key to each
         data point.  It first splits on leap year or not then checks day_of_year against ranges.
         """
         if cls.range_config is None:
@@ -71,10 +90,10 @@ class QueryRangeConfig(object):
             case_whens = [When(**{
                 'day_of_year__gte': case.start,
                 'day_of_year__lt': case.start + case.length,
-                'then': Value(case.index)
+                'then': case.key
             }) for case in config['ranges']]
             year_whens.append(When(data_source__year__in=config['years'], then=Case(*case_whens)))
-        return Case(*year_whens, output_field=IntegerField())
+        return Case(*year_whens, output_field=CharField())
 
 
 class LengthRangeConfig(QueryRangeConfig):
@@ -98,7 +117,17 @@ class MonthRangeConfig(LengthRangeConfig):
     }
 
 
+class DayRangeConfig(MonthRangeConfig):
+    @classmethod
+    def get_interval_key(cls, index):
+        return Concat(F('data_source__year'), Value('-{:02d}-'.format(index + 1)), F('day_of_year'))
+
+
 class QuarterRangeConfig(LengthRangeConfig):
+    @classmethod
+    def get_interval_key(cls, index):
+        return Concat(F('data_source__year'), Value('-Q{:0d}'.format(index + 1)))
+
     lengths = {
         'leap': [91, 91, 92, 92],
         'noleap': [90, 91, 92, 92]
@@ -151,3 +180,28 @@ class CustomRangeConfig(QueryRangeConfig):
             cls.custom_spans = intervals
 
         return super(CustomRangeConfig, cls).cases()
+
+
+class OffsetYearRangeConfig(QueryRangeConfig):
+    # By default place the year divide near the summer solstice to maximize the span that covers
+    # winter
+    custom_offset = 180
+
+    @classmethod
+    def make_ranges(cls, label):
+        """ Takes the values of get_intervals and wraps them in CaseRange objects
+        """
+        year_len = 366
+        offset = cls.custom_offset
+        return [
+            # Include all days from the offset to New Years Eve
+            cls.CaseRange(F('data_source__year'), offset, year_len - offset + 1),
+            # Start on New Years Day until the offset point the following year
+            cls.CaseRange(F('data_source__year') - 1, 0, offset)
+        ]
+
+    @classmethod
+    def years(cls):
+        return Case(When(day_of_year__lt=cls.custom_offset,
+                         then=F('data_source__year') - 1),
+                    default=F('data_source__year'))
