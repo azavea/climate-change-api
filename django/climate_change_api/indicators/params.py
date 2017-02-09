@@ -87,6 +87,12 @@ class IndicatorParam(object):
 
         """
         value = value if value is not None else self.default
+
+        # for user readability, params defaulting to all options available accept 'all' as a value,
+        # which must be converted to None/null to return all
+        if value == 'all' and self.name in ('years', 'models'):
+            value = None
+
         if value is None and self.required:
             raise ValidationError('{} is required.'.format(self.name))
 
@@ -105,6 +111,7 @@ class IndicatorParam(object):
             ('description', self.description),
             ('required', self.required),
         ])
+
         if self.default is not None:
             description['default'] = self.default
         return description
@@ -123,10 +130,12 @@ class IndicatorParams(object):
     models = IndicatorParam('models',
                             description=MODELS_PARAM_DOCSTRING,
                             required=False,
+                            default='all',
                             validators=None)
     years = IndicatorParam('years',
                            description=YEARS_PARAM_DOCSTRING,
                            required=False,
+                           default='all',
                            validators=None)
     agg = IndicatorParam('agg',
                          description=AGG_PARAM_DOCSTRING,
