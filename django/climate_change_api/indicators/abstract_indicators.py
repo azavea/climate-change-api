@@ -11,7 +11,7 @@ from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-from .query_ranges import (DayRangeConfig, MonthRangeConfig, QuarterRangeConfig, YearRangeConfig,
+from .query_ranges import (MonthRangeConfig, QuarterRangeConfig, YearRangeConfig,
                            OffsetYearRangeConfig, CustomRangeConfig)
 
 
@@ -19,7 +19,7 @@ class Indicator(object):
 
     label = ''
     description = ''
-    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'daily', 'custom')
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'custom')
     variables = ClimateData.VARIABLE_CHOICES
 
     # Filters define which rows match our query, conditions limit which rows
@@ -119,7 +119,6 @@ class Indicator(object):
 
         # Use the ranges to determine how each time aggregation should be keyed
         range_config = {
-            'daily': DayRangeConfig,
             'monthly': MonthRangeConfig,
             'quarterly': QuarterRangeConfig,
             'yearly': YearRangeConfig,
