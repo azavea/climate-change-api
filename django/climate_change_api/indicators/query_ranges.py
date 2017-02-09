@@ -117,12 +117,6 @@ class MonthRangeConfig(LengthRangeConfig):
     }
 
 
-class DayRangeConfig(MonthRangeConfig):
-    @classmethod
-    def get_interval_key(cls, index):
-        return Concat(F('data_source__year'), Value('-{:02d}-'.format(index + 1)), F('day_of_year'))
-
-
 class QuarterRangeConfig(LengthRangeConfig):
     @classmethod
     def get_interval_key(cls, index):
