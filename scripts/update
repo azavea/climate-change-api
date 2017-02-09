@@ -16,6 +16,7 @@ See the Getting Data section of the README for importing additional data.
 
 "
 }
+DIR="$(dirname "$0")"
 
 function check_database() {
     # Check if database is set up to continue
@@ -26,7 +27,11 @@ function check_database() {
     do
         echo "Checking if database is up yet (try ${counter})..."
         set +e
-        docker-compose exec -T postgres gosu postgres psql -d climate -c 'select 1' >/dev/null 2>/dev/null
+        docker-compose -f "${DIR}/../docker-compose.yml" \
+                       -f "${DIR}/../docker-compose.yml" \
+          exec -T postgres gosu postgres \
+          psql -d climate -c 'select 1' >/dev/null 2>/dev/null
+
         status_check=$?
         if [ $status_check == 0 ]
         then
@@ -45,7 +50,9 @@ function check_database() {
 }
 
 function run_database_migrations() {
-    docker-compose up -d postgres
+    docker-compose  -f "${DIR}/../docker-compose.yml" \
+                    -f "${DIR}/../docker-compose.yml" \
+                    up -d postgres
     check_database
     docker-compose run --rm --entrypoint python django manage.py migrate --noinput
     docker-compose stop postgres
@@ -62,13 +69,15 @@ Please see the 'Getting Data' section of the README to load additional necessary
 "
 }
 
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]
     then
         usage
     else
-        docker-compose build
+        docker-compose  -f ${DIR}/../docker-compose.yml \
+                        -f ${DIR}/../docker-compose.yml build
         run_database_migrations
 
         ./scripts/console django './manage.py loaddata scenarios'
