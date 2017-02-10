@@ -124,15 +124,12 @@ class Indicator(object):
 
         queryset = range_config.create_queryset(
             years=self.params.years.value,
+            models=self.params.models.value,
+            scenario=self.scenario,
             key_params=key_params
         ).filter(
-            map_cell=self.city.map_cell,
-            data_source__scenario=self.scenario
+            map_cell=self.city.map_cell
         )
-
-        if self.params.models.value:
-            filter_set = ClimateDataFilterSet()
-            queryset = filter_set.filter_models(queryset, self.params.models.value)
 
         if self.filters is not None:
             queryset = queryset.filter(**self.filters)
