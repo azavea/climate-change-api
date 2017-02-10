@@ -108,15 +108,6 @@ class Indicator(object):
         by the constructor
 
         """
-        filter_set = ClimateDataFilterSet()
-        queryset = (ClimateData.objects.filter(map_cell=self.city.map_cell)
-                    .filter(data_source__scenario=self.scenario))
-        queryset = filter_set.filter_years(queryset, self.params.years.value)
-        queryset = filter_set.filter_models(queryset, self.params.models.value)
-
-        if self.filters is not None:
-            queryset = queryset.filter(**self.filters)
-
         # Use the ranges to determine how each time aggregation should be keyed
         range_config = {
             'monthly': MonthRangeConfig,
@@ -131,9 +122,20 @@ class Indicator(object):
         if self.params.custom_time_agg.value is not None:
             key_params['custom_time_agg'] = self.params.custom_time_agg.value
 
-        queryset = (queryset
-                    .annotate(agg_key=range_config.keys(**key_params))
-                    .filter(agg_key__isnull=False))
+        queryset = range_config.create_queryset(
+            years=self.params.years.value,
+            key_params=key_params
+        ).filter(
+            map_cell=self.city.map_cell,
+            data_source__scenario=self.scenario
+        )
+
+        if self.params.models.value:
+            filter_set = ClimateDataFilterSet()
+            queryset = filter_set.filter_models(queryset, self.params.models.value)
+
+        if self.filters is not None:
+            queryset = queryset.filter(**self.filters)
 
         return queryset
 
