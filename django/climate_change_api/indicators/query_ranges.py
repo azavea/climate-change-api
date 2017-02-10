@@ -2,8 +2,8 @@ from collections import namedtuple
 import calendar
 
 from django.db.models.functions import Concat
-from django.db.models import Case, When, CharField, Value, F
-from climate_data.models import ClimateData, ClimateDataSource
+from django.db.models import Case, When, CharField, Value, F, Max, Min, Q
+from climate_data.models import ClimateData, ClimateDataSource, Scenario
 from climate_data.filters import ClimateDataFilterSet
 
 
@@ -33,23 +33,25 @@ class QuerysetGenerator(object):
         ]
 
     @classmethod
-    def create_queryset(cls, years=None, key_params=None):
+    def create_queryset(cls, scenario, years=None, models=None, key_params=None):
         if key_params is None:
             key_params = {}
 
         queryset = (ClimateData.objects.all()
                     .annotate(agg_key=cls.keys(**key_params))
-                    .filter(agg_key__isnull=False))
+                    .filter(agg_key__isnull=False,
+                            data_source__scenario=scenario))
 
-        if years is not None:
-            queryset = cls.filter_years(queryset, years)
+        if years is not None or models is not None:
+            filterset = cls.get_filter_set()
+            queryset = filterset.filter_years(queryset, years)
+            queryset = filterset.filter_models(queryset, models)
 
         return queryset
 
     @classmethod
-    def filter_years(cls, queryset, years):
-        filter_set = ClimateDataFilterSet()
-        return filter_set.filter_years(queryset, years)
+    def get_filter_set(cls):
+        return ClimateDataFilterSet()
 
     @classmethod
     def get_interval_key(cls, index):
@@ -216,11 +218,26 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
         ]
 
     @classmethod
-    def filter_years(cls, queryset, years):
-        queryset.annotate(offset_year=Case(
+    def create_queryset(cls, *args, **kwargs):
+        queryset = super(OffsetYearQuerysetGenerator, cls).create_queryset(*args, **kwargs)
+        queryset = queryset.annotate(offset_year=Case(
             When(day_of_year__lt=cls.custom_offset,
                  then=F('data_source__year') - 1),
             default=F('data_source__year')))
 
-        filter_set = ClimateDataFilterSet(year_col='offset_year')
-        return filter_set.filter_years(queryset, years)
+        scenario = kwargs['scenario']
+        maxYear, minYear = (Scenario.objects
+                            .annotate(maxYear=Max('climatedatasource__year'),
+                                      minYear=Min('climatedatasource__year'))
+                            .values_list('maxYear', 'minYear')
+                            .get(name=scenario))
+        queryset = queryset.exclude(
+            (Q(data_source__year=minYear) & Q(day_of_year__lt=cls.custom_offset)) |
+            (Q(data_source__year=maxYear) & Q(day_of_year__gte=cls.custom_offset))
+        )
+
+        return queryset
+
+    @classmethod
+    def get_filter_set(cls):
+        return ClimateDataFilterSet(year_col='offset_year')
