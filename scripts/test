@@ -17,7 +17,23 @@ then
     then
         usage
     else
-        ./scripts/console django './manage.py test --settings climate_change_api.settings_test'
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django migrate --noinput
+
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django loaddata scenarios
+
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django loaddata climate-models
+
+        docker-compose \
+            -f docker-compose.yml \
+            -f docker-compose.test.yml \
+            run --rm --entrypoint "./manage.py" \
+            django test --noinput --settings climate_change_api.settings_test
     fi
     exit
 fi

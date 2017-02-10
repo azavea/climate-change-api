@@ -6,7 +6,11 @@ node {
     stage('checkout') {
       checkout scm
     }
-
+    
+    env.AWS_PROFILE = 'climate'
+    env.CC_DOCS_FILES_BUCKET = 'staging-us-east-1-climate-docs'
+    env.GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+    
     // Execute `cibuild` wrapped within a plugin that translates
     // ANSI color codes to something that renders inside the Jenkins
     // console.
@@ -19,7 +23,6 @@ node {
     if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME.startsWith('release/')) {
       env.AWS_DEFAULT_REGION = 'us-east-1'
       env.CC_SETTINGS_BUCKET = 'staging-us-east-1-climate-config'
-      env.CC_DOCS_FILES_BUCKET = 'staging-us-east-1-climate-docs'
       env.CC_S3STORAGE_BUCKET = 'climate-change-api-staging'
 
       // Publish container images built and tested during `cibuild`

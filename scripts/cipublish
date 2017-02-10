@@ -28,7 +28,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [ "${1:-}" = "--help" ]; then
         usage
     else
-        if [[ -n "${AWS_ECR_ENDPOINT}" ]]; then
+        if [[ -n "${CC_AWS_ECR_ENDPOINT}" ]]; then
             # Evaluate the return value of the get-login subcommand, which
             # is a docker login command with temporarily ECR credentials.
             eval "$(aws ecr get-login)"
@@ -42,15 +42,16 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             docker push "${AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
 
             echo "Uploading docs and static files to S3..."
-            aws --profile "${AWS_PROFILE}" s3 sync --delete \
+            aws s3 sync --delete \
               "${DIR}/../nginx/srv/dist/html" "s3://${CC_DOCS_FILES_BUCKET}"
 
             CC_S3STORAGE_BUCKET="${CC_S3STORAGE_BUCKET}" \
             GIT_COMMIT="${GIT_COMMIT}" \
-            docker-compose -f docker-compose.yml \
-                           -f docker-compose.test.yml \
-                           run --rm --entrypoint "./manage.py" \
-                           django "collectstatic" "--noinput"
+            docker-compose \
+                -f docker-compose.yml \
+                -f docker-compose.test.yml \
+                run --rm --no-deps --entrypoint "./manage.py" \
+                django collectstatic --noinput
 
             echo "Upload complete!"
 
