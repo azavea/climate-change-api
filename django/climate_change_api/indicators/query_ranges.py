@@ -3,21 +3,8 @@ import calendar
 
 from django.db.models.functions import Concat
 from django.db.models import Case, When, CharField, Value, F
-from climate_data.models import ClimateDataSource
-
-
-class YearRangeConfig(object):
-    """ Special case generator for yearly annotations
-    Yearly annotations don't need any special logic, so we can short-circuit the whole process
-    """
-
-    @classmethod
-    def keys(cls):
-        return F('data_source__year')
-
-    @classmethod
-    def years(cls):
-        return F('data_source__year')
+from climate_data.models import ClimateData, ClimateDataSource
+from climate_data.filters import ClimateDataFilterSet
 
 
 class QueryRangeConfig(object):
@@ -28,7 +15,7 @@ class QueryRangeConfig(object):
     range_config = None
 
     @staticmethod
-    def get_years():
+    def get_leap_year_sets():
         """ Builds objects that categorize years by a common feature
 
         By default categorizes years by whether they are a leap year or not
@@ -41,6 +28,25 @@ class QueryRangeConfig(object):
             ('leap', leap_years),
             ('noleap', all_years - leap_years)
         ]
+
+    @classmethod
+    def create_queryset(cls, years=None, key_params=None):
+        if key_params is None:
+            key_params = {}
+
+        queryset = (ClimateData.objects.all()
+                    .annotate(agg_key=cls.keys(**key_params))
+                    .filter(agg_key__isnull=False))
+
+        if years is not None:
+            queryset = cls.filter_years(queryset, years)
+
+        return queryset
+
+    @classmethod
+    def filter_years(cls, queryset, years):
+        filter_set = ClimateDataFilterSet()
+        return filter_set.filter_years(queryset, years)
 
     @classmethod
     def get_interval_key(cls, index):
@@ -74,7 +80,7 @@ class QueryRangeConfig(object):
                 'years': years,
                 'ranges': cls.make_ranges(label),
             }
-            for (label, years) in cls.get_years()
+            for (label, years) in cls.get_leap_year_sets()
         ]
 
     @classmethod
@@ -94,6 +100,20 @@ class QueryRangeConfig(object):
             }) for case in config['ranges']]
             year_whens.append(When(data_source__year__in=config['years'], then=Case(*case_whens)))
         return Case(*year_whens, output_field=CharField())
+
+
+class YearRangeConfig(QueryRangeConfig):
+    """ Special case generator for yearly annotations
+    Yearly annotations don't need any special logic, so we can short-circuit the whole process
+    """
+
+    @classmethod
+    def keys(cls):
+        return F('data_source__year')
+
+    @classmethod
+    def years(cls):
+        return F('data_source__year')
 
 
 class LengthRangeConfig(QueryRangeConfig):
