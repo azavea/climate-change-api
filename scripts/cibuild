@@ -41,7 +41,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         ${DIR}/docs
             
         echo "[DRY RUN] Uploading docs and static files to S3..."
-        aws --profile "${AWS_PROFILE}" s3 sync --delete --dryrun \
+        aws --profile "${AWS_PROFILE}" s3 sync --dryrun \
           "${DIR}/../nginx/srv/dist/html" "s3://${CC_DOCS_FILES_BUCKET}"
 
         docker-compose -f docker-compose.yml \
