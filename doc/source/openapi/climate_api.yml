@@ -58,12 +58,14 @@ paths:
           required: true
           description: |
             Search latitude
+          x-example: 40
         - name: lon
           in: query
           type: number
           required: true
           description: |
             Search longitude
+          x-example: 60
         - name: limit
           in: query
           type: integer
@@ -89,6 +91,7 @@ paths:
           required: true
           description: |
             Primary key of the city
+          x-example: 3
       responses:
         "200":
           description: A City object
@@ -105,6 +108,7 @@ paths:
           required: true
           description: |
             Primary key of the city
+          x-example: 3
       responses:
         "200":
           description: |
@@ -137,6 +141,7 @@ paths:
           description: Name of climate model
           required: true
           type: string
+          x-example: 'ACCESS1-0'
       responses:
         "200":
           description: ClimateModel object
@@ -152,6 +157,7 @@ paths:
           description: A list of Scenario objects
           schema:
             type: array
+            x-example: RCP85
             items:
               $ref: '#/definitions/Scenario'
   /api/scenario/{name}/:
@@ -165,6 +171,7 @@ paths:
           description: Name of scenario
           required: true
           type: string
+          x-example: RCP85
       responses:
         "200":
           description: Scenario object
@@ -180,12 +187,14 @@ paths:
           in: path
           type: string
           required: true
+          x-example: 3
         - name: scenario
           description: |
             Scenario name
           in: path
           type: string
           required: true
+          x-example: RCP85
         - name: models
           description: |
             A list of comma separated model names. Defaults to all models.
@@ -195,6 +204,7 @@ paths:
           items:
             type: string
           required: false
+          x-example: ['ACCESS1-0', 'BNU-ESM']
         - name: variables
           description: |
             A list of comma separated variables.
@@ -206,6 +216,7 @@ paths:
           items:
             type: string
           required: false
+          x-example: 'tasmax'
         - name: years
           description: |
             A list of comma separated year ranges. A year range is of the form 'start[:end]', inclusive.
@@ -217,6 +228,7 @@ paths:
           items:
             type: string
           required: false
+          x-example: '2050:2020'
         - name: agg
           description: |
             Get the minimum, maximum, or average of projected data across the included models. Options as: min, max, avg.
@@ -242,7 +254,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Indicator'
-  /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/:
+  /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/:
     get:
       description: |
         Retrieves derived climate indicator data for the requested indicator
@@ -254,16 +266,19 @@ paths:
           description: City ID
           required: true
           type: string
+          x-example: 3
         - name: scenario
           in: path
           description: Scenario name
           required: true
           type: string
-        - name: indicator-name
+          x-example: RCP85
+        - name: indicator_name
           in: path
           description: Indicator name
           required: true
           type: string
+          x-example: 'average_high_temperature'
       responses:
         200:
           description: |
@@ -355,7 +370,7 @@ definitions:
         type: string
         description: Human-readable name of the climate model, not necessarily unique
       base_time:
-        type: string
+        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
         description: The base reference time of the model, provided in ISO8061 format
   Indicator:
     type: object
@@ -448,10 +463,10 @@ definitions:
         type: integer
         description: Number of features in this response
       next:
-        type: string
+        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
         description: URL to next response page
       previous:
-        type: string
+        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
         description: URL to previous response page
       features:
         type: array
