@@ -11,15 +11,15 @@ from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-from .query_ranges import (MonthRangeConfig, QuarterRangeConfig, YearRangeConfig,
-                           OffsetYearRangeConfig, CustomRangeConfig)
+from .query_ranges import (MonthQuerysetGenerator, QuarterQuerysetGenerator, YearQuerysetGenerator,
+                           OffsetYearQuerysetGenerator, CustomQuerysetGenerator)
 
 
 class Indicator(object):
 
     label = ''
     description = ''
-    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'custom')
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly', 'custom')
     variables = ClimateData.VARIABLE_CHOICES
 
     # Filters define which rows match our query, conditions limit which rows
@@ -110,11 +110,11 @@ class Indicator(object):
         """
         # Use the ranges to determine how each time aggregation should be keyed
         range_config = {
-            'monthly': MonthRangeConfig,
-            'quarterly': QuarterRangeConfig,
-            'yearly': YearRangeConfig,
-            'offset_yearly': OffsetYearRangeConfig,
-            'custom': CustomRangeConfig
+            'monthly': MonthQuerysetGenerator,
+            'quarterly': QuarterQuerysetGenerator,
+            'yearly': YearQuerysetGenerator,
+            'offset_yearly': OffsetYearQuerysetGenerator,
+            'custom': CustomQuerysetGenerator
         }.get(self.params.time_aggregation.value)
         key_params = {}
 
