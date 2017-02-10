@@ -7,8 +7,11 @@ from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
 
 
-class QueryRangeConfig(object):
-    """ Utility class to generate a Django Case object that converts day-of-year to a specific bucket
+class QuerysetGenerator(object):
+    """ Utility class to create querysets for ClimateData for a given time aggregation
+
+    Incorporates filtering by year as the year a data point is associated with can be dependant on
+    the time aggregation used
     """
 
     CaseRange = namedtuple('CaseRange', ('key', 'start', 'length'))
@@ -102,7 +105,7 @@ class QueryRangeConfig(object):
         return Case(*year_whens, output_field=CharField())
 
 
-class YearRangeConfig(QueryRangeConfig):
+class YearQuerysetGenerator(QuerysetGenerator):
     """ Special case generator for yearly annotations
     Yearly annotations don't need any special logic, so we can short-circuit the whole process
     """
@@ -111,13 +114,9 @@ class YearRangeConfig(QueryRangeConfig):
     def keys(cls):
         return F('data_source__year')
 
-    @classmethod
-    def years(cls):
-        return F('data_source__year')
 
-
-class LengthRangeConfig(QueryRangeConfig):
-    """ RangeConfig based on a list of period lengths
+class LengthQuerysetGenerator(QuerysetGenerator):
+    """ QuerysetGenerator based on a list of period lengths
 
     Assumes that the periods are consecutive, and that each period takes place immediately
     following the previous period.
@@ -130,14 +129,14 @@ class LengthRangeConfig(QueryRangeConfig):
         return [(sum(lengths[:i]) + 1, lengths[i]) for i in range(len(lengths))]
 
 
-class MonthRangeConfig(LengthRangeConfig):
+class MonthQuerysetGenerator(LengthQuerysetGenerator):
     lengths = {
         'leap': [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
         'noleap': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     }
 
 
-class QuarterRangeConfig(LengthRangeConfig):
+class QuarterQuerysetGenerator(LengthQuerysetGenerator):
     @classmethod
     def get_interval_key(cls, index):
         return Concat(F('data_source__year'), Value('-Q{:0d}'.format(index + 1)))
@@ -148,7 +147,7 @@ class QuarterRangeConfig(LengthRangeConfig):
     }
 
 
-class CustomRangeConfig(QueryRangeConfig):
+class CustomQuerysetGenerator(QuerysetGenerator):
     custom_spans = None
 
     @classmethod
@@ -193,10 +192,10 @@ class CustomRangeConfig(QueryRangeConfig):
             cls.range_config = None
             cls.custom_spans = intervals
 
-        return super(CustomRangeConfig, cls).cases()
+        return super(CustomQuerysetGenerator, cls).cases()
 
 
-class OffsetYearRangeConfig(QueryRangeConfig):
+class OffsetYearQuerysetGenerator(QuerysetGenerator):
     # By default place the year divide near the summer solstice to maximize the span that covers
     # winter
     custom_offset = 180
@@ -209,13 +208,19 @@ class OffsetYearRangeConfig(QueryRangeConfig):
         offset = cls.custom_offset
         return [
             # Include all days from the offset to New Years Eve
-            cls.CaseRange(F('data_source__year'), offset, year_len - offset + 1),
+            cls.CaseRange(Concat(F('data_source__year'), Value('-'), F('data_source__year') + 1),
+                          offset, year_len - offset + 1),
             # Start on New Years Day until the offset point the following year
-            cls.CaseRange(F('data_source__year') - 1, 0, offset)
+            cls.CaseRange(Concat(F('data_source__year') - 1, Value('-'), F('data_source__year')),
+                          0, offset)
         ]
 
     @classmethod
-    def years(cls):
-        return Case(When(day_of_year__lt=cls.custom_offset,
-                         then=F('data_source__year') - 1),
-                    default=F('data_source__year'))
+    def filter_years(cls, queryset, years):
+        queryset.annotate(offset_year=Case(
+            When(day_of_year__lt=cls.custom_offset,
+                 then=F('data_source__year') - 1),
+            default=F('data_source__year')))
+
+        filter_set = ClimateDataFilterSet(year_col='offset_year')
+        return filter_set.filter_years(queryset, years)
