@@ -15,6 +15,29 @@ securityDefinitions:
 security:
   - Token: []
 paths:
+  /api-token-auth/:
+    post:
+      description: |
+        Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
+      parameters:
+        - name: email
+          in: formData
+          type: string
+          format: email
+          required: true
+        - name: password
+          in: formData
+          type: string
+          format: password
+          required: true
+      responses:
+        "200":
+          description: Auth token
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
   /api/city/:
     get:
       description: |
@@ -293,29 +316,6 @@ paths:
           description: |
             Returned when the request is rate-limited. The response will detail when the
             request can be retried.
-  /api-token-auth/:
-    post:
-      description: |
-        Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
-      parameters:
-        - name: email
-          in: formData
-          type: string
-          format: email
-          required: true
-        - name: password
-          in: formData
-          type: string
-          format: password
-          required: true
-      responses:
-        "200":
-          description: Auth token
-          schema:
-            type: object
-            properties:
-              token:
-                type: string
 definitions:
   Boundary:
     type: object
