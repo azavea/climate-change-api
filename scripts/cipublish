@@ -34,12 +34,12 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             eval "$(aws ecr get-login)"
 
             docker tag "cc-nginx:${GIT_COMMIT}" \
-                   "${AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
+                   "${CC_AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
             docker tag "cc-api:${GIT_COMMIT}" \
-                   "${AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+                   "${CC_AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
 
-            docker push "${AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
-            docker push "${AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+            docker push "${CC_AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
+            docker push "${CC_AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
 
             echo "Uploading docs and static files to S3..."
             aws s3 sync --delete \
@@ -56,7 +56,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             echo "Upload complete!"
 
         else
-            echo "ERROR: No AWS_ECR_ENDPOINT variable defined."
+            echo "ERROR: No CC_AWS_ECR_ENDPOINT variable defined."
             exit 1
         fi
     fi
