@@ -5,6 +5,7 @@ The Climate Data endpoint allows interaction with annual sets of raw projected t
 
 Climate data
 ____________
+
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/climate-data/{city}/{scenario}/
@@ -19,6 +20,8 @@ Example usage
     Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
 Response:
+
+.. note:: The general format of the response data are objects where the keys are date strings in YYYY-MM-DD format, and the value is an array that always contains 366 values. The value at a given index in the array corresponds to the value for that day of the year. Nulls are days with no data. A null in the 366th position indicates a non-leap year. For simplicity, the data below has been truncated.
 
 .. code-block:: http
 
