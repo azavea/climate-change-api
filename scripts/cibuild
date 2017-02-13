@@ -35,6 +35,12 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         GIT_COMMIT="${GIT_COMMIT}" ${DIR}/test
         echo "All tests pass!"
 
+        echo "Creating test user..."
+        echo "ClimateUser.objects.create_superuser('testuser@testing.com','thisisatest')" | ./scripts/console django "./manage.py shell_plus"
+
+        echo "Testing endpoints"
+        dredd
+
         echo "Building docs"
         docker-compose \
             run --rm --entrypoint make -w /opt/doc \
