@@ -385,6 +385,27 @@ class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
 
 
+class CrossYearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.HeatingDegreeDays
+    indicator_name = 'heating_degree_days'
+    time_aggregation = 'offset_yearly'
+    extra_params = {
+        'basetemp': '42.5',
+        'basetemp_units': 'K'
+    }
+    test_indicator_rcp85_equals = {}
+    test_indicator_rcp45_equals = {'2000-2001': {'avg': 49.5, 'min': 40.5, 'max': 58.5},
+                                   '2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                   '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+    # Years are filtered by the starting year, so years=2001,2002 gives data for 2001-2002
+    # and 2002-2003
+    test_years_filter_equals = {'2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+    test_models_filter_equals = {'2000-2001': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                 '2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                 '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+
+
 class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.CoolingDegreeDays
     indicator_name = 'cooling_degree_days'
