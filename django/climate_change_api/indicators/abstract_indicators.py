@@ -7,12 +7,10 @@ from django.db import connection
 
 
 from climate_data.models import ClimateData
-from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-from .query_ranges import (MonthQuerysetGenerator, QuarterQuerysetGenerator, YearQuerysetGenerator,
-                           OffsetYearQuerysetGenerator, CustomQuerysetGenerator)
+import queryset_generator
 
 
 class Indicator(object):
@@ -108,21 +106,16 @@ class Indicator(object):
         by the constructor
 
         """
-        # Use the ranges to determine how each time aggregation should be keyed
-        range_config = {
-            'monthly': MonthQuerysetGenerator,
-            'quarterly': QuarterQuerysetGenerator,
-            'yearly': YearQuerysetGenerator,
-            'offset_yearly': OffsetYearQuerysetGenerator,
-            'custom': CustomQuerysetGenerator
-        }.get(self.params.time_aggregation.value)
+        # Get the queryset generator for this indicator's time aggregation
+        generator = queryset_generator.get(self.params.time_aggregation.value)
         key_params = {}
 
         # The custom range config accepts a user-defined parameter to pick which dates to use
         if self.params.custom_time_agg.value is not None:
             key_params['custom_time_agg'] = self.params.custom_time_agg.value
 
-        queryset = range_config.create_queryset(
+        # Use the queryset generator classes to construct the initial base climate data queryset
+        queryset = generator.create_queryset(
             years=self.params.years.value,
             models=self.params.models.value,
             scenario=self.scenario,

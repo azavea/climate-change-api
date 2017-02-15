@@ -7,6 +7,17 @@ from climate_data.models import ClimateData, ClimateDataSource, Scenario
 from climate_data.filters import ClimateDataFilterSet
 
 
+def get(time_aggregation):
+    """ Provide the correct queryset generator class based on indicator time aggregation """
+    return {
+        'monthly': MonthQuerysetGenerator,
+        'quarterly': QuarterQuerysetGenerator,
+        'yearly': YearQuerysetGenerator,
+        'offset_yearly': OffsetYearQuerysetGenerator,
+        'custom': CustomQuerysetGenerator
+    }.get(time_aggregation)
+
+
 class QuerysetGenerator(object):
     """ Utility class to create querysets for ClimateData for a given time aggregation
 
@@ -16,6 +27,7 @@ class QuerysetGenerator(object):
 
     CaseRange = namedtuple('CaseRange', ('key', 'start', 'length'))
     range_config = None
+    filterset_kwargs = {}
 
     @staticmethod
     def get_leap_year_sets():
@@ -43,15 +55,16 @@ class QuerysetGenerator(object):
                             data_source__scenario=scenario))
 
         if years is not None or models is not None:
-            filterset = cls.get_filter_set()
-            queryset = filterset.filter_years(queryset, years)
-            queryset = filterset.filter_models(queryset, models)
+            queryset = cls.apply_filters(queryset, years, models)
 
         return queryset
 
     @classmethod
-    def get_filter_set(cls):
-        return ClimateDataFilterSet()
+    def apply_filters(cls, queryset, years, models):
+        filterset = ClimateDataFilterSet(**cls.filterset_kwargs)
+        queryset = filterset.filter_years(queryset, years)
+        queryset = filterset.filter_models(queryset, models)
+        return queryset
 
     @classmethod
     def get_interval_key(cls, index):
@@ -201,6 +214,7 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
     # By default place the year divide near the summer solstice to maximize the span that covers
     # winter
     custom_offset = 180
+    filterset_kwargs = {'year_col': 'offset_year'}
 
     @classmethod
     def make_ranges(cls, label):
@@ -220,10 +234,6 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
     @classmethod
     def create_queryset(cls, *args, **kwargs):
         queryset = super(OffsetYearQuerysetGenerator, cls).create_queryset(*args, **kwargs)
-        queryset = queryset.annotate(offset_year=Case(
-            When(day_of_year__lt=cls.custom_offset,
-                 then=F('data_source__year') - 1),
-            default=F('data_source__year')))
 
         scenario = kwargs['scenario']
         maxYear, minYear = (Scenario.objects
@@ -239,5 +249,10 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
         return queryset
 
     @classmethod
-    def get_filter_set(cls):
-        return ClimateDataFilterSet(year_col='offset_year')
+    def apply_filters(cls, queryset, years, models):
+        queryset = queryset.annotate(offset_year=Case(
+            When(day_of_year__lt=cls.custom_offset,
+                 then=F('data_source__year') - 1),
+            default=F('data_source__year')))
+
+        return super(OffsetYearQuerysetGenerator, cls).apply_filters(queryset, years, models)
