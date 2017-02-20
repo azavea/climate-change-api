@@ -4,6 +4,32 @@ import os
 
 from locust import HttpLocust, TaskSet, task
 
+CITY_ID = os.getenv('LOAD_TEST_CITY_ID') or 1
+SCENARIO = os.getenv('LOAD_TEST_SCENARIO') or 'RCP85'
+
+
+def general_indicator_query(locust_instance, indicator, params):
+    locust_instance.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
+        city=CITY_ID, scenario=SCENARIO, indicator=indicator),
+        headers=locust_instance.headers,
+        params=params)
+
+
+def build_indicator_queries(locust_instance):
+    """
+    Add a load test query for each indciator / time aggregation
+    """
+    indicators = locust_instance.client.get('/api/indicator/',
+                                            headers=locust_instance.headers).json()
+    for indicator in indicators:
+        indicator_name = indicator['name']
+        for agg in indicator['valid_aggregations']:
+            if agg != 'custom':
+                locust_instance.schedule_task(general_indicator_query,
+                                              kwargs={
+                                                'indicator': indicator_name,
+                                                'params': {'time_aggregation': agg}})
+
 
 class UserBehavior(TaskSet):
     def on_start(self):
@@ -13,6 +39,9 @@ class UserBehavior(TaskSet):
         if not token:
             raise ValueError('Must set API_TOKEN on environment to run load tests.')
         self.headers = {'Authorization': 'Token {token}'.format(token=token)}
+        print('adding indciator queries...')
+        build_indicator_queries(self)
+        print('ready to go!')
 
     @task(1)
     def index(self):
@@ -28,7 +57,7 @@ class UserBehavior(TaskSet):
 
     @task(1)
     def scenario_details(self):
-        self.client.get('/api/scenario/RCP85/', headers=self.headers)
+        self.client.get('/api/scenario/{scenario}/'.format(scenario=SCENARIO), headers=self.headers)
 
     @task(1)
     def cities(self):
@@ -36,7 +65,9 @@ class UserBehavior(TaskSet):
 
     @task(1)
     def city_data(self):
-        self.client.get('/api/climate-data/1/RCP85/', headers=self.headers)
+        self.client.get('/api/climate-data/{city}/{scenario}/'.format(city=CITY_ID,
+                                                                      scenario=SCENARIO),
+                        headers=self.headers)
 
     @task(1)
     def projects(self):
@@ -53,21 +84,6 @@ class UserBehavior(TaskSet):
     @task(1)
     def indicator_list(self):
         self.client.get('/api/indicator/', headers=self.headers)
-
-    @task(1)
-    def avg_high_temp(self):
-        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
-                        headers=self.headers)
-
-    @task(1)
-    def avg_high_temp_monthly(self):
-        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
-                        params={'time_aggregation': 'monthly'}, headers=self.headers)
-
-    @task(1)
-    def avg_high_temp_daily(self):
-        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
-                        params={'time_aggregation': 'daily'}, headers=self.headers)
 
 
 class WebsiteUser(HttpLocust):
