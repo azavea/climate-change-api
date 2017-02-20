@@ -1,50 +1,43 @@
 from django.test import TestCase
-from indicators.query_ranges import MonthQuerysetGenerator, QuarterQuerysetGenerator, CustomQuerysetGenerator
+from indicators.queryset_generator import (MonthQuerysetGenerator, QuarterQuerysetGenerator,
+                                           CustomQuerysetGenerator)
 
 
-class QuarterQueryRangeTestCase(TestCase):
-    def test_non_leap_year(self):
-        intervals = QuarterQuerysetGenerator.get_intervals('noleap')
-        self.assertEqual(intervals, [(1, 90), (91, 91), (182, 92), (274, 92)])
+class LengthQuerysetGenerator(object):
+    generator = None
 
-    def test_leap_year(self):
-        intervals = QuarterQuerysetGenerator.get_intervals('leap')
-        self.assertEqual(intervals, [(1, 91), (92, 91), (183, 92), (275, 92)])
+    def test_length_config(self):
+        total = sum(self.generator.lengths['noleap'])
+        self.assertEqual(total, 365)
 
+        total = sum(self.generator.lengths['leap'])
+        self.assertEqual(total, 366)
 
-class MonthQueryRangeTestCase(TestCase):
-    def test_non_leap_year(self):
-        intervals = MonthQuerysetGenerator.get_intervals('noleap')
-        self.assertEqual(intervals, [(1, 31),
-                                     (32, 28),
-                                     (60, 31),
-                                     (91, 30),
-                                     (121, 31),
-                                     (152, 30),
-                                     (182, 31),
-                                     (213, 31),
-                                     (244, 30),
-                                     (274, 31),
-                                     (305, 30),
-                                     (335, 31)])
-
-    def test_leap_year(self):
-        intervals = MonthQuerysetGenerator.get_intervals('leap')
-        self.assertEqual(intervals, [(1, 31),
-                                     (32, 29),
-                                     (61, 31),
-                                     (92, 30),
-                                     (122, 31),
-                                     (153, 30),
-                                     (183, 31),
-                                     (214, 31),
-                                     (245, 30),
-                                     (275, 31),
-                                     (306, 30),
-                                     (336, 31)])
+    def test_get_intervals(self):
+        for label, result in self.intervals.items():
+            intervals = self.generator.get_intervals(label)
+            self.assertEqual(intervals, result)
 
 
-class CustomQueryRangeTestCase(TestCase):
+class QuarterQuerysetGeneratorTestCase(LengthQuerysetGenerator, TestCase):
+    generator = QuarterQuerysetGenerator
+    intervals = {
+        'leap': [(1, 91), (92, 91), (183, 92), (275, 92)],
+        'noleap': [(1, 90), (91, 91), (182, 92), (274, 92)]
+    }
+
+
+class MonthQuerysetGeneratorTestCase(LengthQuerysetGenerator, TestCase):
+    generator = MonthQuerysetGenerator
+    intervals = {
+        'leap': [(1, 31), (32, 29), (61, 31), (92, 30), (122, 31), (153, 30), (183, 31), (214, 31),
+                 (245, 30), (275, 31), (306, 30), (336, 31)],
+        'noleap': [(1, 31), (32, 28), (60, 31), (91, 30), (121, 31), (152, 30), (182, 31),
+                   (213, 31), (244, 30), (274, 31), (305, 30), (335, 31)]
+    }
+
+
+class CustomQuerysetGeneratorTestCase(TestCase):
     def test_non_leap_year(self):
         CustomQuerysetGenerator.custom_spans = "1-1:12-31"
         intervals = list(CustomQuerysetGenerator.get_intervals('noleap'))
