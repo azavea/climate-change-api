@@ -26,6 +26,8 @@ class UserBehavior(TaskSet):
                                      headers=self.headers).json()
         for indicator in indicators:
             indicator_name = indicator['name']
+            if indicator_name.endswith('threshold'):
+                continue  # TODO: threshold indicators have other required parameters; send them
             for agg in indicator['valid_aggregations']:
                 if agg != 'custom':
                     self.tasks.append(partial(general_indicator_query,
