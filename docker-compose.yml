@@ -66,9 +66,10 @@ services:
     build:
       context: ./loadtest
       dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
     environment:
-      - DISPLAY
-      - QT_X11_NO_MITSHM=1
+      - API_TOKEN
+      - API_HOST=https://api.staging.futurefeelslike.com
     volumes:
      - .:/opt
-     - /tmp/.X11-unix:/tmp/.X11-unix:rw
