@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
+from functools import partial
 import os
 
 from locust import HttpLocust, TaskSet, task
@@ -8,30 +9,29 @@ CITY_ID = os.getenv('LOAD_TEST_CITY_ID') or 1
 SCENARIO = os.getenv('LOAD_TEST_SCENARIO') or 'RCP85'
 
 
-def general_indicator_query(locust_instance, indicator, params):
-    locust_instance.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
-        city=CITY_ID, scenario=SCENARIO, indicator=indicator),
-        headers=locust_instance.headers,
-        params=params)
-
-
-def build_indicator_queries(locust_instance):
-    """
-    Add a load test query for each indciator / time aggregation
-    """
-    indicators = locust_instance.client.get('/api/indicator/',
-                                            headers=locust_instance.headers).json()
-    for indicator in indicators:
-        indicator_name = indicator['name']
-        for agg in indicator['valid_aggregations']:
-            if agg != 'custom':
-                locust_instance.schedule_task(general_indicator_query,
-                                              kwargs={
-                                                'indicator': indicator_name,
-                                                'params': {'time_aggregation': agg}})
+def general_indicator_query(locust_object, indicator, params):
+        locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
+            city=CITY_ID, scenario=SCENARIO, indicator=indicator),
+            headers=locust_object.headers,
+            params=params)
 
 
 class UserBehavior(TaskSet):
+
+    def build_indicator_queries(self):
+        """
+        Add a load test query for each indciator / time aggregation
+        """
+        indicators = self.client.get('/api/indicator/',
+                                     headers=self.headers).json()
+        for indicator in indicators:
+            indicator_name = indicator['name']
+            for agg in indicator['valid_aggregations']:
+                if agg != 'custom':
+                    self.tasks.append(partial(general_indicator_query,
+                                              indicator=indicator_name,
+                                              params={'time_aggregation': agg}))
+
     def on_start(self):
         """ on_start is called when a Locust start before any task is scheduled """
         print('starting locust...')
@@ -40,7 +40,8 @@ class UserBehavior(TaskSet):
             raise ValueError('Must set API_TOKEN on environment to run load tests.')
         self.headers = {'Authorization': 'Token {token}'.format(token=token)}
         print('adding indciator queries...')
-        build_indicator_queries(self)
+        indicator_tasks = TaskSet(self)
+        self.build_indicator_queries()
         print('ready to go!')
 
     @task(1)
