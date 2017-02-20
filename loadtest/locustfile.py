@@ -16,23 +16,58 @@ class UserBehavior(TaskSet):
 
     @task(1)
     def index(self):
-        resp = self.client.get("/", headers=self.headers)
+        self.client.get('/', headers=self.headers)
 
     @task(1)
     def api_main(self):
-        resp = self.client.get("/api/", headers=self.headers)
+        self.client.get('/api/', headers=self.headers)
 
-    @task(2)
+    @task(1)
     def scenarios(self):
-        resp = self.client.get("/api/scenario/", headers=self.headers)
+        self.client.get('/api/scenario/', headers=self.headers)
 
-    @task(2)
+    @task(1)
+    def scenario_details(self):
+        self.client.get('/api/scenario/RCP85/', headers=self.headers)
+
+    @task(1)
     def cities(self):
-        resp = self.client.get("/api/city/", headers=self.headers)
+        self.client.get('/api/city/', headers=self.headers)
 
-    @task(2)
+    @task(1)
+    def city_data(self):
+        self.client.get('/api/climate-data/1/RCP85/', headers=self.headers)
+
+    @task(1)
     def projects(self):
-        resp = self.client.get("/api/project/", headers=self.headers)
+        self.client.get('/api/project/', headers=self.headers)
+
+    @task(1)
+    def climate_models(self):
+        self.client.get('/api/climate-model/', headers=self.headers)
+
+    @task(1)
+    def climate_model_detail(self):
+        self.client.get('/api/climate-model/ACCESS1-0/', headers=self.headers)
+
+    @task(1)
+    def indicator_list(self):
+        self.client.get('/api/indicator/', headers=self.headers)
+
+    @task(1)
+    def avg_high_temp(self):
+        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
+                        headers=self.headers)
+
+    @task(1)
+    def avg_high_temp_monthly(self):
+        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
+                        params={'time_aggregation': 'monthly'}, headers=self.headers)
+
+    @task(1)
+    def avg_high_temp_daily(self):
+        self.client.get('/api/climate-data/14/RCP45/indicator/average_high_temperature/',
+                        params={'time_aggregation': 'daily'}, headers=self.headers)
 
 
 class WebsiteUser(HttpLocust):
