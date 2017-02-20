@@ -114,7 +114,7 @@ paths:
           required: true
           description: |
             Primary key of the city
-          x-example: 3
+          x-example: 4
       responses:
         "200":
           description: A City object
@@ -131,14 +131,14 @@ paths:
           required: true
           description: |
             Primary key of the city
-          x-example: 3
+          x-example: 4
       responses:
         "200":
           description: |
             A MultiPolygon GeoJson Feature
           schema:
             $ref: "#/definitions/Boundary"
-        "404":
+        404:
           description: |
             No valid boundary
   /api/climate-model/:
@@ -210,7 +210,7 @@ paths:
           in: path
           type: string
           required: true
-          x-example: 3
+          x-example: 4
         - name: scenario
           description: |
             Scenario name
@@ -222,45 +222,35 @@ paths:
           description: |
             A list of comma separated model names. Defaults to all models.
           in: query
-          type: array
-          collectionFormat: csv
-          items:
-            type: string
+          type: string
           required: false
-          x-example: ['ACCESS1-0', 'BNU-ESM']
+          x-example: null
         - name: variables
           description: |
             A list of comma separated variables.
             Available values are 'tasmax', 'tasmin' and 'pr'.
             Defaults to all variables.
           in: query
-          type: array
-          collectionFormat: csv
-          items:
-            type: string
-          required: false
-          x-example: 'tasmax'
+          type: string
+          x-example: pr,tasmax
         - name: years
           description: |
             A list of comma separated year ranges. A year range is of the form 'start[:end]', inclusive.
             Examples: '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'.
             Defaults to all years available.
           in: query
-          type: array
-          collectionFormat: csv
-          items:
-            type: string
+          type: string
           required: false
-          x-example: '2050:2020'
+          x-example: "2050:2055,2060"
         - name: agg
           description: |
             Get the minimum, maximum, or average of projected data across the included models. Options as: min, max, avg.
           in: query
           type: string
-          default: avg
           required: false
+          x-example: avg,min
       responses:
-        200:
+        "200":
           description: |
             Climate data
           schema:
@@ -274,9 +264,7 @@ paths:
         "200":
           description: A list of Indicator objects
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Indicator'
+            $ref: '#/definitions/Indicators'
   /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/:
     get:
       description: |
@@ -289,7 +277,7 @@ paths:
           description: City ID
           required: true
           type: string
-          x-example: 3
+          x-example: 4
         - name: scenario
           in: path
           description: Scenario name
@@ -303,16 +291,16 @@ paths:
           type: string
           x-example: 'average_high_temperature'
       responses:
-        200:
+        "200":
           description: |
             Indicator data
           schema:
             $ref: '#/definitions/ClimateData'
-        400:
+        "400":
           description: |
             Returned when at least one of the query parameters is misconfigured or missing.
             The response will contain a detailed message.
-        429:
+        "429":
           description: |
             Returned when the request is rate-limited. The response will detail when the
             request can be retried.
@@ -323,7 +311,7 @@ definitions:
       type:
         type: string
       geometry:
-        $ref: "#/definitions/MultiPolygon"
+        $ref: '#/definitions/MultiPolygon'
       properties:
         type: object
         properties:
@@ -339,12 +327,12 @@ definitions:
       type:
         type: string
       geometry:
-        $ref: "#/definitions/Point"
+        $ref: '#/definitions/Point'
       properties:
         type: object
         properties:
           map_cell:
-            $ref: "#/definitions/Point"
+            $ref: '#/definitions/Point'
           name:
             type: string
           admin:
@@ -372,18 +360,25 @@ definitions:
       base_time:
         type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
         description: The base reference time of the model, provided in ISO8061 format
+  Indicators:
+    type: array
+    items:
+      $ref: '#/definitions/Indicator'
   Indicator:
     type: object
     properties:
       name:
         type: string
-        description: Unique name identifier for the indicator
+        description: |
+          Unique name identifier for the indicator
       label:
         type: string
-        description: Human-readable name of the indicator, not necessarily unique
+        description: |
+          Human-readable name of the indicator, not necessarily unique
       description:
         type: string
-        description: A detailed, human-readable description of the indicator
+        description: |
+          A detailed, human-readable description of the indicator
       valid_aggregations:
         type: array
         items:
@@ -434,7 +429,7 @@ definitions:
           True if this parameter is required when making a request for this indicator,
           otherwise false.
       default:
-        type: string
+        type: [string, integer]
         description: |
           The default value of this parameter if it is not explicitly provided as part of a request.
   MultiPolygon:
@@ -494,7 +489,8 @@ definitions:
         description: Unique name identifier for the scenario
       label:
         type: string
-        description: Human-readable name of the scenario, not necessarily unique
+        description: |
+          Human-readable name of the scenario, not necessarily unique
       description:
         type: string
         description: A detailed description of the definition of a scenario
