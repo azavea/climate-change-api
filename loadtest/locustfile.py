@@ -14,16 +14,25 @@ class UserBehavior(TaskSet):
             raise ValueError('Must set API_TOKEN on environment to run load tests.')
         self.headers = {'Authorization': 'Token {token}'.format(token=token)}
 
-    @task(2)
+    @task(1)
     def index(self):
         resp = self.client.get("/", headers=self.headers)
-        print(resp)
 
     @task(1)
-    def profile(self):
+    def api_main(self):
         resp = self.client.get("/api/", headers=self.headers)
-        print(resp)
-        print(resp.json())
+
+    @task(2)
+    def scenarios(self):
+        resp = self.client.get("/api/scenario/", headers=self.headers)
+
+    @task(2)
+    def cities(self):
+        resp = self.client.get("/api/city/", headers=self.headers)
+
+    @task(2)
+    def projects(self):
+        resp = self.client.get("/api/project/", headers=self.headers)
 
 
 class WebsiteUser(HttpLocust):
