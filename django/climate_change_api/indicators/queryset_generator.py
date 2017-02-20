@@ -163,6 +163,10 @@ class QuarterQuerysetGenerator(LengthQuerysetGenerator):
 
 
 class CustomQuerysetGenerator(QuerysetGenerator):
+    """ QuerySet generator for user-defined date ranges within a given calendar year
+
+    Dates cannot span across year, OffsetYearQuerysetGenerator is necessary for that.
+    """
     custom_spans = None
 
     @classmethod
@@ -218,7 +222,7 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
 
     @classmethod
     def make_ranges(cls, label):
-        """ Takes the values of get_intervals and wraps them in CaseRange objects
+        """ Builds a pair of CaseRanges to represent a 366 day year split across two calendar years
         """
         year_len = 366
         offset = cls.custom_offset
