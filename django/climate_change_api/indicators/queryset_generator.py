@@ -2,8 +2,8 @@ from collections import namedtuple
 import calendar
 
 from django.db.models.functions import Concat
-from django.db.models import Case, When, CharField, Value, F, Max, Min, Q
-from climate_data.models import ClimateData, ClimateDataSource, Scenario
+from django.db.models import Case, When, CharField, Value, F, Max, Min
+from climate_data.models import ClimateData, ClimateDataSource
 from climate_data.filters import ClimateDataFilterSet
 
 
@@ -239,16 +239,28 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
     def create_queryset(cls, *args, **kwargs):
         queryset = super(OffsetYearQuerysetGenerator, cls).create_queryset(*args, **kwargs)
 
-        scenario = kwargs['scenario']
-        maxYear, minYear = (Scenario.objects
-                            .annotate(maxYear=Max('climatedatasource__year'),
-                                      minYear=Min('climatedatasource__year'))
-                            .values_list('maxYear', 'minYear')
-                            .get(name=scenario))
-        queryset = queryset.exclude(
-            (Q(data_source__year=minYear) & Q(day_of_year__lt=cls.custom_offset)) |
-            (Q(data_source__year=maxYear) & Q(day_of_year__gte=cls.custom_offset))
-        )
+        # Since we want to have complete year ranges, we want to conditionally remove the
+        # beginning part of the first year and ending part of the last year to ensure all
+        # results have complete data.
+        # However, because ACCESS1-0, MIROC5, and bcc-csm1-1 don't have data for 2100, we need
+        # specific logic to determine what constitutes the "first year" and "last year" for each
+        # model.
+        # To do this, we build a list of data sources that represent the first and last sources
+        # for each model, and then filter so that we exclude those sources if the day is either
+        # too early or too late to have another year to be paired with.
+        first_year_sources = (ClimateDataSource.objects.all()
+                              .annotate(minYear=Min('model__climatedatasource__year'))
+                              .filter(year=F('minYear'))
+                              .values('id'))
+        last_year_sources = (ClimateDataSource.objects.all()
+                             .annotate(maxYear=Max('model__climatedatasource__year'))
+                             .filter(year=F('maxYear'))
+                             .values('id'))
+        queryset = (queryset
+                    # Exclude data from the model's first year before the offset cutoff,
+                    # and data from the model's last year after the cutoff
+                    .exclude(data_source__in=first_year_sources, day_of_year__lt=cls.custom_offset)
+                    .exclude(data_source__in=last_year_sources, day_of_year__gte=cls.custom_offset))
 
         return queryset
 
