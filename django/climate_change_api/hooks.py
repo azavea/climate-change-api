@@ -23,5 +23,7 @@ def stash_token(transaction):
 @hooks.before_each
 def add_token_to_requests(transaction):
     # append token to each API request
-    if stash['token']:
+    if transaction['name'] == '/api-token-auth/ > POST > 200 > application/json':
+        return
+    elif stash['token']:
         transaction['request']['headers']['Authorization'] = 'Token ' + stash['token']

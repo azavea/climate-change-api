@@ -11,3 +11,7 @@
 *.tfvars
 *.tfstate
 *.tfplan
+
+# Ansible
+/deployment/ansible/node_modules
+/deployment/ansible/cc-api.retry

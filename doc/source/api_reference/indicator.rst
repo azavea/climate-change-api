@@ -67,7 +67,7 @@ Returns data for a specified indicator and its unique required and optional quer
 
 .. openapi:: /openapi/climate_api.yml
     :paths:
-        /api/climate-data/{city}/{scenario}/indicator/{indicator-name}/
+        /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/
 
 Example usage
 `````````````
