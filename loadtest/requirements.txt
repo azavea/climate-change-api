@@ -1,1 +1,1 @@
-multi-mechanize==1.2.0
+locustio==0.8a2
