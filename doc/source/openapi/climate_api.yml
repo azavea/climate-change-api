@@ -15,6 +15,7 @@ securityDefinitions:
 security:
   - Token: []
 paths:
+  # **** /api-token-auth/ MUST BE FIRST ENDPOINT FOR DREDD ENDPOINT CHECKING TO RUN ****
   /api-token-auth/:
     post:
       description: |
@@ -79,15 +80,13 @@ paths:
           in: query
           type: number
           required: true
-          description: |
-            Search latitude
+          description: Search latitude
           x-example: 40
         - name: lon
           in: query
           type: number
           required: true
-          description: |
-            Search longitude
+          description: Search longitude
           x-example: 60
         - name: limit
           in: query
@@ -112,8 +111,7 @@ paths:
           in: path
           type: string
           required: true
-          description: |
-            Primary key of the city
+          description: Primary key of the city
           x-example: 4
       responses:
         "200":
@@ -129,8 +127,7 @@ paths:
           in: path
           type: string
           required: true
-          description: |
-            Primary key of the city
+          description: Primary key of the city
           x-example: 4
       responses:
         "200":
@@ -138,7 +135,7 @@ paths:
             A MultiPolygon GeoJson Feature
           schema:
             $ref: "#/definitions/Boundary"
-        404:
+        "404":
           description: |
             No valid boundary
   /api/climate-model/:
@@ -152,7 +149,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/ClimateModel'
+              $ref: "#/definitions/ClimateModel"
   /api/climate-model/{name}/:
     get:
       description: Get information about a single Climate Model
@@ -164,12 +161,12 @@ paths:
           description: Name of climate model
           required: true
           type: string
-          x-example: 'ACCESS1-0'
+          x-example: ACCESS1-0
       responses:
         "200":
           description: ClimateModel object
           schema:
-            $ref: '#/definitions/ClimateModel'
+            $ref: "#/definitions/ClimateModel"
   /api/scenario/:
     get:
       description: Lists all scenarios available via the Climate API
@@ -182,7 +179,7 @@ paths:
             type: array
             x-example: RCP85
             items:
-              $ref: '#/definitions/Scenario'
+              $ref: "#/definitions/Scenario"
   /api/scenario/{name}/:
     get:
       description: Get information about a single Scenario
@@ -199,7 +196,7 @@ paths:
         "200":
           description: Scenario object
           schema:
-            $ref: '#/definitions/Scenario'
+            $ref: "#/definitions/Scenario"
   /api/climate-data/{city}/{scenario}/:
     get:
       description: |
@@ -228,15 +225,15 @@ paths:
         - name: variables
           description: |
             A list of comma separated variables.
-            Available values are 'tasmax', 'tasmin' and 'pr'.
+            Available values are "tasmax", "tasmin" and "pr".
             Defaults to all variables.
           in: query
           type: string
           x-example: pr,tasmax
         - name: years
           description: |
-            A list of comma separated year ranges. A year range is of the form 'start[:end]', inclusive.
-            Examples: '2010', '2010:2020', '2010:2020,2030', '2010:2020,2030:2040'.
+            A list of comma separated year ranges. A year range is of the form "start[:end]", inclusive.
+            Examples: "2010", "2010:2020", "2010:2020,2030", "2010:2020,2030:2040".
             Defaults to all years available.
           in: query
           type: string
@@ -254,7 +251,7 @@ paths:
           description: |
             Climate data
           schema:
-            $ref: '#/definitions/ClimateData'
+            $ref: "#/definitions/ClimateData"
   /api/indicator/:
     get:
       description: Lists all available indicators
@@ -264,7 +261,7 @@ paths:
         "200":
           description: A list of Indicator objects
           schema:
-            $ref: '#/definitions/Indicators'
+            $ref: "#/definitions/Indicators"
   /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/:
     get:
       description: |
@@ -289,13 +286,13 @@ paths:
           description: Indicator name
           required: true
           type: string
-          x-example: 'average_high_temperature'
+          x-example: "average_high_temperature"
       responses:
         "200":
           description: |
             Indicator data
           schema:
-            $ref: '#/definitions/ClimateData'
+            $ref: "#/definitions/ClimateData"
         "400":
           description: |
             Returned when at least one of the query parameters is misconfigured or missing.
@@ -311,7 +308,7 @@ definitions:
       type:
         type: string
       geometry:
-        $ref: '#/definitions/MultiPolygon'
+        $ref: "#/definitions/MultiPolygon"
       properties:
         type: object
         properties:
@@ -327,12 +324,12 @@ definitions:
       type:
         type: string
       geometry:
-        $ref: '#/definitions/Point'
+        $ref: "#/definitions/Point"
       properties:
         type: object
         properties:
           map_cell:
-            $ref: '#/definitions/Point'
+            $ref: "#/definitions/Point"
           name:
             type: string
           admin:
@@ -358,12 +355,12 @@ definitions:
         type: string
         description: Human-readable name of the climate model, not necessarily unique
       base_time:
-        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
         description: The base reference time of the model, provided in ISO8061 format
   Indicators:
     type: array
     items:
-      $ref: '#/definitions/Indicator'
+      $ref: "#/definitions/Indicator"
   Indicator:
     type: object
     properties:
@@ -397,17 +394,17 @@ definitions:
         items:
           type: string
         description: |
-          The list of units that can be passed to the 'units' query parameter of the indicator data
+          The list of units that can be passed to the "units" query parameter of the indicator data
           endpoint.
       default_units:
         type: string
         description: |
           The default units that the indicator data will be returned with. This will always be one
-          of the options in 'available_units'.
+          of the options in "available_units".
       parameters:
         type: array
         items:
-          $ref: '#/definitions/IndicatorParameter'
+          $ref: "#/definitions/IndicatorParameter"
         description: |
           A list of all of the query parameters that this indicator supports on the indicator
           data endpoint.
@@ -417,7 +414,7 @@ definitions:
       name:
         type: string
         description: |
-          The name of the query parameter. e.g. If name = 'units', then this parameter would be set
+          The name of the query parameter. e.g. If name = "units", then this parameter would be set
           on a request with /api/foo?units=C
       description:
         type: string
@@ -458,10 +455,10 @@ definitions:
         type: integer
         description: Number of features in this response
       next:
-        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
         description: URL to next response page
       previous:
-        type: [string, 'null'] #null is necessary to make nullable, but is invalid yml
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
         description: URL to previous response page
       features:
         type: array
@@ -469,7 +466,7 @@ definitions:
           type: object
         description: |
           A list of GeoJson Features.
-          Feature type can vary and is specified in each endpoint's documentation.
+          Feature type can vary and is specified in each endpoint"s documentation.
   Point:
     type: object
     properties:
@@ -498,7 +495,7 @@ definitions:
     type: object
     properties:
       city:
-        $ref: '#/definitions/City'
+        $ref: "#/definitions/City"
       scenario:
         type: string
       climate_models:

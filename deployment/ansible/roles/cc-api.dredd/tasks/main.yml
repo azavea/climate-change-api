@@ -1,6 +1,8 @@
 ---
 - name: Install dredd
-  command: "npm install --global --force dredd@stable"
+  npm:
+    name: dredd
+    global: yes
 
 - name: Symlink dredd into /usr/local/bin
   file: >
