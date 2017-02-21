@@ -12,4 +12,4 @@
     - { role: "cc-api.docker" }
     - { role: "cc-api.buildhelpers" }
     - { role: "cc-api.environment" }
-    - { role: "cc-api.nodejs" }
+    - { role: "cc-api.dredd" }
