@@ -23,9 +23,9 @@ AGG_PARAM_DOCSTRING = ("A list of comma separated aggregation types to return. V
 
 TIME_AGGREGATION_PARAM_DOCSTRING = ("Time granularity to group data by for result structure. Valid "
                                     "aggregations depend on indicator. Can be 'yearly', "
-                                    "'quarterly', 'monthly', 'daily' or 'custom'. Defaults to "
-                                    "'yearly'. If 'custom', 'custom_time_agg' parameter must be "
-                                    "set.")
+                                    "'offset_yearly', 'quarterly', 'monthly', or 'custom'. "
+                                    "Defaults to 'yearly'. If 'custom', 'custom_time_agg' "
+                                    "parameter must be set.")
 
 UNITS_PARAM_DOCSTRING = ("Units in which to return the data. Defaults to Imperial units (Fahrenheit"
                          " for temperature indicators and inches for precipitation).")
