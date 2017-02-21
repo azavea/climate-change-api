@@ -2,6 +2,7 @@
 
 from functools import partial
 import os
+import uuid
 
 from locust import HttpLocust, TaskSet, task
 
@@ -16,6 +17,8 @@ DEFAULT_THRESHOLD_PARAMS = {
 
 
 def general_indicator_query(locust_object, indicator, params):
+    # append a randomized extra parameter to the query to defeat caching
+    params['random'] = uuid.uuid4()
     locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
         city=CITY_ID, scenario=SCENARIO, indicator=indicator),
         headers=locust_object.headers,
