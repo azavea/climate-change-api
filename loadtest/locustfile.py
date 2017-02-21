@@ -8,12 +8,20 @@ from locust import HttpLocust, TaskSet, task
 CITY_ID = os.getenv('LOAD_TEST_CITY_ID') or 1
 SCENARIO = os.getenv('LOAD_TEST_SCENARIO') or 'RCP85'
 
+DEFAULT_THRESHOLD_PARAMS = {
+    'threshold': 100,
+    'threshold_comparator': 'lte',
+    'threshold_units': 'F'
+}
+
 
 def general_indicator_query(locust_object, indicator, params):
-        locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
-            city=CITY_ID, scenario=SCENARIO, indicator=indicator),
-            headers=locust_object.headers,
-            params=params)
+    locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
+        city=CITY_ID, scenario=SCENARIO, indicator=indicator),
+        headers=locust_object.headers,
+        params=params,
+        name='{indicator} {agg}'.format(indicator=indicator,
+                                        agg=params.get('time_aggregation', '')))
 
 
 class UserBehavior(TaskSet):
@@ -27,12 +35,16 @@ class UserBehavior(TaskSet):
         for indicator in indicators:
             indicator_name = indicator['name']
             if indicator_name.endswith('threshold'):
-                continue  # TODO: threshold indicators have other required parameters; send them
-            for agg in indicator['valid_aggregations']:
-                if agg != 'custom':
-                    self.tasks.append(partial(general_indicator_query,
-                                              indicator=indicator_name,
-                                              params={'time_aggregation': agg}))
+                self.tasks.append(partial(general_indicator_query,
+                                          indicator=indicator_name,
+                                          params=DEFAULT_THRESHOLD_PARAMS))
+            else:
+                # for non-threshold indicators, test all non-custom aggregation levels
+                for agg in indicator['valid_aggregations']:
+                    if agg != 'custom':
+                        self.tasks.append(partial(general_indicator_query,
+                                                  indicator=indicator_name,
+                                                  params={'time_aggregation': agg}))
 
     def on_start(self):
         """ on_start is called when a Locust start before any task is scheduled """
