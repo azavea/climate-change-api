@@ -35,9 +35,12 @@ class UserBehavior(TaskSet):
         for indicator in indicators:
             indicator_name = indicator['name']
             if indicator_name.endswith('threshold'):
+                params = DEFAULT_THRESHOLD_PARAMS
+                if indicator.find('precepitation') > -1:
+                    params['threshold_units'] = 'in'
                 self.tasks.append(partial(general_indicator_query,
                                           indicator=indicator_name,
-                                          params=DEFAULT_THRESHOLD_PARAMS))
+                                          params=params))
             else:
                 # for non-threshold indicators, test all non-custom aggregation levels
                 for agg in indicator['valid_aggregations']:
