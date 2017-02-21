@@ -29,6 +29,11 @@ def general_indicator_query(locust_object, indicator, params):
 
 class UserBehavior(TaskSet):
 
+    def get_api_url(self, url):
+        """ Helper for querying API with authorization header and random parameter to defeat cache
+        """
+        self.client.get(url, headers=self.headers, params={'random': uuid.uuid4()}, name=url)
+
     def build_indicator_queries(self):
         """
         Add a load test query for each indciator / time aggregation
@@ -66,45 +71,44 @@ class UserBehavior(TaskSet):
 
     @task(1)
     def index(self):
-        self.client.get('/', headers=self.headers)
+        self.get_api_url('/')
 
     @task(1)
     def api_main(self):
-        self.client.get('/api/', headers=self.headers)
+        self.get_api_url('/api/')
 
     @task(1)
     def scenarios(self):
-        self.client.get('/api/scenario/', headers=self.headers)
+        self.get_api_url('/api/scenario/')
 
     @task(1)
     def scenario_details(self):
-        self.client.get('/api/scenario/{scenario}/'.format(scenario=SCENARIO), headers=self.headers)
+        self.get_api_url('/api/scenario/{scenario}/'.format(scenario=SCENARIO))
 
     @task(1)
     def cities(self):
-        self.client.get('/api/city/', headers=self.headers)
+        self.get_api_url('/api/city/')
 
     @task(1)
     def city_data(self):
-        self.client.get('/api/climate-data/{city}/{scenario}/'.format(city=CITY_ID,
-                                                                      scenario=SCENARIO),
-                        headers=self.headers)
+        self.get_api_url('/api/climate-data/{city}/{scenario}/'.format(city=CITY_ID,
+                                                                       scenario=SCENARIO))
 
     @task(1)
     def projects(self):
-        self.client.get('/api/project/', headers=self.headers)
+        self.get_api_url('/api/project/')
 
     @task(1)
     def climate_models(self):
-        self.client.get('/api/climate-model/', headers=self.headers)
+        self.get_api_url('/api/climate-model/')
 
     @task(1)
     def climate_model_detail(self):
-        self.client.get('/api/climate-model/ACCESS1-0/', headers=self.headers)
+        self.get_api_url('/api/climate-model/ACCESS1-0/')
 
     @task(1)
     def indicator_list(self):
-        self.client.get('/api/indicator/', headers=self.headers)
+        self.get_api_url('/api/indicator/')
 
 
 class WebsiteUser(HttpLocust):
