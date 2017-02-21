@@ -36,7 +36,7 @@ class UserBehavior(TaskSet):
             indicator_name = indicator['name']
             if indicator_name.endswith('threshold'):
                 params = DEFAULT_THRESHOLD_PARAMS
-                if indicator.find('precepitation') > -1:
+                if indicator_name.find('precepitation') > -1:
                     params['threshold_units'] = 'in'
                 self.tasks.append(partial(general_indicator_query,
                                           indicator=indicator_name,
