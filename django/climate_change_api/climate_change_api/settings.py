@@ -277,7 +277,11 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',
                                  'rest_framework.renderers.BrowsableAPIRenderer',),
     'PAGE_SIZE': 20,
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_THROTTLE_RATES': {
+        'sustained': '5000/day',
+        'burst': '20/min',
+    },
 }
 
 
