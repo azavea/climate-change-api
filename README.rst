@@ -32,6 +32,28 @@ Run Django tests with::
     ./scripts/console django './manage.py test --settings climate_change_api.settings_test'
 
 
+Load Testing
+------------
+
+The ``loadtest`` Docker container can be used to test API query response times using `locust <http://locust.io/>`_.
+
+First set the environment variable ``API_TOKEN`` within the VM to a valid user token with::
+
+    export API_TOKEN=<user token>
+
+Optionally, the target server to test may be configured to target the local instance with::
+
+    export API_HOST=http://localhost:8082
+
+By default, the staging server will be targeted.
+
+Then start the Docker container with::
+
+    docker-compose up loadtest
+
+Naviagate to http://localhost:8089 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
+
+
 Documentation
 -------------
 
