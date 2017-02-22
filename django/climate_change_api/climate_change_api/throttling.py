@@ -10,8 +10,14 @@ class ClimateDataRateThrottle(UserRateThrottle):
 
 class ClimateDataBurstRateThrottle(ClimateDataRateThrottle):
     """ Set a relatively low 'burst' rate limit, data queries are relatively expensive """
-    rate = '20/min'
     scope = 'burst'
+
+    def allow_request(self, request, view):
+        if self.rate != request.user.burst_rate:
+            self.rate = request.user.burst_rate
+            self.num_requests, self.duration = self.parse_rate(self.rate)
+
+        return super(ClimateDataBurstRateThrottle, self).allow_request(request, view)
 
 
 class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
@@ -20,5 +26,11 @@ class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
     Not too concerned about users pulling data slowly over long time periods
 
     """
-    rate = '5000/day'
     scope = 'sustained'
+
+    def allow_request(self, request, view):
+        if self.rate != request.user.sustained_rate:
+            self.rate = request.user.sustained_rate
+            self.num_requests, self.duration = self.parse_rate(self.rate)
+
+        return super(ClimateDataSustainedRateThrottle, self).allow_request(request, view)
