@@ -75,25 +75,6 @@ class TemperatureIndicatorTests(IndicatorTests):
                          'Temperature should be converted to degrees F')
 
 
-class DailyHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.AverageHighTemperature
-    indicator_name = 'average_high_temperature'
-    time_aggregation = 'daily'
-    units = 'K'
-    test_indicator_rcp85_equals = {'2000-01-01': {'avg': 35.0, 'max': 40.0, 'min': 30.0}}
-    test_indicator_rcp45_equals = {'2000-01-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
-                                   '2001-01-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
-                                   '2002-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
-                                   '2003-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
-    test_years_filter_equals = {'2001-01-01': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
-                                '2002-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
-    test_models_filter_equals = {'2000-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
-                                 '2001-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
-                                 '2002-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
-                                 '2003-01-01': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
-    test_units_fahrenheit_equals = {'2000-01-01': {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
-
-
 class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.AverageHighTemperature
     indicator_name = 'average_high_temperature'
@@ -404,6 +385,27 @@ class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
 
 
+class CrossYearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.HeatingDegreeDays
+    indicator_name = 'heating_degree_days'
+    time_aggregation = 'offset_yearly'
+    extra_params = {
+        'basetemp': '42.5',
+        'basetemp_units': 'K'
+    }
+    test_indicator_rcp85_equals = {}
+    test_indicator_rcp45_equals = {'2000-2001': {'avg': 49.5, 'min': 40.5, 'max': 58.5},
+                                   '2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                   '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+    # Years are filtered by the starting year, so years=2001,2002 gives data for 2001-2002
+    # and 2002-2003
+    test_years_filter_equals = {'2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+    test_models_filter_equals = {'2000-2001': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                 '2001-2002': {'avg': 58.5, 'min': 58.5, 'max': 58.5},
+                                 '2002-2003': {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
+
+
 class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.CoolingDegreeDays
     indicator_name = 'cooling_degree_days'
@@ -660,21 +662,3 @@ class MonthlyPrecipitationThresholdTestcase(IndicatorTests, TestCase):
                                  '2001-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
                                  '2002-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0},
                                  '2003-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
-
-
-class MaxTemperatureThresholdTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.MaxTemperatureThreshold
-    indicator_name = 'max_temperature_threshold'
-    time_aggregation = 'daily'
-    extra_params = {'threshold': 20.0, 'threshold_comparator': 'gte', 'threshold_units': 'K'}
-    test_indicator_rcp85_equals = {'2000-01-01': {'avg': 1.0, 'max': 1.0, 'min': 1.0}}
-    test_indicator_rcp45_equals = {'2000-01-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
-                                   '2001-01-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
-                                   '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
-                                   '2003-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
-    test_years_filter_equals = {'2001-01-01': {'avg': 0.5, 'max': 1.0, 'min': 0.0},
-                                '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
-    test_models_filter_equals = {'2000-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
-                                 '2001-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
-                                 '2002-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0},
-                                 '2003-01-01': {'avg': 0.0, 'max': 0.0, 'min': 0.0}}

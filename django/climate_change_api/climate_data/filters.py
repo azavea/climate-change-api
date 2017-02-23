@@ -16,6 +16,10 @@ class ClimateDataFilterSet(filters.FilterSet):
     models = django_filters.MethodFilter()
     years = django_filters.MethodFilter()
 
+    def __init__(self, *args, **kwargs):
+        self.year_col = kwargs.pop('year_col', 'data_source__year')
+        super(ClimateDataFilterSet, self).__init__(*args, **kwargs)
+
     def filter_models(self, queryset, value):
         """ Filter models based on a comma separated list of names
 
@@ -46,13 +50,16 @@ class ClimateDataFilterSet(filters.FilterSet):
             for year_range_str in value.split(','):
                 year_range = year_range_str.split(':')
                 if len(year_range) == 2:
-                    start_year = int(year_range[0])
-                    end_year = int(year_range[1])
-                    # AND the year range
-                    year_filters.append((Q(data_source__year__gte=start_year) & Q(data_source__year__lte=end_year)))
+                    # Pair the two years with their comparators, gte and lte respectively
+                    bounds = zip(['gte', 'lte'], year_range)
+                    # Create two Q objects with the proper column, comparator and boundary year
+                    start, end = [Q(**{"%s__%s" % (self.year_col, comparator): year})
+                                  for comparator, year in bounds]
+                    # And the checks together
+                    year_filters.append(start & end)
                 if len(year_range) == 1:
                     year = int(year_range[0])
-                    year_filters.append(Q(data_source__year=year))
+                    year_filters.append(Q(**{self.year_col: year}))
             logger.debug(year_filters)
             # Now OR together all the year filters we've created
             queryset = queryset.filter(reduce(lambda x, y: x | y, year_filters))
