@@ -4,10 +4,9 @@ from rest_framework.throttling import UserRateThrottle
 
 
 class UserCustomRateThrottle(UserRateThrottle):
-    """ Allow setting custom user throttle rates defined on the ClimateUser model.
-    Defaults to
+    """ Allow setting custom per-user throttle rates defined in a CharField on your custom Django user model
 
-    `model_rate_field`: Specify throttle type on child class. Required to override default."""
+    `model_rate_field`: Specify a custom per-user throttle rate field. Required to override default rate."""
 
     def allow_request(self, request, view):
         if request.user is not None:
