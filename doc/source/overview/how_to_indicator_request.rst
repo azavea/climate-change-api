@@ -25,7 +25,6 @@ To begin, `get the full list`_ of actively developed indicators whose response s
                 "yearly",
                 "quarterly",
                 "monthly",
-                "daily",
                 "custom"
             ],
             "variables": [
@@ -56,7 +55,7 @@ To begin, `get the full list`_ of actively developed indicators whose response s
                 },
                 {
                     "name": "time_aggregation",
-                    "description": "Time granularity to group data by for result structure. Valid aggregations depend on indicator. Can be 'yearly', 'quarterly', 'monthly', 'daily' or 'custom'. Defaults to 'yearly'. If 'custom', 'custom_time_agg' parameter must be set.",
+                    "description": "Time granularity to group data by for result structure. Valid aggregations depend on indicator. Can be 'yearly', 'offset_yearly', 'quarterly', 'monthly' or 'custom'. Defaults to 'yearly'. If 'custom', 'custom_time_agg' parameter must be set.",
                     "required": false,
                     "default": "yearly"
                 },
@@ -208,4 +207,3 @@ Success! To answer our question, we can expect continued, consistent drought mid
 .. _indicator data endpoint: api_reference.html#indicator-data
 .. _city: api_reference.html#nearest-city-or-cities
 .. _scenario: api_reference.html#scenario-list
-

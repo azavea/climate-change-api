@@ -47,7 +47,7 @@ class IndicatorParamsTestCase(TestCase):
         self.params_class_kwargs = {}
         self.default_units = 'F'
         self.available_units = ('F', 'C', 'K',)
-        self.valid_aggregations = ('yearly', 'monthly', 'daily',)
+        self.valid_aggregations = ('yearly', 'monthly',)
         self.params_class = IndicatorParams
 
     def _get_params_class(self):
