@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='climateuser',
             name='burst_rate',
-            field=models.CharField(default=user_management.models.get_default_burst_rate, max_length=10, verbose_name='burst rate'),
+            field=models.CharField(default=user_management.models.get_default_burst_rate, max_length=20, verbose_name='burst rate'),
         ),
         migrations.AddField(
             model_name='climateuser',
             name='sustained_rate',
-            field=models.CharField(default=user_management.models.get_default_sustained_rate, max_length=10, verbose_name='sustained rate'),
+            field=models.CharField(default=user_management.models.get_default_sustained_rate, max_length=20, verbose_name='sustained rate'),
         ),
     ]
