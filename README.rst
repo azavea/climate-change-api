@@ -87,7 +87,7 @@ and view at http://localhost:8082
 Getting Data
 ------------
 
-Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance.
+Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance. ``./script/setup`` and ``./script/update`` will have populated your database with scenario, climate, model, city, region, and boundary data -- skip to "Loading Data From Staging".
 
 
 Loading Data from NetCDF
