@@ -262,6 +262,25 @@ paths:
           description: A list of Indicator objects
           schema:
             $ref: "#/definitions/Indicators"
+  /api/indicator/{indicator_name}/:
+    get:
+      description: Returns requested indicator
+      produces:
+        - application/json
+      parameters:
+        - name: indicator_name
+          in: path
+          description: Indicator name
+          required: true
+          type: string
+          x-example: "average_high_temperature"
+      responses:
+        "200":
+          description: An Indicator object
+          schema:
+            $ref: '#/definitions/Indicator'
+        "404":
+          description: Returned when requested indicator name cannot be found
   /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/:
     get:
       description: |

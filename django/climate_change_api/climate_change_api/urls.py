@@ -38,6 +38,8 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^api/indicator/$',
         climate_data_views.IndicatorListView.as_view(), name='climateindicator-list'),
+    url(r'^api/indicator/(?P<indicator>.+)/$',
+        climate_data_views.IndicatorDetailView.as_view(), name='climateindicator-detail'),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/indicator/(?P<indicator>.+)/$',
         climate_data_views.IndicatorDataView.as_view(), name='climateindicator-get'),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',

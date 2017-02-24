@@ -110,6 +110,10 @@ class UserBehavior(TaskSet):
     def indicator_list(self):
         self.get_api_url('/api/indicator/')
 
+    @task(1)
+    def indicator_detail(self):
+        self.get_api_url('/api/indicator/frost_days/')
+
 
 class WebsiteUser(HttpLocust):
     task_set = UserBehavior
