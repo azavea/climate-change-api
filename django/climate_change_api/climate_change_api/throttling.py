@@ -3,15 +3,30 @@ from django.core.cache import caches
 from rest_framework.throttling import UserRateThrottle
 
 
-class ClimateDataRateThrottle(UserRateThrottle):
+class UserCustomRateThrottle(UserRateThrottle):
+    """ Allow setting custom per-user throttle rates defined in a CharField on your custom Django user model
+
+    `model_rate_field`: Specify a custom per-user throttle rate field. Required to override default rate."""
+
+    def allow_request(self, request, view):
+        if request.user is not None:
+            user_rate = getattr(request.user, self.model_rate_field, self.rate)
+            if self.rate != user_rate:
+                self.rate = user_rate
+                self.num_requests, self.duration = self.parse_rate(self.rate)
+
+        return super(UserCustomRateThrottle, self).allow_request(request, view)
+
+
+class ClimateDataRateThrottle(UserCustomRateThrottle):
     """ Override to always use the throttling specific cache backend """
     cache = caches['api_throttling']
 
 
 class ClimateDataBurstRateThrottle(ClimateDataRateThrottle):
     """ Set a relatively low 'burst' rate limit, data queries are relatively expensive """
-    rate = '20/min'
     scope = 'burst'
+    model_rate_field = 'burst_rate'
 
 
 class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
@@ -20,5 +35,5 @@ class ClimateDataSustainedRateThrottle(ClimateDataRateThrottle):
     Not too concerned about users pulling data slowly over long time periods
 
     """
-    rate = '5000/day'
     scope = 'sustained'
+    model_rate_field = 'sustained_rate'

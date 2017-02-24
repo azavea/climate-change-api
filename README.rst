@@ -87,11 +87,32 @@ and view at http://localhost:8082
 Getting Data
 ------------
 
-Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance. ``./script/setup`` and ``./script/update`` will have populated your database with scenario, climate, model, city, region, and boundary data -- skip to "Loading Data From Staging".
+Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance. When loading climate data, you will need to bump your API user's throttling rate (``ClimateUser.burst_rate`` and ``ClimateUser.sustained_rate``) if loading from another instance. Even if not, you'll probably want to bump it for ease of development.
+
+
+Access the Remote Instance
+''''''''''''''''''''''''''
+
+To make changes to a remote instance of CC API (i.e. staging), you'll need to SSH in. First download ``pem.txt`` from the Climate Change SSH Key folder in LastPass. From there, you'll want to add it to your SSH key store and make sure it is accessible::
+
+    cp <pem_file> > ~/.ssh/
+    ssh-add ~/.ssh/<pem_file>
+    chmod 600 ~/.ssh/<pem_file>
+
+Next, you'll need the IPs of the remote instances. Log into the Climate Change AWS account and find the IP addresses of the active EC2 instances. SSH into them, making sure to port your permissions with ``-A``. Lastly, find and ssh into the django docker container::
+
+    ssh -A ec2-user@<IP_of_Bastion>
+    ssh <other_container_private_ip>
+    docker-compose ps
+    docker exec -it <django_container_id> /bin/bash
+
+From here, ``./manage.py`` commands are available to you.
 
 
 Loading Data from NetCDF
 ''''''''''''''''''''''''
+
+``./script/setup`` and ``./script/update`` will have populated your database with scenario, climate, model, city, region, and boundary data -- skip to the section "Loading Data From Staging".
 
 Run migrations::
 
