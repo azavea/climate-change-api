@@ -66,6 +66,21 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+class IndicatorDetailViewTestCase(CCAPITestCase):
+
+    def test_200_if_indicator_valid(self):
+        url = reverse('climateindicator-detail',
+                      kwargs={'indicator': 'frost_days'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_404_if_indicator_invalid(self):
+        url = reverse('climateindicator-detail',
+                      kwargs={'indicator': 'notanindicator'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class IndicatorDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
 
     def test_404_if_city_invalid(self):

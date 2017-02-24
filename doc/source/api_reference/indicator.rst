@@ -57,6 +57,57 @@ Response:
         }
     ]
 
+Indicator Detail
+________________
+
+.. openapi:: /openapi/climate_api.yml
+    :paths:
+        /api/indicator/{indicator_name}/
+
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/indicator/example_temperature_indicator/ HTTP/1.1
+    Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "name": "example_temperature_indicator",
+        "label": "Example Temperature Indicator",
+        "description": "Simplified indicator to demonstrate the response format",
+        "valid_aggregations": [
+            "yearly",
+            "monthly"
+        ],
+        "variables": [
+            "tasmax",
+            "tasmin"
+        ],
+        "available_units": [
+            "C",
+            "K",
+            "F"
+        ],
+        "default_units": "F",
+        "parameters": [
+            {
+                "name": "example",
+                "description": "Example parameter",
+                "required": false,
+                "default": false
+            }
+        ]
+    }
 
 Indicator Data
 ______________
