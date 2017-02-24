@@ -11,6 +11,24 @@ Run application tests.
 "
 }
 
+function createTestUser() {
+    echo "Creating test user"
+    echo "ClimateUser.objects.create_superuser('testuser@testing.com','thisisatest')" | ./scripts/console django "./manage.py shell_plus"
+}
+
+function deleteTestUser() {
+    echo "Deleting test user"
+    echo "ClimateUser.objects.get(email='testuser@testing.com').delete()" | ./scripts/console django "./manage.py shell_plus"
+}
+
+function interceptError() {
+    #Catch and clean upon bash error to ensure testing idempotence
+    exitcode=$?
+    deleteTestUser
+    exit $exitcode
+}
+
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]
@@ -35,14 +53,13 @@ then
             run --rm --entrypoint "./manage.py" \
             django test --noinput --settings climate_change_api.settings_test
 
-        echo "Creating test user"
-        echo "ClimateUser.objects.create_superuser('testuser@testing.com','thisisatest')" | ./scripts/console django "./manage.py shell_plus"
+        createTestUser
 
+        trap interceptError ERR
         echo "Testing endpoints"
         dredd
 
-        echo "Deleting test user"
-        echo "ClimateUser.objects.get(email='testuser@testing.com').delete()" | ./scripts/console django "./manage.py shell_plus"
+        deleteTestUser
     fi
     exit
 fi
