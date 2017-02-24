@@ -20,6 +20,14 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
+def get_default_burst_rate():
+    return settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['burst']
+
+
+def get_default_sustained_rate():
+    return settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['sustained']
+
+
 class ClimateUserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -77,6 +85,9 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     date_joined = models.DateTimeField('date joined', default=timezone.now)
+
+    burst_rate = models.CharField('burst rate', default=get_default_burst_rate, max_length=20)
+    sustained_rate = models.CharField('sustained rate', default=get_default_sustained_rate, max_length=20)
 
     REQUIRED_FIELDS = []
 
