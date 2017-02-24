@@ -10,7 +10,7 @@ Pull and build container images using docker-compose
 
 Runs Django migrations.
 
-Loads initial Scenario and Climate Model data.
+Loads initial Scenario, Climate Model, City, Boundary, and Region data.
 
 See the Getting Data section of the README for importing additional data.
 
@@ -59,7 +59,7 @@ function help_load_data() {
     echo -n \
 "
 
-NOTE: Your development environment is ready, but has no city or climate data.
+NOTE: Your development environment is ready, but has no climate data.
 
 Please see the 'Getting Data' section of the README to load additional necessary data.
 
@@ -82,7 +82,15 @@ then
         docker-compose \
             run --rm --entrypoint "./manage.py" \
             django loaddata climate-models
-
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django import_cities azavea-climate-sandbox geonames_cities_top200_us.geojson
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django import_boundaries
+        docker-compose \
+            run --rm --entrypoint "./manage.py" \
+            django import_regions --bucket azavea-climate-sandbox --key level2_ecoregions.geojson
         help_load_data
     fi
     exit
