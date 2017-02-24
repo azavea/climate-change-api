@@ -209,6 +209,20 @@ class IndicatorListView(APIView):
         return Response(list_available_indicators())
 
 
+class IndicatorDetailView(APIView):
+
+    @cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """ Return details of specific indicator if found """
+
+        key = kwargs['indicator']
+        IndicatorClass = indicator_factory(key)
+        if not IndicatorClass:
+            raise NotFound(detail='Indicator {} does not exist.'.format(key))
+
+        return Response(IndicatorClass.to_dict())
+
+
 class IndicatorDataView(APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
