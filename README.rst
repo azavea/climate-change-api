@@ -144,7 +144,7 @@ Run migrations::
 
     ./scripts/console django './manage.py migrate'
 
-Make sure database is clear for importing data::
+To clear database before importing data::
 
     ./scripts/console django './manage.py shell_plus'
     ClimateDataCell.objects.all().delete()
@@ -153,6 +153,9 @@ Make sure database is clear for importing data::
 Import data (10 models, 100 cities)::
 
     ./scripts/console django './manage.py import_from_other_instance staging.somewhere.com API_KEY RCP85 10 100'
+
+Any import failures will be logged to ``django/climate_change_api/logs/import_error.log`` and will be
+re-attempted if the import job is repeated.
 
 
 Getting Historic Summary Data
