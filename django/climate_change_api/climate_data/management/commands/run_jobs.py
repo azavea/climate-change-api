@@ -55,7 +55,7 @@ def process_message(message, queue):
     try:
         Nex2DB(logger=logger).nex2db(variables, datasource)
     except:
-        logger.exception("Failed to process data for model %s scenario %s year %s",
+        logger.exception('Failed to process data for model %s scenario %s year %s',
                          model.name, scenario.name, year)
         datasource.delete()
         raise
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                     message.delete()
                     failures = 0
             except IndexError:
-                logger.debug("Empty queue, waiting 10 seconds...")
+                logger.debug('Empty queue, waiting 10 seconds...')
                 sleep(10)
                 failures += 1
         logger.info('Finished processing jobs')

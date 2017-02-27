@@ -111,7 +111,7 @@ def import_city(citydata):
             city.save()
         return city
     except ObjectDoesNotExist:
-        logger.info("City does not exist, creating city")
+        logger.info('City does not exist, creating city')
 
         map_cell = import_map_cell(citydata['properties']['map_cell'])
 
@@ -191,7 +191,7 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
-        logger.info("Importing cities...")
+        logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
         for city in islice(remote_cities, options['num_cities']):
             logger.info('Importing city %s, %s',
@@ -202,16 +202,16 @@ class Command(BaseCommand):
             coordinates = (created_city.map_cell.lat, created_city.map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
-                    logger.info("Skipping %s, data already imported", model.name)
+                    logger.info('Skipping %s, data already imported', model.name)
                     continue
 
                 if ClimateData.objects.filter(
                         data_source__model=model,
                         data_source__scenario=scenario,
                         map_cell=created_city.map_cell).exists():
-                    logger.info("Skipping %s, data already imported", model.name)
+                    logger.info('Skipping %s, data already imported', model.name)
                 else:
-                    logger.info("Importing %s", model)
+                    logger.info('Importing %s', model)
                     try:
                         import_data(
                             domain=options['domain'],
