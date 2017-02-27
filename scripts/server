@@ -7,10 +7,6 @@ function usage() {
 "Usage: $(basename "$0") <component>
 Serve application components in development.
 
-<component> is one of:
-  - app (default if not provided)
-  - docs
-
 "
 }
 
@@ -19,16 +15,13 @@ then
     if [ "${1:-}" = "--help" ]
     then
         usage
-    elif [ "${1:-}" = "docs" ]
-    then
+    else
         # Build the docs first if they don't yet exist
         if [ ! -d "./doc/build/html" ]
         then
             ./scripts/docs
         fi
-        docker-compose up docs
-    else
-        docker-compose up nginx
+        docker-compose up
     fi
     exit
 fi

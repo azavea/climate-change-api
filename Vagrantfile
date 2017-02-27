@@ -32,6 +32,9 @@ Vagrant.configure(2) do |config|
   config.vm.network :forwarded_port, guest: 8080, host: Integer(ENV.fetch("CC_PORT_8080", 8080))
   config.vm.network :forwarded_port, guest: 8088, host: Integer(ENV.fetch("CC_PORT_8088", 8088))
 
+  # docs port
+  config.vm.network :forwarded_port, guest: 8084, host: Integer(ENV.fetch("CC_PORT_8084", 8084))
+
   # locust port
   config.vm.network :forwarded_port, guest: 8089, host: Integer(ENV.fetch("CC_PORT_8080", 8089))
 
