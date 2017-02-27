@@ -2,7 +2,6 @@
 
 from functools import partial
 import os
-import uuid
 
 from locust import HttpLocust, TaskSet, task
 
@@ -12,13 +11,12 @@ SCENARIO = os.getenv('LOAD_TEST_SCENARIO') or 'RCP85'
 DEFAULT_THRESHOLD_PARAMS = {
     'threshold': 100,
     'threshold_comparator': 'lte',
-    'threshold_units': 'F'
+    'threshold_units': 'F',
+    'noCache': 'True'
 }
 
 
 def general_indicator_query(locust_object, indicator, params):
-    # append a randomized extra parameter to the query to defeat caching
-    params['random'] = uuid.uuid4()
     locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
         city=CITY_ID, scenario=SCENARIO, indicator=indicator),
         headers=locust_object.headers,
@@ -30,9 +28,9 @@ def general_indicator_query(locust_object, indicator, params):
 class UserBehavior(TaskSet):
 
     def get_api_url(self, url):
-        """ Helper for querying API with authorization header and random parameter to defeat cache
+        """ Helper for querying API with authorization header
         """
-        self.client.get(url, headers=self.headers, params={'random': uuid.uuid4()}, name=url)
+        self.client.get(url, headers=self.headers, params={'noCache': 'True'}, name=url)
 
     def build_indicator_queries(self):
         """
