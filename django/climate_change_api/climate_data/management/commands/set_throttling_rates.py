@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 
 from user_management.models import ClimateUser
@@ -35,7 +36,11 @@ class Command(BaseCommand):
         sustained = options['sustained']
 
         for email in emails:
-            user = ClimateUser.objects.get(email=email)
+            try:
+                user = ClimateUser.objects.get(email=email)
+            except ObjectDoesNotExist:
+                logger.warn(email + " is not a valid user")
+                continue
             if burst:
                 user.burst_rate = burst
             if sustained:
