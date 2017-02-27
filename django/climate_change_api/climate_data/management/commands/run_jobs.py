@@ -32,12 +32,13 @@ def process_message(message, queue):
     logger.debug('processing SQS message')
     # extract info from message
     message_dict = json.loads(message.body)
-    logger.debug('Processing message for model {model_id} scenario {scenario_id} year {year}'.format(**message_dict))
+    logger.debug('Processing message for model {model_id} scenario {scenario_id} year {year}'
+                 .format(**message_dict))
     model = ClimateModel.objects.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
     logger.info('Processing SQS message for model %s scenario %s year %s',
-                 model.name, scenario.name, year)
+                model.name, scenario.name, year)
 
     try:
         datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
