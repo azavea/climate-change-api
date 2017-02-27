@@ -61,11 +61,7 @@ Documentation for the API can be built with::
 
     ./scripts/docs
 
-Then it can be served with::
-
-    ./scripts/serve docs
-
-and viewed at http://localhost:8088
+Docs are served in development via nginx and can be viewed at http://localhost:8084
 
 
 Django Management commands
