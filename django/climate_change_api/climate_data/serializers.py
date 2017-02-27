@@ -14,6 +14,7 @@ from climate_data.models import (City,
                                  ClimateDataCell,
                                  ClimateDataSource,
                                  ClimateModel,
+                                 Region,
                                  Scenario)
 
 
@@ -143,6 +144,19 @@ class ClimateModelSerializer(serializers.ModelSerializer):
         model = ClimateModel
         exclude = ('id',)
 
+
+class RegionDetailSerializer(GeoFeatureModelSerializer):
+
+    class Meta:
+        model = Region
+        geo_field = 'geom'
+
+
+class RegionListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Region
+        exclude = ('geom',)
 
 class ScenarioSerializer(serializers.ModelSerializer):
 
