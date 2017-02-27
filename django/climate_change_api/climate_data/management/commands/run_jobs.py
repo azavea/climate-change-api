@@ -14,6 +14,7 @@ from climate_data.models import ClimateModel, Scenario, ClimateDataSource, Clima
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
+failure_logger = logging.getLogger('climate_data_import_failures')
 
 BUCKET = 'nasanex'
 KEY_FORMAT = ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
@@ -57,6 +58,8 @@ def process_message(message, queue):
     except:
         logger.exception('Failed to process data for model %s scenario %s year %s',
                          model.name, scenario.name, year)
+        failure_logger.info('Import failed for model %s scenario %s year %s',
+                            model.name, scenario.name, year)
         datasource.delete()
         raise
     finally:
