@@ -20,6 +20,9 @@ MODEL_LIST_URL = 'https://{domain}/api/climate-model/'
 CITY_LIST_URL = 'https://{domain}/api/city/'
 CLIMATE_DATA_URL = 'https://{domain}/api/climate-data/{city_id}/{rcp}/?models={model}'
 
+# wait this many seconds before retrying a request due to throttling
+THROTTLE_WAIT_SECONDS = 20
+
 
 def make_request(url, token, failures=10):
     wait = 1
@@ -36,6 +39,12 @@ def make_request(url, token, failures=10):
         except requests.exceptions.HTTPError as e:
             if res.status_code == 401:
                 logger.critical('Check your authorization token')
+            if res.status_code == 429:
+                logger.info('Request for %s throttled. Trying again in %d second(s)',
+                            url,
+                            THROTTLE_WAIT_SECONDS)
+                sleep(THROTTLE_WAIT_SECONDS)
+                continue
             raise e
         except Exception as e:
             tries += 1
