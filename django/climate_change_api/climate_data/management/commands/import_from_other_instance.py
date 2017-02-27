@@ -227,4 +227,3 @@ class Command(BaseCommand):
                             data_source__model=model,
                             data_source__scenario=scenario,
                             map_cell=created_city.map_cell).delete()
-                        raise
