@@ -15,6 +15,7 @@ import requests
 from time import time, sleep
 
 logger = logging.getLogger('climate_data')
+failure_logger = logging.getLogger('climate_data_import_failures')
 
 MODEL_LIST_URL = 'https://{domain}/api/climate-model/'
 CITY_LIST_URL = 'https://{domain}/api/city/'
@@ -227,3 +228,6 @@ class Command(BaseCommand):
                             data_source__model=model,
                             data_source__scenario=scenario,
                             map_cell=created_city.map_cell).delete()
+                        failure_logger.info('Import failed for model %s scenario %s city %s, %s',
+                                            model.name, scenario.name, city['properties']['name'],
+                                            city['properties']['admin'])

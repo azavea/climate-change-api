@@ -246,7 +246,11 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler'
-        }
+        },
+        'log_file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(os.path.join(BASE_DIR, 'logs'), 'import_error.log'),
+        },
     },
     'loggers': {
         'django': {
@@ -256,6 +260,10 @@ LOGGING = {
         'climate_data': {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+        },
+        'climate_data_import_failures': {
+            'handlers': ['log_file'],
+            'level': 'DEBUG',
         }
     }
 }
