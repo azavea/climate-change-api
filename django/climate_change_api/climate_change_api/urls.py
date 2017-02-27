@@ -48,6 +48,8 @@ urlpatterns = [
         climate_data_views.RegionListView.as_view(), name='region-list'),
     url(r'^api/region/(?P<region>[0-9]+)/$',
         climate_data_views.RegionDetailView.as_view(), name='region-detail'),
+    url(r'^api/region/(?P<region>[0-9]+)\.(?P<format>[json|pbf|api]+)/?$',
+        climate_data_views.RegionDetailView.as_view(), name='region-detail'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/', ClimateAPIObtainAuthToken.as_view()),
     url(r'^admin/', admin.site.urls),
