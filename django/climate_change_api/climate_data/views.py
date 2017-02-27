@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
+from rest_framework.settings import api_settings
 
 from climate_change_api.throttling import (ClimateDataBurstRateThrottle,
                                            ClimateDataSustainedRateThrottle)
@@ -34,6 +35,7 @@ from climate_data.serializers import (CitySerializer,
                                       RegionListSerializer,
                                       ScenarioSerializer)
 from indicators import indicator_factory, list_available_indicators
+from renderers import GeobufRenderer
 
 
 logger = logging.getLogger(__name__)
@@ -299,8 +301,10 @@ class RegionListView(OverridableCacheResponseMixin, ListAPIView):
 
 class RegionDetailView(APIView):
 
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeobufRenderer]
+
     @overridable_cache_response(key_func=full_url_cache_key_func)
-    def get(self, request, *args, **kwargs):
+    def get(self, request, format=None, *args, **kwargs):
         """ Return region as GeoJSON """
 
         key = kwargs['region']
@@ -310,3 +314,16 @@ class RegionDetailView(APIView):
             raise NotFound(detail='Region {} does not exist.'.format(key))
 
         return Response(RegionDetailSerializer(region).data)
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """ Set filename if geobuf """
+        response = super(RegionDetailView, self).finalize_response(request,
+                                                                   response,
+                                                                   *args,
+                                                                   **kwargs)
+        if isinstance(response.accepted_renderer, GeobufRenderer):
+            region = kwargs['region']
+            disposition = 'attachment; filename=region-{}.pbf'.format(region)
+            response['content-disposition'] = disposition
+
+        return response
