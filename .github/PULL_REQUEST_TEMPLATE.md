@@ -26,4 +26,4 @@ Optional. Ancillary topics, caveats, alternative strategies that didn't work out
  - [ ] Do tests pass?
  - [ ] Does this PR require an update to the API Documentation?
 
-See|Connects|Closes #XXX
+See|Connects #XXX
