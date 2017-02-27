@@ -180,6 +180,9 @@ CACHES = {
     'api_throttling': {
         'BACKEND': CACHE_BACKEND,
         'LOCATION': CACHE_LOCATION
+    },
+    'bypass': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
 
