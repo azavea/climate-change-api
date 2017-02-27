@@ -211,7 +211,7 @@ class IndicatorListView(APIView):
 
 class IndicatorDetailView(APIView):
 
-    @cache_response(key_func=full_url_cache_key_func)
+    @overridable_cache_response(key_func=full_url_cache_key_func)
     def get(self, request, *args, **kwargs):
         """ Return details of specific indicator if found """
 

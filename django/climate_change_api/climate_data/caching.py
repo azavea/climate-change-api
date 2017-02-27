@@ -32,10 +32,14 @@ class OverridableCacheResponse(CacheResponse):
     Requires the settings cache configuration to contain both a `default` and a `bypass`
     cache alias defined (use DummyCache to bypass).
     """
-    def __init__(self, timeout=None, key_func=None, cache=None, cache_errors=None):
+    def __init__(self, timeout=None,
+                 key_func=None,
+                 cache=None,
+                 cache_errors=None,
+                 bypass_cache='bypass'):
         super(OverridableCacheResponse, self).__init__(timeout, key_func, cache, cache_errors)
         self.default_cache = self.cache
-        self.bypass_cache = get_cache('bypass')
+        self.bypass_cache = get_cache(bypass_cache)
 
     def __call__(self, func):
         """See:

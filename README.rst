@@ -54,6 +54,16 @@ Then start the Docker container with::
 Naviagate to http://localhost:8089 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
 
 
+Bypassing Cache
+---------------
+
+For debugging queries and cache configuration, caching may be disabled per-query by sending::
+
+    noCache=True
+
+as an additional parameter. The load testing configuration always sends this parameter.
+
+
 Documentation
 -------------
 
