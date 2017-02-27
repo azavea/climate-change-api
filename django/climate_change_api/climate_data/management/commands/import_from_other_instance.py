@@ -212,12 +212,19 @@ class Command(BaseCommand):
                     logger.info("Skipping %s, data already imported", model.name)
                 else:
                     logger.info("Importing %s", model)
-                    import_data(
-                        domain=options['domain'],
-                        token=options['token'],
-                        remote_city_id=city['id'],
-                        local_map_cell=created_city.map_cell,
-                        scenario=scenario,
-                        model=model)
-
-                imported_grid_cells[model.name].append(coordinates)
+                    try:
+                        import_data(
+                            domain=options['domain'],
+                            token=options['token'],
+                            remote_city_id=city['id'],
+                            local_map_cell=created_city.map_cell,
+                            scenario=scenario,
+                            model=model)
+                        imported_grid_cells[model.name].append(coordinates)
+                    except:
+                        logger.warn('Failed importing %s, destroying partial import', model.name)
+                        ClimateData.objects.filter(
+                            data_source__model=model,
+                            data_source__scenario=scenario,
+                            map_cell=created_city.map_cell).delete()
+                        raise

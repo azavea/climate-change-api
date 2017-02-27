@@ -40,13 +40,9 @@ def process_message(message, queue):
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
 
-    try:
-        datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
-        datasource.save()
-    except IntegrityError:
-        logger.error('Ignoring message: source already exists for model %s scenario %s year %s',
-                     model.name, scenario.name, year)
-        return
+    datasource = ClimateDataSource.objects.get_or_create(model=model,
+                                                         scenario=scenario,
+                                                         year=year)[0]
 
     # download files
     tmpdir = tempfile.mkdtemp()
@@ -61,6 +57,7 @@ def process_message(message, queue):
     except:
         logger.exception("Failed to process data for model %s scenario %s year %s",
                          model.name, scenario.name, year)
+        datasource.delete()
         raise
     finally:
         # Success or failure, clean up the .nc files
