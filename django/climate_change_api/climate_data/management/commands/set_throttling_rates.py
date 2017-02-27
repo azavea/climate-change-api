@@ -13,10 +13,11 @@ class Command(BaseCommand):
     Set custom throttling values on a specific API user
 
     Example usage:
-    ./manage.py set_throttling_rates testuser@test.com --burst 10000/day
+    ./manage.py set_throttling_rates test@test.com,a@abc.com --burst 10000/day
     """
 
-    help = ('Set throttling rates for specified user from the command line.')
+    help = ('Set throttling rates for users from the command line. '
+            'Users accepted as comma-separated emails.')
 
     def add_arguments(self, parser):
         parser.add_argument('user_email', type=str)
@@ -29,10 +30,15 @@ class Command(BaseCommand):
             logger.error("Error: Set at least one throttling value")
             return
 
-        email = options['user_email']
-        user = ClimateUser.objects.get(email=email)
-        if options['burst']:
-            user.burst_rate = options['burst']
-        if options['sustained']:
-            user.sustained_rate = options['sustained']
-        print "Set throttling rate(s) on " + email
+        emails = options['user_email'].split(',')
+        burst = options['burst']
+        sustained = options['sustained']
+
+        for email in emails:
+            user = ClimateUser.objects.get(email=email)
+            if burst:
+                user.burst_rate = burst
+            if sustained:
+                user.sustained_rate = sustained
+            user.save()
+            logger.info("Set throttling rate(s) on " + email)
