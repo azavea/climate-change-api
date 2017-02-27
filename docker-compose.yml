@@ -70,6 +70,6 @@ services:
       - "8089:8089"
     environment:
       - API_TOKEN
-      - API_HOST=https://api.staging.futurefeelslike.com
+      - API_HOST
     volumes:
      - .:/opt
