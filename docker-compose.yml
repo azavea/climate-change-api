@@ -41,7 +41,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - "8088:443"
+      - "8084:443"
     volumes:
      - ./nginx/srv/dist/:/srv/dist/
      - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
