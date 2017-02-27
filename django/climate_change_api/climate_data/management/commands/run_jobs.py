@@ -14,7 +14,6 @@ from climate_data.models import ClimateModel, Scenario, ClimateDataSource, Clima
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
-failure_logger = logging.getLogger('climate_data_import_failures')
 
 BUCKET = 'nasanex'
 KEY_FORMAT = ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
@@ -41,9 +40,13 @@ def process_message(message, queue):
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
 
-    datasource = ClimateDataSource.objects.get_or_create(model=model,
-                                                         scenario=scenario,
-                                                         year=year)[0]
+    try:
+        datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
+        datasource.save()
+    except IntegrityError:
+        logger.error('Ignoring message: source already exists for model %s scenario %s year %s',
+                     model.name, scenario.name, year)
+    return
 
     # download files
     tmpdir = tempfile.mkdtemp()
@@ -58,9 +61,6 @@ def process_message(message, queue):
     except:
         logger.exception('Failed to process data for model %s scenario %s year %s',
                          model.name, scenario.name, year)
-        failure_logger.info('Import failed for model %s scenario %s year %s',
-                            model.name, scenario.name, year)
-        datasource.delete()
         raise
     finally:
         # Success or failure, clean up the .nc files

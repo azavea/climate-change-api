@@ -222,12 +222,13 @@ class Command(BaseCommand):
                             scenario=scenario,
                             model=model)
                         imported_grid_cells[model.name].append(coordinates)
-                    except:
+                    except Exception as ex:
+                        logger.error(ex, exc_info=True)
                         logger.warn('Failed importing %s, destroying partial import', model.name)
                         ClimateData.objects.filter(
                             data_source__model=model,
                             data_source__scenario=scenario,
                             map_cell=created_city.map_cell).delete()
-                        failure_logger.info('Import failed for model %s scenario %s city %s, %s',
+                        failure_logger.warn('Import failed for model %s scenario %s city %s, %s',
                                             model.name, scenario.name, city['properties']['name'],
                                             city['properties']['admin'])
