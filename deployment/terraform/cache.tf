@@ -8,6 +8,11 @@ resource "aws_elasticache_parameter_group" "memcached" {
   name        = "${var.ec_memcached_identifier}"
   description = "Parameter Group for ElastiCache Memcached"
   family      = "memcached1.4"
+
+  parameter {
+    name = "max_item_size"
+    value = "${var.ec_memcached_max_item_size}"
+  }
 }
 
 module "cache" {
