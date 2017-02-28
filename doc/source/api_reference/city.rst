@@ -5,21 +5,8 @@ A City object is a point feature of the center-most geographic coordinate of an 
 
 At this time, only US cities and their climate projection data are available.
 
-The city endpoints with potentially large result sets are `limit paginated`_ according to Django Rest Framework. As a result, responses take the pagination object structure, where returned city objects are split into pages and nested in ``features``. Access other pages by the links specified in the ``next`` and ``previous`` fields::
-
-    {
-        "count": 1020,
-        "next": "https://api.example.org/accounts/?page=5",
-        "previous": "https://api.example.org/accounts/?page=3",
-        "features": [ ... ]
-    }
-
-In limit pagination, a cap may specify maximum number of features to return. The API sets a default ``page_size`` and ``limit``, but these and other optional pagination parameters may be specified as HTTP query string parameters.
-
-
 List Cities
 ___________
-
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/city/
@@ -214,5 +201,3 @@ Response:
             ]
         }
     }
-
-.. _`limit paginated`: https://github.com/tomchristie/django-rest-framework/blob/master/rest_framework/pagination.py
