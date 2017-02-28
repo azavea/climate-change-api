@@ -5,6 +5,10 @@ A City object is a point feature of the center-most geographic coordinate of an 
 
 At this time, only US cities and their climate projection data are available.
 
+
+.. note:: Paginated city endpoints are `GeoJson paginated`_.
+
+
 List Cities
 ___________
 .. openapi:: /openapi/climate_api.yml
@@ -201,3 +205,7 @@ Response:
             ]
         }
     }
+
+
+.. _`GeoJson paginated`: https://github.com/djangonauts/django-rest-framework-gis#pagination
+

@@ -30,4 +30,3 @@ Some endpoints have other pagination styles. Generally comparable to the above, 
 
 
 .. _`limit offset pagination`: http://www.django-rest-framework.org/api-guide/pagination/#limitoffsetpagination
-.. _`GeoJson paginated`: https://github.com/djangonauts/django-rest-framework-gis#pagination
