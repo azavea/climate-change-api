@@ -249,7 +249,7 @@ LOGGING = {
         },
         'log_file': {
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'import_error.log'),
+            'filename': '/var/log/climate_change_api/import_error.log',
         },
     },
     'loggers': {
