@@ -34,6 +34,12 @@ Indicator
 .. include:: api_reference/indicator.rst
 
 
+Region
+---------
+
+.. include:: api_reference/region.rst
+
+
 Auth
 ----
 
