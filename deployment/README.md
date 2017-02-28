@@ -27,7 +27,7 @@ You will be prompted to enter your AWS credentials, along with a default region.
 Next, use the `infra` wrapper script to lookup the remote state of the infrastructure and assemble a plan for work to be done:
 
 ```bash
-vagrant@vagrant-ubuntu-trusty-64:~$ export CC_SETTINGS_BUCKET="staging-climate-us-east-1-config"
+vagrant@vagrant-ubuntu-trusty-64:~$ export CC_SETTINGS_BUCKET="staging-us-east-1-climate-config"
 vagrant@vagrant-ubuntu-trusty-64:~$ export AWS_PROFILE="climate"
 vagrant@vagrant-ubuntu-trusty-64:~$ ./scripts/infra plan
 ```
