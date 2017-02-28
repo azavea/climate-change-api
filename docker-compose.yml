@@ -29,6 +29,7 @@ services:
       - COMMIT=
     volumes:
       - .:/opt
+      - ./django/climate_change_api/logs/:/var/log/climate_change_api/
       - ./nginx/srv/dist:/opt/doc/build
       - $HOME/.aws:/root/.aws:ro
 

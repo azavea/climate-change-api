@@ -48,6 +48,11 @@ write_files:
       log_stream_name = ecs-agent/{instance_id}
       datetime_format = %Y-%m-%dT%H:%M:%SZ
 
+      [/var/log/climate_change_api/import_error.log]
+      file = /var/log/climate_change_api/import_error.log
+      log_group_name = log${environment}ContainerInstance
+      log_stream_name = climate_change_api/{instance_id}
+
   - path: /etc/init/awslogs.conf
     permissions: 0644
     owner: root:root
