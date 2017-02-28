@@ -320,6 +320,100 @@ paths:
           description: |
             Returned when the request is rate-limited. The response will detail when the
             request can be retried.
+  /api/region/:
+    get:
+      description: |
+        List all available regions as a paginated collection
+      parameters:
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 20
+          required: false
+          description: |
+            The maximum number of regions to return
+        - name: offset
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+          required: false
+          description: |
+            Number of regions to skip when paginating
+        - name: search
+          in: query
+          type: string
+          required: false
+          description: |
+            String to search level1 and level2 descriptions with
+        - name: level1
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          required: false
+          description: |
+            Filter by level1 values
+        - name: level2
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          required: false
+          description: |
+            Filter by level2 values
+      responses:
+        "200":
+          description: |
+            A paginated collection of Region objects.
+            See Region model definition.
+          schema:
+            type: object
+            properties:
+              count:
+                type: number
+              next:
+                type: string
+              previous:
+                type: string
+              results:
+                type: array
+                items:
+                  $ref: "#/definitions/Region"
+  /api/region/{pk}/:
+    get:
+      description: |
+        Look up a particular region by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the region
+          x-example: 30
+        - name: format
+          in: query
+          type: string
+          default: json
+          required: false
+          enum:
+            - json
+            - pbf
+            - api
+          description: |
+            Output format. Either ``json`` or ``pbf``. Can also be used
+            as file suffix, such as ``example.org/api/region/30.pbf``.
+            The ``api`` format is used to show the DRF UI.
+      responses:
+        "200":
+          description: A Region object
+          schema:
+            $ref: "#/definitions/RegionGeoJSON"
+        "404":
+          description: Returned when requested region cannot be found
 definitions:
   Boundary:
     type: object
@@ -530,3 +624,36 @@ definitions:
         description: |
             "year": { "variable": [ day1_value, day2_value, ... , day366_value ] }
             The variable array always has length 366. Days with no available data will be null at their index.
+  Region:
+    type: object
+    properties:
+      id:
+        type: number
+      level1:
+        type: number
+      level1_description:
+        type: string
+      level2:
+        type: number
+      level2_description:
+        type: string
+  RegionGeoJSON:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/MultiPolygon"
+      properties:
+        type: object
+        properties:
+          level1:
+            type: number
+          level1_description:
+            type: string
+          level2:
+            type: number
+          level2_description:
+            type: string
