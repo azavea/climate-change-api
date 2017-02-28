@@ -262,8 +262,9 @@ LOGGING = {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO')
         },
         'climate_data_import_failures': {
-            'handlers': ['log_file'],
+            'handlers': ['log_file', 'console'],
             'level': 'DEBUG',
+            'format': 'IMPORT_FAILURE %(asctime)s %(message)s'
         }
     }
 }
