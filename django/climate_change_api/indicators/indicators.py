@@ -5,7 +5,8 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin, ThresholdIndicatorMixin,
+from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
+                                  TemperatureThresholdIndicatorMixin, PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
 from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
@@ -15,21 +16,21 @@ from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnits
 ##########################
 # Aggregated indicators
 
-class MaxTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+class MaxTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
     label = 'Max Temperature Threshold'
     description = ('Number of days where high temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmax',)
 
 
-class MinTemperatureThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
     label = 'Min Temperature Threshold'
     description = ('Number of days where min temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmin',)
 
 
-class PrecipitationThreshold(DaysUnitsMixin, ThresholdIndicatorMixin, CountIndicator):
+class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixin, CountIndicator):
     label = 'Precipitation Threshold'
     description = ('Number of days where precipitation, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
