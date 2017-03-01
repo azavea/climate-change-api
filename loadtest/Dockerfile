@@ -19,4 +19,6 @@ EXPOSE 8089
 
 ENTRYPOINT ["/bin/bash"]
 
-CMD ["-c", "locust --host=${API_HOST}"]
+ENV DEFAULT_API_HOST https://api.staging.futurefeelslike.com
+
+CMD ["-c", "locust --host=${API_HOST:-DEFAULT_API_HOST}"]
