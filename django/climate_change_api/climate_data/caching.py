@@ -1,7 +1,4 @@
-from functools import wraps
 import logging
-
-from django.utils.decorators import available_attrs
 
 from rest_framework_extensions.cache.decorators import get_cache, CacheResponse
 from rest_framework_extensions.cache.mixins import BaseCacheResponseMixin
@@ -10,7 +7,6 @@ from rest_framework_extensions.key_constructor.constructors import DefaultKeyCon
 from rest_framework_extensions.key_constructor.bits import (ArgsKeyBit,
                                                             KwargsKeyBit,
                                                             QueryParamsKeyBit,)
-from rest_framework_extensions.settings import extensions_api_settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,33 +37,18 @@ class OverridableCacheResponse(CacheResponse):
         self.default_cache = self.cache
         self.bypass_cache = get_cache(bypass_cache)
 
-    def __call__(self, func):
-        """See:
-        https://github.com/chibisov/drf-extensions/blob/master/rest_framework_extensions/cache/decorators.py
+    def process_cache_response(self, view_instance, view_method, request, *args, **kwargs):
+        nocache_param = request.query_params.get('noCache', '')
+        if nocache_param and nocache_param == 'True' or nocache_param == 'true':
+            self.cache = self.bypass_cache
+        else:
+            self.cache = self.default_cache
+        return super(OverridableCacheResponse, self).process_cache_response(view_instance,
+                                                                            view_method,
+                                                                            request,
+                                                                            *args,
+                                                                            **kwargs)
 
-        Modified to set cache by query parameter before calling to process response
-        """
-        this = self
-
-        @wraps(func, assigned=available_attrs(func))
-        def inner(self, request, *args, **kwargs):
-            nocache_param = request.query_params.get('noCache', '')
-            if nocache_param and nocache_param == 'True' or nocache_param == 'true':
-                this.cache = this.bypass_cache
-            else:
-                this.cache = this.default_cache
-
-            if this.cache:
-                logger.debug('Using cache:')
-                logger.debug(this.cache)
-            return this.process_cache_response(
-                view_instance=self,
-                view_method=func,
-                request=request,
-                args=args,
-                kwargs=kwargs,
-            )
-        return inner
 
 overridable_cache_response = OverridableCacheResponse
 
