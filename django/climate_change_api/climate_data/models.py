@@ -107,6 +107,7 @@ class ClimateDataSource(models.Model):
     model = models.ForeignKey(ClimateModel)
     scenario = models.ForeignKey(Scenario)
     year = models.PositiveSmallIntegerField()
+    import_completed = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('model', 'scenario', 'year')
