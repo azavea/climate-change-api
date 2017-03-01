@@ -1,5 +1,6 @@
 import dredd_hooks as hooks
 import json
+import logging
 
 
 stash = {}

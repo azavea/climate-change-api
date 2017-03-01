@@ -35,6 +35,7 @@ function interceptError() {
     #Catch and clean upon bash error to ensure testing idempotence
     exitcode=$?
     deleteTestUser
+    echo $exitcode
     exit $exitcode
 }
 
@@ -83,22 +84,12 @@ then
             run --rm --entrypoint "flake8" \
             django --output-file=violations.txt --exit-zero --tee
 
-        echo "Running tests"
-        GIT_COMMIT="${GIT_COMMIT}" docker-compose \
-            ${DOCKER_COMPOSE_OPTS} \
-            run --rm --entrypoint "./manage.py" \
-            django test --noinput --settings climate_change_api.settings_test
-
-        # TODO: re-enable dredd tests once https://github.com/azavea/climate-change-api/issues/322
-        # is resolved
-
-        # createTestUser
-
-        # trap interceptError ERR
-        # echo "Testing endpoints"
-        # dredd
-
-        # deleteTestUser
+        trap interceptError ERR
+        echo "Testing endpoints"
+        docker-compose \
+            -f docker-compose.test.yml \
+            run dredd
+        deleteTestUser
     fi
     exit
 fi

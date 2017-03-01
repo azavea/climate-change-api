@@ -8,3 +8,14 @@ services:
 
   nginx:
     image: "cc-nginx:${GIT_COMMIT:-latest}"
+
+  dredd:
+    build:
+      context: ./dredd
+      dockerfile: Dockerfile
+    links:
+      - django
+    volumes:
+      - ./dredd.yml:/dredd.yml
+      - ./hooks.py:/hooks.py
+      - ./doc/source/openapi/climate_api.yml:/doc/source/openapi/climate_api.yml

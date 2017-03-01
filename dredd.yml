@@ -1,8 +1,7 @@
 dry-run: null
-hookfiles: ./django/climate_change_api/hooks.py
+hookfiles: ./hooks.py
 language: python
 sandbox: false
-server: ./scripts/server
 server-wait: 3
 init: false
 names: false
@@ -29,5 +28,5 @@ hooks-worker-term-retry: 500
 hooks-worker-handler-host: localhost
 hooks-worker-handler-port: 61321
 config: ./dredd.yml
-blueprint: doc/source/openapi/climate_api.yml
-endpoint: 'http://localhost:8080'
+blueprint: ./doc/source/openapi/climate_api.yml
+endpoint: '172.17.0.1:8080'
