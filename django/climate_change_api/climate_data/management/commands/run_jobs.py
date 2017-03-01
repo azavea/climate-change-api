@@ -7,7 +7,7 @@ import boto3
 from time import sleep
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.db import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 
 from boto_helpers.sqs import get_queue
 from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateData
@@ -41,12 +41,20 @@ def process_message(message, queue):
                 model.name, scenario.name, year)
 
     try:
-        datasource = ClimateDataSource(model=model, scenario=scenario, year=year)
-        datasource.save()
-    except IntegrityError:
-        logger.error('Ignoring message: source already exists for model %s scenario %s year %s',
+        datasource = ClimateDataSource.objects.get(model=model, scenario=scenario, year=year)
+        if datasource.import_completed:
+            logger.info('Skipping already completed import for model %s scenario %s year %s',
+                        model.name, scenario.name, year)
+            logger.debug('SQS message processed')
+            return
+        else:
+            # Log note but still continue to attempt re-import
+            logger.warn('Found incomplete import for model %s scenario %s year %s',
+                        model.name, scenario.name, year)
+    except ObjectDoesNotExist:
+        logger.debug('Creating data source for model %s scenario %s year %s',
                      model.name, scenario.name, year)
-    return
+        datasource = ClimateDataSource.objects.create(model=model, scenario=scenario, year=year)
 
     # download files
     tmpdir = tempfile.mkdtemp()

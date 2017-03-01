@@ -143,13 +143,25 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
     start_time = time()
     assert len(data['climate_models']) == 1
     for year, yeardata in data['data'].iteritems():
-        data_source = ClimateDataSource.objects.get_or_create(
-            model=model,
-            scenario=scenario,
-            year=int(year))[0]
+        try:
+            data_source = ClimateDataSource.objects.get(model=model,
+                                                        scenario=scenario,
+                                                        year=int(year))
+            if data_source.import_completed:
+                logger.info('Skipping already completed import for model %s scenario %s year %s',
+                            model.name, scenario.name, year)
+                continue
+
+        except ObjectDoesNotExist:
+            logger.debug('Creating data source for model %s scenario %s year %s',
+                         model.name, scenario.name, year)
+            data_source = ClimateDataSource.objects.create(model=model,
+                                                           scenario=scenario,
+                                                           year=int(year))
 
         # Build a generator for (day_of_year, (tasmin, tasmax, pr))
-        date_value_tuples = enumerate(zip(*(yeardata[v] for v in ('tasmin', 'tasmax', 'pr'))), start=1)
+        date_value_tuples = enumerate(zip(*(yeardata[v] for v in ('tasmin', 'tasmax', 'pr'))),
+                                      start=1)
 
         # Exclude any data points that have no value for any of the values
         filtered_list = ((day, values) for (day, values) in date_value_tuples if any(values))
@@ -164,8 +176,20 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
                              for day, (tasmin, tasmax, pr) in filtered_list)
 
         # Pass the generator to bulk_create
-        ClimateData.objects.bulk_create(climate_data_list)
+        try:
+            ClimateData.objects.bulk_create(climate_data_list)
+        except IntegrityError:
+            # should only happen if previous job did not exit cleanly and could not clean up
+            logger.warn('Deleting existing records for model %s scenario %s year %s',
+                        model.name, scenario.name, year)
+            ClimateData.objects.filter(data_source=data_source).delete()
+            logger.warn('Re-attempting record insert for model %s scenario %s year %s',
+                        model.name, scenario.name, year)
+            ClimateData.objects.bulk_create(climate_data_list)
 
+    # note that the job completed successfully
+    data_source.import_completed = True
+    data_source.save()
     logger.info('Imported in %f s', time() - start_time)
 
 
