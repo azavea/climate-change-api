@@ -246,7 +246,11 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler'
-        }
+        },
+        'log_file': {
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/climate_change_api/import_error.log',
+        },
     },
     'loggers': {
         'django': {
@@ -256,6 +260,11 @@ LOGGING = {
         'climate_data': {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+        },
+        'climate_data_import_failures': {
+            'handlers': ['log_file', 'console'],
+            'level': 'DEBUG',
+            'format': 'IMPORT_FAILURE %(asctime)s %(message)s'
         }
     }
 }

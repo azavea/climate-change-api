@@ -15,6 +15,7 @@ import requests
 from time import time, sleep
 
 logger = logging.getLogger('climate_data')
+failure_logger = logging.getLogger('climate_data_import_failures')
 
 MODEL_LIST_URL = 'https://{domain}/api/climate-model/'
 CITY_LIST_URL = 'https://{domain}/api/city/'
@@ -111,7 +112,7 @@ def import_city(citydata):
             city.save()
         return city
     except ObjectDoesNotExist:
-        logger.info("City does not exist, creating city")
+        logger.info('City does not exist, creating city')
 
         map_cell = import_map_cell(citydata['properties']['map_cell'])
 
@@ -191,7 +192,7 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
-        logger.info("Importing cities...")
+        logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
         for city in islice(remote_cities, options['num_cities']):
             logger.info('Importing city %s, %s',
@@ -202,22 +203,32 @@ class Command(BaseCommand):
             coordinates = (created_city.map_cell.lat, created_city.map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
-                    logger.info("Skipping %s, data already imported", model.name)
+                    logger.info('Skipping %s, data already imported', model.name)
                     continue
 
                 if ClimateData.objects.filter(
                         data_source__model=model,
                         data_source__scenario=scenario,
                         map_cell=created_city.map_cell).exists():
-                    logger.info("Skipping %s, data already imported", model.name)
+                    logger.info('Skipping %s, data already imported', model.name)
                 else:
-                    logger.info("Importing %s", model)
-                    import_data(
-                        domain=options['domain'],
-                        token=options['token'],
-                        remote_city_id=city['id'],
-                        local_map_cell=created_city.map_cell,
-                        scenario=scenario,
-                        model=model)
-
-                imported_grid_cells[model.name].append(coordinates)
+                    logger.info('Importing %s', model)
+                    try:
+                        import_data(
+                            domain=options['domain'],
+                            token=options['token'],
+                            remote_city_id=city['id'],
+                            local_map_cell=created_city.map_cell,
+                            scenario=scenario,
+                            model=model)
+                        imported_grid_cells[model.name].append(coordinates)
+                    except Exception as ex:
+                        logger.error(ex, exc_info=True)
+                        logger.warn('Failed importing %s, destroying partial import', model.name)
+                        ClimateData.objects.filter(
+                            data_source__model=model,
+                            data_source__scenario=scenario,
+                            map_cell=created_city.map_cell).delete()
+                        failure_logger.warn('Import failed for model %s scenario %s city %s, %s',
+                                            model.name, scenario.name, city['properties']['name'],
+                                            city['properties']['admin'])

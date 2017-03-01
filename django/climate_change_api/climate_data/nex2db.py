@@ -109,7 +109,7 @@ class Nex2DB(object):
         # Collate the variables into one list keyed by coordinates
         cell_list = {}
         city_coords = {}
-        self.logger.debug("Collating results")
+        self.logger.debug('Collating results')
         for label, results in variable_data.iteritems():
             for coords, timeseries_data in results['cells'].iteritems():
                 if coords not in cell_list:
@@ -123,7 +123,7 @@ class Nex2DB(object):
             city_coords.update(results['cities'])
 
         # Go through the collated list and create all the relevant datapoints
-        self.logger.debug("Creating database entries")
+        self.logger.debug('Creating database entries')
 
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
@@ -164,7 +164,7 @@ class Nex2DB(object):
             ClimateData.objects.bulk_create(climatedata_list)
 
         # Go through all the cities and set their map_cell to the appropriate model
-        self.logger.debug("Updating cities")
+        self.logger.debug('Updating cities')
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
