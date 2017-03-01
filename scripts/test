@@ -35,7 +35,6 @@ function interceptError() {
     #Catch and clean upon bash error to ensure testing idempotence
     exitcode=$?
     deleteTestUser
-    echo $exitcode
     exit $exitcode
 }
 

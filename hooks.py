@@ -1,6 +1,6 @@
-import dredd_hooks as hooks
 import json
-import logging
+
+import dredd_hooks as hooks
 
 
 stash = {}
