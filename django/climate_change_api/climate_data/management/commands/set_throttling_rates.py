@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Require at least one throttling rate value
-        if not options['burst'] or options['sustained']:
+        if not (options['burst'] or options['sustained']):
             logger.error("Error: Set at least one throttling value")
             return
 
@@ -41,9 +41,11 @@ class Command(BaseCommand):
             except ObjectDoesNotExist:
                 logger.warn(email + " is not a valid user")
                 continue
+
             if burst:
                 user.burst_rate = burst
             if sustained:
                 user.sustained_rate = sustained
             user.save()
+
             logger.info("Set throttling rate(s) on " + email)
