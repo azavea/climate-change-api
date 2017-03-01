@@ -74,3 +74,15 @@ services:
       - API_HOST
     volumes:
      - .:/opt
+
+  dredd:
+    build:
+      context: ./dredd
+      dockerfile: Dockerfile
+    links:
+      - django
+      - postgres
+    volumes:
+      - ./dredd.yml:/dredd.yml
+      - ./hooks.py:/hooks.py
+      - ./doc/source/openapi/climate_api.yml:/doc/source/openapi/climate_api.yml

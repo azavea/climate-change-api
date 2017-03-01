@@ -21,7 +21,8 @@ then
         then
             ./scripts/docs
         fi
-        docker-compose up
+        # Until https://github.com/docker/compose/issues/1896 is resolved, specify docker services to start
+        docker-compose up postgres django nginx memcached loadtest docs
     fi
     exit
 fi

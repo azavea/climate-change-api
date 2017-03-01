@@ -86,7 +86,7 @@ then
         trap interceptError ERR
         echo "Testing endpoints"
         docker-compose \
-            -f docker-compose.test.yml \
+            -f docker-compose.yml \
             run dredd
         deleteTestUser
     fi
