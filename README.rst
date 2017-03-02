@@ -31,7 +31,13 @@ Run Django linter with::
 
     ./scripts/console django 'flake8'
 
-Run Django tests with::
+If you don't have a Dredd docker image ``docker images | grep climatechangeapi_dredd``, run ``./scripts/update``.
+
+Run all tests (Django, and Dredd)::
+
+    ./scripts/test
+
+Run Django tests only with::
 
     ./scripts/console django './manage.py test --settings climate_change_api.settings_test'
 

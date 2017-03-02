@@ -2,9 +2,14 @@ FROM node:6.3.1
 
 MAINTAINER Azavea
 
-RUN apt-get update && apt-get install -y \
-    python-pip
+COPY requirements.txt /tmp/
 
-RUN npm install -g dredd@2.2.3
+RUN \
+    apt-get update \
+    && apt-get install -y python-pip \
+    && npm install -g dredd@2.2.3 \
+    && pip install --upgrade pip && pip install -r /tmp/requirements.txt
 
-RUN pip install --upgrade pip && pip install "dredd-hooks~=0.1.2"
+# prevent node from running continuously
+ENTRYPOINT [ "/usr/local/bin/dredd" ]
+CMD [ "--version" ]

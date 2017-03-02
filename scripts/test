@@ -41,7 +41,7 @@ function interceptError() {
 function setComposeArgs(){
     if [ "${CC_ENVIRONMENT}" = "jenkins" ]
     then
-        DOCKER_COMPOSE_OPTS="-f ${DIR}/../docker-compose.yml -f ${DIR}/../docker-compose.test.yml"
+        DOCKER_COMPOSE_OPTS="-f ${DIR}/../docker-compose.yml -f ${DIR}/../docker-compose.cibuild.yml"
     else
         # If running in development, don't test a cc-api image.
         DOCKER_COMPOSE_OPTS="-f ${DIR}/../docker-compose.yml"
@@ -83,11 +83,17 @@ then
             run --rm --entrypoint "flake8" \
             django --output-file=violations.txt --exit-zero --tee
 
+        echo "Running tests"
+            GIT_COMMIT="${GIT_COMMIT}" docker-compose \
+            ${DOCKER_COMPOSE_OPTS} \
+            run --rm --entrypoint "./manage.py" \
+            django test --noinput --settings climate_change_api.settings_test
+
         trap interceptError ERR
         echo "Testing endpoints"
         docker-compose \
             -f docker-compose.yml \
-            run dredd
+            run --rm dredd dredd
         deleteTestUser
     fi
     exit
