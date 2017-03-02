@@ -38,3 +38,4 @@ django-storages==1.4.1
 boto==2.42.0
 jsonschema==2.5.1
 pylibmc==1.5.1
+geobuf==1.1.0
