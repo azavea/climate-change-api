@@ -2,31 +2,25 @@ The handful of endpoints with potentially large result sets are paginated.
 
 The API defaults to `limit offset pagination`_ from the Django Rest Framework. Limit pagination has query parameters:
 
-    ``page``: page number of paginated results
+    ``limit``: a maximum number of features to return. Defaults to 20.
 
-    ``page_size``: number of results per page
-
-    ``limit``: a maximum number of features to return
-
-    ``offset``: the starting position in the entire ordered set
+    ``offset``: the starting position of the query in relation to the complete set of unpaginated items
 
 
-The API sets a default ``page_size``, but all pagination parameters may be specified as HTTP query string parameters.
-
-API responses divide up objects returned from the API into pages with maximum length ``page_size`` and nest them in pagination objects:
+Each request to the API returns a pagination object with query results of maximum quantity ``limit`` offset in the database by ``offset`` items:
 
 .. code-block:: json
 
     {
         "count": 1020,
-        "next": "https://api.example.org/accounts/?page=5",
-        "previous": "https://api.example.org/accounts/?page=3",
-        "results": [ ... ]
+        "next": "https://api.example.org/accounts/?limit=100&offset=400",
+        "previous": "https://api.example.org/accounts/?limit=100&offset=200",
+        "results": []
     }
 
-Access other pages of data by adjusting the ``page`` number in the links specified in ``next`` or ``previous``.
+Access other pages of data by adjusting the parameters specified in the ``next`` or ``previous`` links.
 
-Some endpoints have other pagination styles. Generally comparable to the above, any differences will be specified where they occur.
+Some endpoints have other pagination styles than `limit offset pagination`_. Generally comparable to the above, any differences will be specified where they occur.
 
 
 .. _`limit offset pagination`: http://www.django-rest-framework.org/api-guide/pagination/#limitoffsetpagination
