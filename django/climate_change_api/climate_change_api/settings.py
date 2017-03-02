@@ -247,13 +247,24 @@ else:
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'import_failures': {
+            'class': 'logging.Formatter',
+            'format': 'IMPORT_FAILURE %(asctime)s %(message)s',
+        }
+    },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler'
+            'class': 'logging.StreamHandler',
         },
-        'log_file': {
+        'console_import_failures': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'import_failures',
+        },
+        'log_file_import_failures': {
             'class': 'logging.FileHandler',
             'filename': '/var/log/climate_change_api/import_error.log',
+            'formatter': 'import_failures',
         },
     },
     'loggers': {
@@ -266,9 +277,8 @@ LOGGING = {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO')
         },
         'climate_data_import_failures': {
-            'handlers': ['log_file', 'console'],
+            'handlers': ['log_file_import_failures', 'console_import_failures'],
             'level': 'DEBUG',
-            'format': 'IMPORT_FAILURE %(asctime)s %(message)s'
         }
     }
 }
