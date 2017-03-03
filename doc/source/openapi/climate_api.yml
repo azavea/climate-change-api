@@ -42,12 +42,12 @@ paths:
   /api/city/:
     get:
       description: |
-        List all available cities as a paginated GeoJson Feature Collection
+        List all available cities as a GeoJson paginated GeoJson Feature Collection
       parameters:
         - name: page
           in: query
           type: integer
-          format: int64
+          format: int32
           minimum: 1
           default: 1
           required: false
@@ -62,11 +62,11 @@ paths:
           default: 20
           required: false
           description: |
-            The maximum number of cities to be returned by the query.
+            The maximum number of returned cities per page
       responses:
         "200":
           description: |
-            A paginated GeoJson Feature Collection of City objects.
+            A GeoJson paginated GeoJson Feature Collection of City objects.
             See City model definition.
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
@@ -92,14 +92,13 @@ paths:
           in: query
           type: integer
           format: int32
-          minimum: 1
-          default: 1
+          default: null
           required: false
           description: |
-            The maximum number of cities to return
+            The maximum number of cities to be returned by the query
       responses:
         "200":
-          description: A paginated GeoJson Feature Collection of City objects
+          description: A GeoJson paginated GeoJson Feature Collection of City objects
           schema:
             $ref: "#/definitions/PaginatedFeatureCollection"
   /api/city/{pk}/:
