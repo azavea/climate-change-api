@@ -253,6 +253,9 @@ class Command(BaseCommand):
                             data_source__model=model,
                             data_source__scenario=scenario,
                             map_cell=created_city.map_cell).delete()
-                        failure_logger.warn('Import failed for model %s scenario %s city %s, %s',
-                                            model.name, scenario.name, city['properties']['name'],
+                        failure_logger.warn('Import failed for model %s scenario %s city %s %s, %s',
+                                            model.name,
+                                            scenario.name,
+                                            city['id'],
+                                            city['properties']['name'],
                                             city['properties']['admin'])
