@@ -21,6 +21,31 @@ KEY_FORMAT = ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
               '{var}_day_BCSD_{rcp}_r1i1p1_{model}_{year}.nc')
 
 
+def handle_failing_message(message, failures):
+    message_dict = json.loads(message.body)
+    key = '{model_id}-{scenario_id}-{year}'.format(**message_dict)
+    label = 'Message ID {} for model id {model_id} scenario id {scenario_id} '\
+            'year {year}'.format(message.message_id, **message_dict)
+    failures[key] = failures.get(key, 0) + 1
+
+    warn_text = '{} failed {} time(s)'.format(label, failures[key])
+
+    logger.warn(warn_text)
+
+    if failures[key] > settings.SQS_MAX_RETRIES:
+        error_text = '{} failed more than {} times, giving up.'\
+                     .format(label, settings.SQS_MAX_RETRIES)
+        logger.error(error_text, exc_info=True)
+        failure_logger.error(error_text)
+
+        message.delete()
+
+    else:
+        # Re-place message in the queue by making it instantly visible
+        # See http://boto3.readthedocs.io/en/latest/reference/services/sqs.html#SQS.Message.change_visibility  # NOQA
+        message.change_visibility(VisibilityTimeout=0)
+
+
 def download_nc(rcp, model, year, var, dir):
     key = KEY_FORMAT.format(rcp=rcp.lower(), model=model, year=year, var=var)
     filename = os.path.join(dir, os.path.basename(key))
@@ -95,16 +120,21 @@ class Command(BaseCommand):
         logger.info('Starting job processing...')
         queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
                           Attributes=settings.SQS_IMPORT_QUEUE_ATTRIBUTES)
-        failures = 0
-        while failures < 10:
+        queue_failures = 0
+        message_failures = {}
+        while queue_failures < 10:
             try:
                 while True:
                     message = queue.receive_messages()[0]
-                    process_message(message, queue)
-                    message.delete()
-                    failures = 0
+                    try:
+                        process_message(message, queue)
+                        message.delete()
+                        queue_failures = 0
+                    except Exception:
+                        handle_failing_message(message, message_failures)
             except IndexError:
                 logger.debug('Empty queue, waiting 10 seconds...')
                 sleep(10)
-                failures += 1
+                queue_failures += 1
+
         logger.info('Finished processing jobs')

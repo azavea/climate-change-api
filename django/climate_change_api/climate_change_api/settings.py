@@ -335,6 +335,7 @@ SQS_IMPORT_QUEUE_ATTRIBUTES = {
     'ReceiveMessageWaitTimeSeconds': str(10),
     'MaximumMessageSize': str(1024)
 }
+SQS_MAX_RETRIES = 10
 
 if DEBUG:
     dev_user = os.getenv('DEV_USER') if os.getenv('DEV_USER') else 'developer'
