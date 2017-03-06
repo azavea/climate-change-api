@@ -312,3 +312,11 @@ class ThresholdIndicatorMixin(object):
     @property
     def conditions(self):
         return {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+
+
+class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
+    params_class_kwargs = {'threshold_units': TemperatureConverter.available_units}
+
+
+class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
+    params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
