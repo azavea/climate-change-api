@@ -79,7 +79,6 @@ class Nex2DB(object):
                 # lon units are degrees east, so degrees west maps inversely to 180-360
                 city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
 
-
                 latidx = (numpy.abs(city_y - latarr)).argmin()
                 lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
@@ -161,7 +160,19 @@ class Nex2DB(object):
                     ClimateData(**climatedata_args)
                     )
 
-            ClimateData.objects.bulk_create(climatedata_list)
+            try:
+                ClimateData.objects.bulk_create(climatedata_list)
+            except IntegrityError:
+                self.logger.warn('Deleting existing records for model %s scenario %s year %s',
+                                 data_source.model.name,
+                                 data_source.scenario.name,
+                                 data_source.year)
+                ClimateData.objects.filter(data_source=data_source).delete()
+                self.logger.warn('Re-attempting record insert for model %s scenario %s year %s',
+                                 data_source.model.name,
+                                 data_source.scenario.name,
+                                 data_source.year)
+                ClimateData.objects.bulk_create(climatedata_list)
 
         # Go through all the cities and set their map_cell to the appropriate model
         self.logger.debug('Updating cities')
@@ -174,4 +185,7 @@ class Nex2DB(object):
                 city.map_cell = cell_model
                 city.save()
 
+        # note job completed successfully
+        data_source.import_completed = True
+        data_source.save()
         self.logger.info('nex2db processing done')

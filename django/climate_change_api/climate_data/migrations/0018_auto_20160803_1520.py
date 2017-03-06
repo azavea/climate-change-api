@@ -13,8 +13,10 @@ def forwards(apps, schema_editor):
         return
 
     # Remove any existing data to avoid foreign key errors
-    climate_data.models.ClimateData.objects.all().delete()
-    climate_data.models.ClimateDataSource.objects.all().delete()
+    ClimateData = apps.get_model('climate_data', 'ClimateData')
+    ClimateDataSource = apps.get_model('climate_data', 'ClimateDataSource')
+    ClimateData.objects.all().delete()
+    ClimateDataSource.objects.all().delete()
 
 
 class Migration(migrations.Migration):
