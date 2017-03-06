@@ -83,6 +83,6 @@ services:
       - django
       - postgres
     volumes:
-      - ./dredd.yml:/dredd.yml
-      - ./hooks.py:/hooks.py
+      - ./dredd/dredd.yml:/dredd.yml
+      - ./dredd/hooks.py:/hooks.py
       - ./doc/source/openapi/climate_api.yml:/doc/source/openapi/climate_api.yml
