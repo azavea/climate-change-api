@@ -52,7 +52,7 @@ THRESHOLD_PARAM_DOCSTRING = ("Required. The value against which to compare clima
                              " unit specified by the 'threshold_units' parameter.")
 
 THRESHOLD_UNITS_PARAM_DOCSTRING = ("Required. Units for the value of the 'threshold' parameter."
-                                   " Must be a valid unit recognized by the API.")
+                                   " Must be a valid unit recognized by the API. Options: %s")
 
 THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("Required. The comparison type against the value of the 'threshold'"
                                         "parameter. Options: lt, gt, lte, gte. Signify: less than, greater"
@@ -223,19 +223,26 @@ class ThresholdIndicatorParams(IndicatorParams):
 
     valid_threshold_comparators = ('lt', 'lte', 'gt', 'gte')
     threshold_comparator_validator = ChoicesValidator(valid_threshold_comparators)
-    threshold_units_validator = ChoicesValidator(TemperatureConverter.available_units + PrecipitationConverter.available_units)
+    threshold_units_validator = None
 
     threshold = IndicatorParam('threshold',
                                description=THRESHOLD_PARAM_DOCSTRING,
                                required=True,
                                validators=[float_validator])
 
-    threshold_units = IndicatorParam('threshold_units',
-                                     description=THRESHOLD_UNITS_PARAM_DOCSTRING,
-                                     required=True,
-                                     validators=[threshold_units_validator])
+    threshold_units = None
 
     threshold_comparator = IndicatorParam('threshold_comparator',
                                           description=THRESHOLD_COMPARATOR_PARAM_DOCSTRING,
                                           required=True,
                                           validators=[threshold_comparator_validator])
+
+    def __init__(self, *args, **kwargs):
+        threshold_units = kwargs.pop('threshold_units')
+        self.threshold_units_validator = ChoicesValidator(threshold_units)
+        self.threshold_units = IndicatorParam('threshold_units',
+                                              description=THRESHOLD_UNITS_PARAM_DOCSTRING % (threshold_units,),
+                                              required=True,
+                                              validators=[self.threshold_units_validator])
+
+        super(ThresholdIndicatorParams, self).__init__(*args, **kwargs)
