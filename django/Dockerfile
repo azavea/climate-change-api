@@ -1,14 +1,27 @@
-FROM quay.io/azavea/django:1.9.6
+FROM quay.io/azavea/django:1.9-python2.7-slim
 
 MAINTAINER Azavea
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gdal-bin libgdal-dev \
-    libmemcached-dev python-dev && \
-    rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt /tmp/
-RUN pip install --upgrade pip && pip install numpy && pip install --no-cache-dir -r /tmp/requirements.txt
+
+RUN set -ex \
+    && deps="\
+        libgdal-dev \
+        libmemcached-dev \
+        python-dev \
+        make \
+    " \
+    && buildDeps="\
+        build-essential \
+        git \
+    "\
+    && apt-get update && apt-get install -y ${buildDeps} ${deps} --no-install-recommends \
+    && pip install --no-cache-dir \
+           numpy==$(grep "numpy" /tmp/requirements.txt | cut -d= -f3) \
+    && pip install --no-cache-dir -r /tmp/requirements.txt \
+    && rm -rf /tmp/* \
+    && apt-get purge -y --auto-remove ${buildDeps} \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./ /opt/django
 
