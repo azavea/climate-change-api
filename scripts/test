@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -e
 
 function usage() {
     echo -n \
@@ -10,6 +10,16 @@ Run application tests.
 
 "
 }
+
+if [[ -n "${GIT_COMMIT}" ]]; then
+    GIT_COMMIT="${GIT_COMMIT:0:7}"
+else
+    GIT_COMMIT="$(git rev-parse --short HEAD)"
+fi
+
+CC_ENVIRONMENT="${CC_ENVIRONMENT:-development}"
+
+DIR="$(dirname "$0")"
 
 function createTestUser() {
     echo "Creating test user"
@@ -28,6 +38,16 @@ function interceptError() {
     exit $exitcode
 }
 
+function setComposeArgs(){
+    if [ "${CC_ENVIRONMENT}" = "jenkins" ]
+    then
+        DOCKER_COMPOSE_OPTS="-f ${DIR}/../docker-compose.yml -f ${DIR}/../docker-compose.test.yml"
+    else
+        # If running in development, don't test a cc-api image.
+        DOCKER_COMPOSE_OPTS="-f ${DIR}/../docker-compose.yml"
+    fi
+    echo "Running in ${CC_ENVIRONMENT} mode."
+}
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
@@ -35,6 +55,8 @@ then
     then
         usage
     else
+        setComposeArgs
+
         docker-compose \
             run --rm --entrypoint "./manage.py" \
             django migrate --noinput
@@ -47,19 +69,22 @@ then
             run --rm --entrypoint "./manage.py" \
             django loaddata climate-models
 
-        docker-compose \
-            -f docker-compose.yml \
-            -f docker-compose.test.yml \
+        echo "Running tests"
+        GIT_COMMIT="${GIT_COMMIT}" docker-compose \
+            ${DOCKER_COMPOSE_OPTS} \
             run --rm --entrypoint "./manage.py" \
             django test --noinput --settings climate_change_api.settings_test
 
-        createTestUser
+        # TODO: re-enable dredd tests once https://github.com/azavea/climate-change-api/issues/322
+        # is resolved
 
-        trap interceptError ERR
-        echo "Testing endpoints"
-        dredd
+        # createTestUser
 
-        deleteTestUser
+        # trap interceptError ERR
+        # echo "Testing endpoints"
+        # dredd
+
+        # deleteTestUser
     fi
     exit
 fi
