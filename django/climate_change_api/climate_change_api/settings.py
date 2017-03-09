@@ -263,7 +263,7 @@ LOGGING = {
         },
         'log_file_import_failures': {
             'class': 'logging.FileHandler',
-            'filename': '/var/log/climate_change_api/import_error.log',
+            'filename': '/var/log/import_error.log',
             'formatter': 'import_failures',
         },
     },
