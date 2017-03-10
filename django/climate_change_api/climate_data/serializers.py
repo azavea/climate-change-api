@@ -150,6 +150,10 @@ class RegionDetailSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Region
         geo_field = 'geom'
+        # explicitly set auto_bbox to False and bbox_geo_field to None (the default for both)
+        # because our JSON renderer in the view does not respect bounding boxes
+        auto_bbox = False
+        bbox_geo_field = None
 
 
 class RegionListSerializer(serializers.ModelSerializer):
@@ -157,6 +161,7 @@ class RegionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
         exclude = ('geom',)
+
 
 class ScenarioSerializer(serializers.ModelSerializer):
 
