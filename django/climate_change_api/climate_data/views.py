@@ -4,6 +4,7 @@ import logging
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
+from django.db import connection, DataError
 from django.utils.cache import patch_cache_control
 
 from rest_framework import filters, status, viewsets
@@ -307,13 +308,50 @@ class RegionDetailView(APIView):
     def get(self, request, format=None, *args, **kwargs):
         """ Return region as GeoJSON """
 
-        key = kwargs['region']
-        try:
-            region = Region.objects.get(id=key)
-        except (Region.DoesNotExist, Region.MultipleObjectsReturned):
-            raise NotFound(detail='Region {} does not exist.'.format(key))
+        # use raw query for fetching as GeoJSON because it is
+        # much faster to let PostGIS generate than Djangonauts serializer
+        region_query = """
+        SELECT row_to_json(r) AS region
+        FROM (
+            SELECT 'Feature' AS type,
+                   g.id as id,
+                   ST_AsGeoJSON(g.geom)::json AS geometry,
+                   row_to_json(p) AS properties
+            FROM climate_data_region g
+                INNER JOIN (
+                    SELECT level1, level1_description,
+                           level2, level2_description,
+                           id
+                    FROM climate_data_region
+                ) p ON g.id = p.id AND g.id = %s
+        ) AS r;
+        """
 
-        return Response(RegionDetailSerializer(region).data)
+        key = kwargs['region']
+
+        if request.query_params.get('format') == 'json' or format == 'json':
+            # Use raw query to fetch region as GeoJSON
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(region_query, [key])
+                    region_json = cursor.fetchone()
+                    # shouldn't happen with PK, but check anyways
+                    if cursor.rowcount > 1:
+                        raise NotFound(detail='Multiple responses for region {}.'.format(key))
+                    if not region_json or not len(region_json):
+                        raise NotFound(detail='Region {} does not exist.'.format(key))
+            except DataError:
+                raise NotFound(detail='{} is not a valid region ID.'.format(key))
+
+            return Response(region_json[0])
+        else:
+            # non-JSON format; proceed with using Djangonauts serializer
+            try:
+                region = Region.objects.get(id=key)
+            except (Region.DoesNotExist, Region.MultipleObjectsReturned):
+                raise NotFound(detail='Region {} does not exist.'.format(key))
+
+            return Response(RegionDetailSerializer(region).data)
 
     def finalize_response(self, request, response, *args, **kwargs):
         """ Set filename if geobuf """
