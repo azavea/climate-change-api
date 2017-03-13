@@ -67,7 +67,8 @@ class Command(BaseCommand):
                         }
 
             for region in data.itervalues():
-                region['geom'] = MultiPolygon(*(GEOSGeometry(x) for x in region['geom']))
+                geom = MultiPolygon(*(GEOSGeometry(x) for x in region['geom'])).simplify(0.001)
+                region['geom'] = geom
                 Region.objects.update_or_create(level1=region['level1'],
                                                 level2=region['level2'],
                                                 defaults=region)
