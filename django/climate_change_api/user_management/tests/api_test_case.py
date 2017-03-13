@@ -21,6 +21,7 @@ class CCAPITestCase(APITestCase):
 
     def create_user_token(self):
 
-        self.token = Token.objects.create(user=self.user)
-        self.token.save()
+        self.token, created = Token.objects.get_or_create(user=self.user)
+        if created:
+            self.token.save()
         return self.token
