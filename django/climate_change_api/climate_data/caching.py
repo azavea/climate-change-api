@@ -1,5 +1,7 @@
 import logging
 
+from rest_framework.renderers import BrowsableAPIRenderer
+
 from rest_framework_extensions.cache.decorators import get_cache, CacheResponse
 from rest_framework_extensions.cache.mixins import BaseCacheResponseMixin
 
@@ -39,7 +41,10 @@ class OverridableCacheResponse(CacheResponse):
 
     def process_cache_response(self, view_instance, view_method, request, *args, **kwargs):
         nocache_param = request.query_params.get('noCache', '')
-        if nocache_param and nocache_param == 'True' or nocache_param == 'true':
+        if nocache_param and (nocache_param == 'True' or nocache_param == 'true'):
+            self.cache = self.bypass_cache
+        elif isinstance(request.accepted_renderer, BrowsableAPIRenderer):
+            # never cache browsable API responses, which are session dependent
             self.cache = self.bypass_cache
         else:
             self.cache = self.default_cache
