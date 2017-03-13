@@ -1,0 +1,1 @@
+The specified percentile of precipitation for each timespan. Defaults to 50th percentile (Median)

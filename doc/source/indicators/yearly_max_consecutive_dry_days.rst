@@ -1,0 +1,1 @@
+Maximum number of consecutive days with no precipitation

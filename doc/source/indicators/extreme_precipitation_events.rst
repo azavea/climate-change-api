@@ -1,0 +1,1 @@
+Total number of times per period daily precipitation exceeds the specified percentile of observations from 1960 to 1995
