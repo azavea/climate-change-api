@@ -1,0 +1,1 @@
+Number of days where precipitation, generated from daily data using all requested models, fulfils the comparison

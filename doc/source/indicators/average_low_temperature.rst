@@ -1,0 +1,1 @@
+Aggregated average low temperature, generated from daily data using all requested models

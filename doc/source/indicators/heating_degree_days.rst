@@ -1,0 +1,1 @@
+Total difference of daily average temperature to a reference base temperature

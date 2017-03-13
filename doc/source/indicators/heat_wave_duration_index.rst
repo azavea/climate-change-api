@@ -1,0 +1,1 @@
+Maximum period of consecutive days with daily high temperature greater than 5C above historic norm
