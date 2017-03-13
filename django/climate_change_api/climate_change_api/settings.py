@@ -27,7 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('CC_SECRET_KEY', 'SECRET_KEY_dm!*rrb%!r%$qmei!de@hyc0a_z0!hq(&$g63fs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv('CC_DEBUG', False) else False
+DEBUG = os.getenv('CC_DEBUG', False)
+if DEBUG == 'False' or DEBUG == 'false':
+    DEBUG = False
 
 
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
