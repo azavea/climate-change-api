@@ -56,6 +56,14 @@
       {
         "name": "CC_ALLOWED_HOSTS", 
         "value": "${django_allowed_hosts}"
+      },
+      { 
+        "name": "CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN",
+        "value": "${rollbar_server_side_access_token}"
+      },
+      { 
+        "name": "CC_STACK_TYPE",
+        "value": "${environment}"
       }, 
       {
         "name": "COMMIT", 
