@@ -10,7 +10,7 @@ resource "aws_elasticache_parameter_group" "memcached" {
   family      = "memcached1.4"
 
   parameter {
-    name = "max_item_size"
+    name  = "max_item_size"
     value = "${var.ec_memcached_max_item_size}"
   }
 }

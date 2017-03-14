@@ -109,6 +109,7 @@ variable "ec_memcached_engine_version" {}
 variable "ec_memcached_maintenance_window" {}
 variable "ec_memcached_identifier" {}
 variable "ec_memcached_alarm_memory_threshold" {}
+
 variable "ec_memcached_max_item_size" {
   default = "8388608"
 }
