@@ -27,7 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('CC_SECRET_KEY', 'SECRET_KEY_dm!*rrb%!r%$qmei!de@hyc0a_z0!hq(&$g63fs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv('CC_DEBUG', False) else False
+DEBUG = os.getenv('CC_DEBUG', False)
+if DEBUG == 'False' or DEBUG == 'false':
+    DEBUG = False
 
 
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
@@ -295,10 +297,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
         ],
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',
-                                       'rest_framework.authentication.SessionAuthentication',),
-    'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',
-                                 'rest_framework.renderers.BrowsableAPIRenderer',),
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
+    'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_THROTTLE_RATES': {
@@ -306,6 +306,11 @@ REST_FRAMEWORK = {
         'burst': '20/min',
     },
 }
+
+# only enable browsable API in development
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append('rest_framework.authentication.SessionAuthentication')  # NOQA
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')  # NOQA
 
 
 # Django Rest Framework extensions
