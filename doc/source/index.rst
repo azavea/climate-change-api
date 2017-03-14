@@ -22,6 +22,7 @@ Accessible and standardized climate data through the `Climate API`_ will help an
 
    overview
    api_reference
+   indicators
 
 
 Logging in

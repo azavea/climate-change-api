@@ -1,5 +1,5 @@
 
-The Indicator endpoints detail all of the derived data "indicators" that are available. The indicators provided by the Climate API are derived quantities generated using the same raw data provided by `Climate Data`_.
+The Indicator endpoints detail all of the derived data "indicators" that are available. The indicators provided by the Climate API are derived quantities generated using the same raw data provided by `Climate Data`_. For a full list and explanation of indicators, see the `indicators section`_.
 
 If you have ideas for Indicators that aren't provided by the Climate API, but might like to add, please `contact us`_.
 
@@ -230,3 +230,4 @@ To see this in action, step through `how to make an indicator request`_.
 .. _`IndicatorParam`: api_reference.html#indicator-data-parameters
 .. _`rate-limited`: overview.html#rate-limiting
 .. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
+.. _`indicators section`: indicators.html

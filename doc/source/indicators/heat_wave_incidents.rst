@@ -1,0 +1,1 @@
+Number of times daily high temperature exceeds 5C above historic norm for at least 5 consecutive days
