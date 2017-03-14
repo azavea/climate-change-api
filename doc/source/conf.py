@@ -115,6 +115,8 @@ todo_include_todos = False
 
 
 # -- Options for HTML output ----------------------------------------------
+# Paths to custom css files
+html_style = 'css/climate.css'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
