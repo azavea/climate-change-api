@@ -117,6 +117,7 @@ variable "ec_memcached_max_item_size" {
 variable "django_secret_key" {}
 variable "django_allowed_hosts" {}
 variable "s3_storage_bucket" {}
+variable "rollbar_server_side_access_token" {}
 
 # SQS
 variable "sqs_queue_name" {}
