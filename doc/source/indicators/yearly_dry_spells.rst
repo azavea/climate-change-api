@@ -1,0 +1,1 @@
+Total number of times per period that there are 5 or more consecutive days without precipitation

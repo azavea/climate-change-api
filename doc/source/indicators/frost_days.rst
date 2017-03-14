@@ -1,0 +1,1 @@
+Number of days per period in which the daily low temperature is below the freezing point of water

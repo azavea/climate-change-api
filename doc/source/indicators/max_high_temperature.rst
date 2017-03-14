@@ -1,0 +1,1 @@
+Maximum high temperature, generated from daily data using all requested models
