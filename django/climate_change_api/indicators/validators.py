@@ -14,7 +14,7 @@ class IntRangeValidator(object):
     def __call__(self, value):
         try:
             int_value = int(value)
-        except (TypeError, ValueError) as e:
+        except (TypeError, ValueError):
             raise ValidationError('{} is not an integer'.format(value))
         if int_value < self.minimum or int_value > self.maximum:
             raise ValidationError('{} must be in the range [{}, {}]'
@@ -33,8 +33,8 @@ class TypeClassValidator(object):
 
     def __call__(self, value):
         try:
-            typed_value = self.type_class(value)
-        except (TypeError, ValueError) as e:
+            self.type_class(value)
+        except (TypeError, ValueError):
             raise ValidationError('{} is not {}'.format(value, self.type_class))
 
 

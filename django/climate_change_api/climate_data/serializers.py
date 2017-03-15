@@ -17,6 +17,8 @@ from climate_data.models import (City,
                                  Region,
                                  Scenario)
 
+logger = logging.getLogger(__name__)
+
 
 class ClimateDataCellSerializer(serializers.ModelSerializer):
 
@@ -28,8 +30,6 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClimateDataCell
-
-logger = logging.getLogger(__name__)
 
 
 class CitySerializer(GeoFeatureModelSerializer):
@@ -100,7 +100,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             ORDER BY year, day_of_year;
 
         """
-        assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'
+        assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'  # NOQA
 
         aggregation = self._context['aggregation']
         aggregation_function = getattr(django.db.models, aggregation.capitalize())

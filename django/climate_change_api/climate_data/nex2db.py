@@ -92,11 +92,12 @@ class Nex2DB(object):
 
         return {'cities': city_to_coords, 'cells': cell_data}
 
-    def nex2db(self, variable_paths, data_source):
+    def nex2db(self, variable_paths, data_source):  # NOQA: C901
         """
         Extracts data about cities from three NetCDF files and writes it to the database
 
-        @param variable_paths Dictionary of variable identifier to path for the corresponding NetCDF file
+        @param variable_paths Dictionary of variable identifier to path for the corresponding
+                              NetCDF file
         @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
 
