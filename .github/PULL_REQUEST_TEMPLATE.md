@@ -23,7 +23,8 @@ Optional. Ancillary topics, caveats, alternative strategies that didn't work out
 
 ## Checklist
 
+ - [ ] Does the python linter pass?
  - [ ] Do tests pass?
- - [ ] Does this PR require an update to the API Documentation?
+ - [ ] Has the API documentation been updated, or does this PR not require it?
 
 See|Connects #XXX
