@@ -27,6 +27,7 @@ from user_management.views import ClimateAPIObtainAuthToken
 
 
 router = routers.DefaultRouter()
+router.include_root_view = False
 router.register(r'city', climate_data_views.CityViewSet)
 router.register(r'climate-model', climate_data_views.ClimateModelViewSet)
 router.register(r'scenario', climate_data_views.ScenarioViewSet)
