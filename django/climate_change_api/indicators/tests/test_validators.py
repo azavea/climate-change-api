@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from indicators.validators import ChoicesValidator, IntRangeValidator
 
+
 class ValidatorTestCase(TestCase):
 
     def should_succeed_with_value(self, validator, value):

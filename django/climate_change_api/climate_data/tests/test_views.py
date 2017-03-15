@@ -1,8 +1,5 @@
-from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon
-from django.core.cache import caches
 from django.core.urlresolvers import reverse
-from django.test import override_settings
 
 from rest_framework import status
 
@@ -26,7 +23,8 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
         self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
-        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(response.data['climate_models'], [m.name for m in
+                         ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 4)
 
     def test_scenario_filter(self):
@@ -38,7 +36,8 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp85.name)
         self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
-        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(response.data['climate_models'], [m.name for m in
+                         ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 1)
 
     def test_city_filter(self):
@@ -50,7 +49,8 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['city']['id'], self.city2.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
         self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
-        self.assertEqual(response.data['climate_models'], [m.name for m in ClimateModel.objects.all()])
+        self.assertEqual(response.data['climate_models'], [m.name for m in
+                         ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 0)
 
     def test_404_if_city_invalid(self):
@@ -236,8 +236,10 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
     def test_boundary(self):
 
         geom = MultiPolygon(Polygon([[0, 0], [1, 1], [2, 2], [0, 0]]))
-        CityBoundary.objects.create(city=self.city1, geom=geom,
-                                               boundary_type='TEST', source='TEST')
+        CityBoundary.objects.create(city=self.city1,
+                                    geom=geom,
+                                    boundary_type='TEST',
+                                    source='TEST')
 
         url = reverse('city-boundary', args=[self.city1.id])
         response = self.client.get(url)
