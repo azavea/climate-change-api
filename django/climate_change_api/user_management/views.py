@@ -22,6 +22,7 @@ from user_management.models import UserProfile
 from user_management.throttling import ObtainAuthTokenThrottle
 from user_management.serializers import AuthTokenSerializer
 
+
 class RegistrationView(BaseRegistrationView):
     """ Extends default Django-registration HMAC view """
     form_class = UserForm
@@ -32,7 +33,7 @@ class UserProfileView(LoginRequiredMixin, View):
     authentication_classes = (TokenAuthentication, )
 
     def create_new_profile(self, request):
-        # Create userprofile instance
+        """ Create userprofile instance """
         if not hasattr(request.user, 'userprofile'):
             newprofile = UserProfile.create(user=request.user)
             request.user.userprofile = newprofile
@@ -48,7 +49,7 @@ class UserProfileView(LoginRequiredMixin, View):
         return self.initial
 
     def get(self, request, *args, **kwargs):
-        #If first time signing in, create user profile
+        """ If first time signing in, create user profile """
         self.create_new_profile(request)
 
         self.get_initial(request)

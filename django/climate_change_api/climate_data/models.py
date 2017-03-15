@@ -139,9 +139,9 @@ class ClimateDataBaseline(models.Model):
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')
+                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')  # NOQA
     tasmax = models.FloatField(null=True,
-                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')
+                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')  # NOQA
     pr = models.FloatField(null=True,
                            help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA
 
@@ -160,13 +160,12 @@ class CityBoundaryManager(models.Manager):
 
         # TODO: Fall through to other boundary services here
 
-
         # Delete any existing boundary before we create a new one
         try:
             city.boundary.delete()
         except ObjectDoesNotExist:
             pass
-        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')
+        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')  # NOQA
         return city_boundary
 
 

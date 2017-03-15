@@ -53,7 +53,8 @@ def map_server_request(layer_id, params=None):
     Returns the map server query response directly.
     Forces use of the f=pjson query param
 
-    :param layer_id: int - One of the layer ids at https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
+    :param layer_id: int - One of the layer ids at
+        https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
     :param params: dict - Query params to pass to API request.
 
     """

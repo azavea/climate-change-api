@@ -87,7 +87,9 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField('date joined', default=timezone.now)
 
     burst_rate = models.CharField('burst rate', default=get_default_burst_rate, max_length=20)
-    sustained_rate = models.CharField('sustained rate', default=get_default_sustained_rate, max_length=20)
+    sustained_rate = models.CharField('sustained rate',
+                                      default=get_default_sustained_rate,
+                                      max_length=20)
 
     REQUIRED_FIELDS = []
 

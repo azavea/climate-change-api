@@ -5,6 +5,7 @@ from itertools import islice
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import IntegrityError
 
 from climate_data.models import (City, Scenario, ClimateModel,
                                  ClimateDataSource, ClimateDataCell,

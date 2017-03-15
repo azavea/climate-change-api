@@ -5,9 +5,12 @@ from itertools import groupby
 from django.db.models import F, Sum, Avg, Max, Min
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator, BasetempIndicatorMixin,
-                                  TemperatureThresholdIndicatorMixin, PrecipitationThresholdIndicatorMixin,
-                                  YearlyMaxConsecutiveDaysIndicator, YearlySequenceIndicator)
+from .abstract_indicators import (Indicator, CountIndicator,
+                                  BasetempIndicatorMixin,
+                                  TemperatureThresholdIndicatorMixin,
+                                  PrecipitationThresholdIndicatorMixin,
+                                  YearlyMaxConsecutiveDaysIndicator,
+                                  YearlySequenceIndicator)
 from .params import DegreeDayIndicatorParams, PercentileIndicatorParams
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
