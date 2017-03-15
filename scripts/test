@@ -69,6 +69,16 @@ then
             run --rm --entrypoint "./manage.py" \
             django loaddata climate-models
 
+        echo "Running python linter--console output"
+        docker-compose \
+            run --rm --entrypoint "flake8" \
+            django
+
+        echo "Running python linter--file output"
+        docker-compose \
+            run --rm --entrypoint "flake8" \
+            django --output-file=violations.txt
+
         echo "Running tests"
         GIT_COMMIT="${GIT_COMMIT}" docker-compose \
             ${DOCKER_COMPOSE_OPTS} \
