@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from indicators.serializers import IndicatorSerializer
 
+
 class IndicatorSerializerTestCase(TestCase):
     def setUp(self):
         self.serializer = IndicatorSerializer()

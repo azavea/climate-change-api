@@ -70,11 +70,14 @@ class IndicatorParamsTestCase(TestCase):
     def test_validate_valid_some_unused_params(self):
         """ it should ensure indicator_params properly ignores params that aren't defined """
         parameters = merge_dicts(self.default_parameters,
-                                 {'doesnotexist': 'true', 'years': '2050:2060', 'units': 'K', 'agg': 'avg'})
+                                 {'doesnotexist': 'true',
+                                  'years': '2050:2060',
+                                  'units': 'K',
+                                  'agg': 'avg'})
         indicator_params = self._get_params_class()
         indicator_params.validate(parameters)
         with self.assertRaises(AttributeError):
-            value = indicator_params.doesnotexist
+            indicator_params.doesnotexist
 
     def test_validate_valid_optional_defaults(self):
         """ it should ensure indicator_params properly sets defaults on base params
