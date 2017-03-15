@@ -1,10 +1,12 @@
+{% load staticfiles %}
 {% load bootstrap3 %}
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     {% bootstrap_css %}
+    <link rel="stylesheet" href="{% static "css/registration.css" %}">
+
     <title>{% block title %}User Navigation{% endblock %}</title>
 </head>
 
