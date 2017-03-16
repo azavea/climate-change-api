@@ -94,7 +94,7 @@ class Nex2DB(object):
 
     def nex2db(self, variable_paths, data_source):  # NOQA: C901
         """
-        Extracts data about cities from three NetCDF files and writes it to the database
+        Extracts data about cities from three NetCDF files and writes it to the database.
 
         @param variable_paths Dictionary of variable identifier to path for the corresponding
                               NetCDF file

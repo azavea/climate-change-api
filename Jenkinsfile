@@ -6,17 +6,26 @@ node {
     stage('checkout') {
       checkout scm
     }
-    
+
     env.AWS_PROFILE = 'climate'
     env.CC_DOCS_FILES_BUCKET = 'staging-us-east-1-climate-docs'
     env.GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-    
+
     // Execute `cibuild` wrapped within a plugin that translates
     // ANSI color codes to something that renders inside the Jenkins
     // console.
     stage('cibuild') {
       wrap([$class: 'AnsiColorBuildWrapper']) {
         sh 'scripts/cibuild'
+        step([$class: 'WarningsPublisher',
+          parserConfigurations: [[
+            parserName: 'Pep8',
+            pattern: 'django/climate_change_api/violations.txt'
+          ]],
+          // mark build unstable if there are any linter warnings
+          unstableTotalAll: '0',
+          usePreviousBuildAsReference: true
+        ])
       }
     }
 
