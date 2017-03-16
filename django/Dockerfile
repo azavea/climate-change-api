@@ -32,6 +32,7 @@ EXPOSE 8080
 CMD ["-w", "2", \
      "-b", "0.0.0.0:8080", \
      "--reload", \
+     "--no-sendfile", \
      "--log-level", "info", \
      "--error-logfile", "-", \
      "--forwarded-allow-ips", "*", \
