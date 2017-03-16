@@ -5,6 +5,9 @@ services:
     environment:
       - COMMIT=${GIT_COMMIT}
       - CC_S3STORAGE_BUCKET=${CC_S3STORAGE_BUCKET:-climate-change-api-staging}
+    command: ["-w", "2","-b", "0.0.0.0:8080", "--reload", "--log-level", "info",
+              "--error-logfile", "-", "--forwarded-allow-ips", "*", "-k",
+              "gevent", "climate_change_api.wsgi"]
 
   nginx:
     image: "cc-nginx:${GIT_COMMIT:-latest}"
