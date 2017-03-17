@@ -139,11 +139,11 @@ class ClimateDataBaseline(models.Model):
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')  # NOQA
+                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')  # NOQA: E501
     tasmax = models.FloatField(null=True,
-                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')  # NOQA
+                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')  # NOQA: E501
     pr = models.FloatField(null=True,
-                           help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA
+                           help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA: E501
 
     def natural_key(self):
         return (self.map_cell, self.percentile)
@@ -165,7 +165,7 @@ class CityBoundaryManager(models.Manager):
             city.boundary.delete()
         except ObjectDoesNotExist:
             pass
-        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')  # NOQA
+        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')  # NOQA: E501
         return city_boundary
 
 
@@ -257,7 +257,7 @@ class ClimateData(models.Model):
     tasmax = models.FloatField(null=True,
                                help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
     pr = models.FloatField(null=True,
-                           help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA
+                           help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA: E501
 
     class Meta:
         unique_together = ('map_cell', 'data_source', 'day_of_year')
@@ -282,11 +282,11 @@ class HistoricAverageClimateData(models.Model):
     day_of_year = models.PositiveSmallIntegerField()
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA
+                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
     tasmax = models.FloatField(null=True,
-                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA
+                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
     pr = models.FloatField(null=True,
-                           help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA
+                           help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA: E501
 
     class Meta:
         unique_together = ('map_cell', 'day_of_year')

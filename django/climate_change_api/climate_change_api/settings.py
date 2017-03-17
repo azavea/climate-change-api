@@ -51,7 +51,7 @@ AWS_AVAILBILITY_ZONE = None
 try:
     EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4',
                                   timeout=0.1).text
-    AWS_AVAILABILITY_ZONE = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone',  # NOQA
+    AWS_AVAILABILITY_ZONE = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone',  # NOQA: E501
                                          timeout=0.1).text
 except requests.exceptions.RequestException:
     pass
@@ -316,8 +316,8 @@ REST_FRAMEWORK = {
 
 # only enable browsable API in development
 if DEBUG:
-    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append('rest_framework.authentication.SessionAuthentication')  # NOQA
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')  # NOQA
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append('rest_framework.authentication.SessionAuthentication')  # NOQA: E501
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')  # NOQA: E501
 
 
 # Django Rest Framework extensions
