@@ -37,7 +37,7 @@ class Command(BaseCommand):
                         'all boundaries.')
             queryset = queryset.filter(boundary__isnull=True)
         if limit is not None:
-            queryset = queryset[offset:offset+limit]
+            queryset = queryset[offset:offset + limit]
         else:
             queryset = queryset[offset:]
 

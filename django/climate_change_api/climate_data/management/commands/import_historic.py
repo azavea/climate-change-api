@@ -140,13 +140,13 @@ class Command(BaseCommand):
             day_variable_tuples = izip(*day_tuples)
 
             records = (HistoricAverageClimateData(
-                    map_cell=local_city.map_cell,
-                    day_of_year=day_of_year,
-                    # Some models might not have data for a specific day, so we
-                    #  need to exclude those values from the average
-                    tasmin=np.mean([v for v in tasmin if v is not None]),
-                    tasmax=np.mean([v for v in tasmax if v is not None]),
-                    pr=np.mean([v for v in pr if v is not None]))
+                map_cell=local_city.map_cell,
+                day_of_year=day_of_year,
+                # Some models might not have data for a specific day, so we
+                #  need to exclude those values from the average
+                tasmin=np.mean([v for v in tasmin if v is not None]),
+                tasmax=np.mean([v for v in tasmax if v is not None]),
+                pr=np.mean([v for v in pr if v is not None]))
                 for (day_of_year, (tasmin, tasmax, pr)) in enumerate(day_variable_tuples))
 
             logger.info('Creating historic aggregated data records for city')

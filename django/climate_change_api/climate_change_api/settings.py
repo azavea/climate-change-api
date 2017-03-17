@@ -303,7 +303,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
-        ],
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'PAGE_SIZE': 20,
@@ -343,7 +343,7 @@ if DEBUG:
 
 SQS_QUEUE_NAME = os.getenv('CC_SQS_QUEUE_NAME', 'climate-api')
 SQS_IMPORT_QUEUE_ATTRIBUTES = {
-    'VisibilityTimeout': str(3600*4),
+    'VisibilityTimeout': str(3600 * 4),
     'ReceiveMessageWaitTimeSeconds': str(10),
     'MaximumMessageSize': str(1024)
 }

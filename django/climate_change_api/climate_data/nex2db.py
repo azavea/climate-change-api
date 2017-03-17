@@ -157,9 +157,7 @@ class Nex2DB(object):
                 climatedata_args.update(values)
 
                 # Create the ClimateData entry
-                climatedata_list.append(
-                    ClimateData(**climatedata_args)
-                    )
+                climatedata_list.append(ClimateData(**climatedata_args))
 
             try:
                 ClimateData.objects.bulk_create(climatedata_list)
