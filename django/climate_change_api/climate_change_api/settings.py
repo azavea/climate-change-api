@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'bootstrap3',
     'watchman',
     'postgres_stats',
+    'static_precompiler',
 
     # Apps
     'climate_data',
@@ -239,6 +240,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
+# http://django-static-precompiler.readthedocs.io/en/stable/#libsass
 
 if os.getenv('COMMIT'):
     STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
@@ -250,6 +252,19 @@ if os.getenv('COMMIT'):
 else:
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'static_precompiler.finders.StaticPrecompilerFinder',
+)
+
+STATIC_PRECOMPILER_COMPILERS = (
+    ('static_precompiler.compilers.libsass.SCSS', {
+        "sourcemap_enabled": True,
+        "precision": 8,
+    }),
+)
 
 # Logging
 # https://docs.djangoproject.com/en/1.9/topics/logging/
