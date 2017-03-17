@@ -33,7 +33,7 @@ class IndicatorParamTestCase(TestCase):
             param.validate(None)
 
     def test_blank_validators(self):
-        """ should set validators to empty array if None provided """
+        """Set validators to empty array if None provided."""
         param = IndicatorParam('units', validators=None)
         self.assertEqual(param.validators, [])
         param = IndicatorParam('units')
@@ -55,7 +55,7 @@ class IndicatorParamsTestCase(TestCase):
                                  **self.params_class_kwargs)
 
     def test_validate_valid_only_expected_params(self):
-        """ it should ensure indicator_params sets values for each of the base params """
+        """Ensure indicator_params sets values for each of the base params."""
         parameters = merge_dicts(self.default_parameters,
                                  {'models': 'CCSM4', 'years': '2050:2060', 'units': 'K',
                                   'agg': 'avg', 'time_aggregation': 'monthly'})
@@ -68,7 +68,7 @@ class IndicatorParamsTestCase(TestCase):
         self.assertEqual(indicator_params.time_aggregation.value, 'monthly')
 
     def test_validate_valid_some_unused_params(self):
-        """ it should ensure indicator_params properly ignores params that aren't defined """
+        """Ensure indicator_params properly ignores params that aren't defined."""
         parameters = merge_dicts(self.default_parameters,
                                  {'doesnotexist': 'true',
                                   'years': '2050:2060',
@@ -80,10 +80,9 @@ class IndicatorParamsTestCase(TestCase):
             indicator_params.doesnotexist
 
     def test_validate_valid_optional_defaults(self):
-        """ it should ensure indicator_params properly sets defaults on base params
+        """Ensure indicator_params properly sets defaults on base params.
 
-        Force units to have default value by overriding IndicatorParams
-
+        Force units to have default value by overriding IndicatorParams.
         """
         parameters_sets = [
             {'models': None, 'years': None, 'units': None, 'agg': None, 'time_aggregation': None},
@@ -107,19 +106,15 @@ class IndicatorParamsBeforeSerializerTestCase(ClimateDataSetupMixin, TestCase):
         super(IndicatorParamsBeforeSerializerTestCase, self).setUp()
 
     def test_parsing_single_agg_string_input(self):
-        """ tests a string input of single aggregation method """
-
+        """Test a string input of single aggregation method."""
         self._test_parsing_agg_string_input('99th')
 
     def test_parsing_multi_agg_string_input(self):
-        """ tests a comma-separated string input of multi aggregation methods """
-
+        """Test a comma-separated string input of multi aggregation methods."""
         self._test_parsing_agg_string_input('avg,99th,stdev')
 
     def _test_parsing_agg_string_input(self, agg_input):
-        """ method should ensure a csv string input for the aggregation param gets
-            parsed into a list before serialization
-        """
+        """Ensure CSV string input for aggregation param parsed into list before serialization."""
         parameters = merge_dicts({}, {'agg': agg_input})
         # test string parsing on an arbitrary indicator
         indicator = indicators.TotalPrecipitation(self.city1, self.rcp45, parameters=parameters)
@@ -140,14 +135,14 @@ class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
         self.params_class_kwargs = {'percentile': 99}
 
     def test_validate_percentile_default(self):
-        """ It should use a default value if required param is missing """
+        """Use a default value if required param is missing."""
         parameters = {'percentile': None}
         indicator_params = self._get_params_class()
         indicator_params.validate(parameters)
         self.assertEqual(indicator_params.percentile.value, 99)
 
     def test_validate_percentile_out_of_bounds(self):
-        """ It should raise ValidationError if percentile outside range [0-100] """
+        """Raise ValidationError if percentile outside range [0-100]."""
         parameters = merge_dicts(self.default_parameters, {'percentile': '-1'})
         indicator_params = self._get_params_class()
         with self.assertRaises(ValidationError):

@@ -112,7 +112,7 @@ class IndicatorDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
 class ClimateModelViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
-        """ Should allow equality filtering on name """
+        """Should allow equality filtering on name."""
         ClimateModelFactory(name='CCSM4')
         ClimateModelFactory(name='CanESM2')
         ClimateModelFactory(name='CNRM-CM5')
@@ -133,7 +133,7 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
 class ScenarioViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
-        """ Should allow equality filtering on name """
+        """Should allow equality filtering on name."""
         ScenarioFactory(name='RCP45')
         ScenarioFactory(name='RCP85')
 
@@ -153,7 +153,7 @@ class ScenarioViewSetTestCase(CCAPITestCase):
 class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
 
     def test_filtering(self):
-        """ Should allow equality filtering on text properties """
+        """Should allow equality filtering on text properties."""
         url = reverse('city-list')
 
         response = self.client.get(url)
@@ -169,7 +169,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.data['count'], 2)
 
     def test_list_is_geojson(self):
-        """ Ensure this endpoint is geojson-like """
+        """Ensure this endpoint is geojson-like."""
         url = reverse('city-list')
 
         response = self.client.get(url)
@@ -185,7 +185,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertIn('previous', geojson)
 
     def test_detail_is_geojson(self):
-        """ Ensure this endpoint is geojson-like """
+        """Ensure this endpoint is geojson-like."""
         url = reverse('city-detail', args=[self.city1.id])
 
         response = self.client.get(url)
@@ -197,7 +197,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
             self.assertIn(field, geojson)
 
     def test_detail_doesnt_have_boundary(self):
-        """ Ensure this endpoint is geojson-like """
+        """Ensure this endpoint is geojson-like."""
         url = reverse('city-detail', args=[self.city1.id])
 
         response = self.client.get(url)
@@ -207,7 +207,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertNotIn('boundary', geojson['properties'])
 
     def test_bbox_filtering(self):
-        """ Ensure this endpoint has bbox filtering via in_bbox=minlon,minlat,maxlon,maxlat """
+        """Ensure this endpoint has bbox filtering via in_bbox=minlon,minlat,maxlon,maxlat."""
         url = reverse('city-list')
 
         bbox_string = '0,0,{},{}'.format(self.city1.geom.coords[0] + 1,
@@ -250,7 +250,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
             self.assertIn(field, geojson)
 
     def test_nearest_endpoint(self):
-        """ Test getting the list of nearest cities from a separate endpoint """
+        """Test getting the list of nearest cities from a separate endpoint."""
         url = reverse('city-nearest')
 
         # test nearest, ensure it paginates by checking 'count', and defaults limit to 1
@@ -270,7 +270,7 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertEqual(geojson['features'][1]['properties']['name'], self.city2.name)
 
     def test_nearest_bad_requests(self):
-        """ Test that nearest throws proper errors when given bad data """
+        """Test that nearest throws proper errors when given bad data."""
         url = reverse('city-nearest')
 
         response = self.client.get(url, {'lat': 5})

@@ -11,7 +11,8 @@ from climate_data.tests.factories import (CityFactory,
 
 
 class CityDataSetupMixin(object):
-    """ Creates a set of cities as mock data """
+    """Creates a set of cities as mock data."""
+
     def setUp(self):
         super(CityDataSetupMixin, self).setUp()
 
@@ -21,7 +22,7 @@ class CityDataSetupMixin(object):
 
 
 class ClimateDataSetupMixin(object):
-    """ Mixin to a TestCase class to provide some basic climate data to test against
+    """Mixin to a TestCase class to provide some basic climate data to test against.
 
     Be sure to add this Mixin as an argument _before_ the TestCase class, since python uses
     the right-most class as the base class, and this is not a base class.
@@ -55,8 +56,8 @@ class ClimateDataSetupMixin(object):
             },
         }
     }
-
     """
+
     def setUp(self):
         super(ClimateDataSetupMixin, self).setUp()
 

@@ -142,8 +142,10 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     raw_condition = 'pr = 0'
 
     def aggregate(self):
-        """ Calls get_streaks to get all sequences of zero or non-zero precip then counts
-        the zero-precip ones that are at least 5 days long """
+        """Call get_streaks to get all sequences of zero or non-zero precip.
+
+        Then counts the zero-precip ones that are at least 5 days long.
+        """
         sequences = self.get_streaks()
         for key_vals, streaks in groupby(sequences, self.row_group_key):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
@@ -252,8 +254,10 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
     raw_condition = 'tasmax > avg_tasmax + 5'
 
     def aggregate(self):
-        """ Calls get_streaks to get all sequences of abnormally hot days and count the number
-            that are at least 5 days long """
+        """Call get_streaks to get all sequences of abnormally hot days.
+
+        Counts the number that are at least 5 days long.
+        """
         self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
         sequences = self.get_streaks()
         for key_vals, streaks in groupby(sequences, self.row_group_key):
@@ -263,19 +267,18 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
 
 
 def list_available_indicators():
-    """ List the defined class members of this module as the available indicators """
+    """List the defined class members of this module as the available indicators."""
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
     indicators = [member[1] for member in class_members if member[1].__module__ == __name__]
     return [i.to_dict() for i in indicators]
 
 
 def indicator_factory(indicator_name):
-    """ Return a valid indicator class based on the string provided
+    """Return a valid indicator class based on the string provided.
 
     Given a lower case, underscore separated indicator name, return the class associated
     with it. e.g. frost_days -> indicators.models.FrostDays
-    If no match found, return None
-
+    If no match found, return None.
     """
     this_module = sys.modules[__name__]
     class_name = ''.join([s.capitalize() for s in indicator_name.split('_')])

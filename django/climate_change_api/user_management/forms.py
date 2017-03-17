@@ -4,8 +4,9 @@ from registration.forms import RegistrationFormUniqueEmail
 
 
 class UserForm(RegistrationFormUniqueEmail):
-    """ Extend django-registration default user sign up form with other User model fields
-        Enforces 1 account per e-mail
+    """Extends django-registration default user sign up form with other User model fields.
+
+    Enforces 1 account per e-mail.
     """
 
     email = forms.EmailField(help_text=None)
@@ -18,8 +19,7 @@ class UserForm(RegistrationFormUniqueEmail):
 
 
 class UserProfileForm(forms.ModelForm):
-    """ Defines mutable fields in the user profile and validates user-made data changes
-    """
+    """Defines mutable fields in the user profile and validates user-made data changes."""
 
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)

@@ -21,7 +21,7 @@ class IndicatorSerializer(object):
     _PERCENTILE_REGEX = re.compile('([0-9]?[0-9])th', re.IGNORECASE)
 
     def to_representation(self, results, **kwargs):
-        """ Simplify the full list of collated data points to a constant summary
+        """Simplify the full list of collated data points to a constant summary.
 
         Given the results of `aggregate`, should produce a dictionary of the form:
         {
@@ -59,11 +59,9 @@ class IndicatorSerializer(object):
                     multiple times with different values, e.g. ('5th', '95th', '99th',)
         Defaults to ('avg', 'min', 'max',).
         Example: `serializer.to_representation(results, aggregations=('avg', 'stddev', '95th',))`
-
         """
-
         def create_percentile_lambda(percentile):
-            """ Wrap percentile lambda in function to capture scope of the percentile var """
+            """Wrap percentile lambda in function to capture scope of the percentile var."""
             return lambda v: np.percentile(v, percentile)
 
         valid_aggregations = set(self._AGGREGATION_CHOICES)

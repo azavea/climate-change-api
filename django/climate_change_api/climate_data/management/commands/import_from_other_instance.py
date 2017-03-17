@@ -58,18 +58,14 @@ def make_request(url, token, failures=10):
 
 
 def get_models(domain, token):
-    """
-    Returns a list of available models from an instance of climate-change-api
-    """
+    """Return a list of available models from an instance of climate-change-api."""
     url = MODEL_LIST_URL.format(domain=domain)
     data = make_request(url, token)
     return map(lambda d: d['name'], data)
 
 
 def get_cities(domain, token):
-    """
-    Returns an iterable of city dicts from an instance of climate-change-api
-    """
+    """Return an iterable of city dicts from an instance of climate-change-api."""
     url = CITY_LIST_URL.format(domain=domain)
     while url:
         data = make_request(url, token)
@@ -79,17 +75,13 @@ def get_cities(domain, token):
 
 
 def get_data(domain, token, city_id, rcp, model):
-    """
-    Gets all the data for a city for a given rcp and model from a climate-change-api instance
-    """
+    """Get all the data for a city for a given rcp and model from a climate-change-api instance."""
     url = CLIMATE_DATA_URL.format(domain=domain, city_id=city_id, rcp=rcp, model=model)
     return make_request(url, token)
 
 
 def create_models(models):
-    """
-    Create the ClimateModels given
-    """
+    """Create the ClimateModels given."""
     dbmodels = []
     for model in models:
             dbmodel = ClimateModel.objects.get_or_create(name=model)[0]
@@ -98,11 +90,10 @@ def create_models(models):
 
 
 def import_city(citydata):
-    """
-    Create a city and if not already created, its grid cell from the city dict
-    downloaded from another instance
-    """
+    """Create a city and if not already created, its grid cell from the city dict.
 
+    City dict was downloaded from another instance.
+    """
     try:
         city = City.objects.get(
             name=citydata['properties']['name'],
@@ -136,9 +127,7 @@ def import_map_cell(mapcelldata):
 
 
 def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
-    """
-    Import the the output of get_data into the database
-    """
+    """Import the the output of get_data into the database."""
     data = get_data(domain, token, remote_city_id, scenario, model)
 
     start_time = time()

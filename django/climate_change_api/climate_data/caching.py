@@ -24,12 +24,14 @@ full_url_cache_key_func = FullUrlKeyConstructor()
 
 class OverridableCacheResponse(CacheResponse):
     """
-    Modify the behavior of drf-extensions caching to allow per-query cache disabling via parameter
-    (noCache=True).
+    Modify the behavior of drf-extensions caching to allow per-query cache disabling.
+
+    Disabled via parameter (noCache=True).
 
     Requires the settings cache configuration to contain both a `default` and a `bypass`
     cache alias defined (use DummyCache to bypass).
     """
+
     def __init__(self, timeout=None,
                  key_func=None,
                  cache=None,

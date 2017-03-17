@@ -26,9 +26,10 @@ class UserProfileFactory(DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        """
-        Override to lazily instantiate user from factory. Otherwise, `UserFactory` gets invoked
-        before the test suite has switched over to the test database.
+        """Override to lazily instantiate user from factory.
+
+        Otherwise, `UserFactory` gets invoked before the test suite has switched over
+        to the test database.
         """
         kwargs['user'] = UserFactory()
         return super(UserProfileFactory, cls)._create(model_class, *args, **kwargs)
