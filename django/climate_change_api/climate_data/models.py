@@ -165,7 +165,10 @@ class CityBoundaryManager(models.Manager):
             city.boundary.delete()
         except ObjectDoesNotExist:
             pass
-        city_boundary = self.create(city=city, geom=geom, boundary_type=boundary_type, source='US Census API')  # NOQA: E501
+        city_boundary = self.create(city=city,
+                                    geom=geom,
+                                    boundary_type=boundary_type,
+                                    source='US Census API')
         return city_boundary
 
 
