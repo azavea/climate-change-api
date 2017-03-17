@@ -42,3 +42,4 @@ geobuf==1.1.0
 rollbar==0.13.11
 flake8==3.3.0
 flake8-docstrings==1.0.3
+libsass==0.12.3

@@ -21,7 +21,8 @@ RUN set -ex \
     && pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm -rf /tmp/* \
     && apt-get purge -y --auto-remove ${buildDeps} \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install django-static-precompiler[libsass]
 
 COPY ./ /opt/django
 
@@ -32,7 +33,6 @@ EXPOSE 8080
 CMD ["-w", "2", \
      "-b", "0.0.0.0:8080", \
      "--reload", \
-     "--no-sendfile", \
      "--log-level", "info", \
      "--error-logfile", "-", \
      "--forwarded-allow-ips", "*", \
