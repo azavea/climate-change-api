@@ -1,3 +1,4 @@
+{% load compile_static %}
 {% load staticfiles %}
 {% load bootstrap3 %}
 {% load i18n %}
@@ -5,7 +6,9 @@
 <html lang="en">
 <head>
     {% bootstrap_css %}
-    <link rel="stylesheet" href="{% static "css/registration.css" %}">
+
+    <!-- ** NOTE ** Any additional SCSS files must be linked below with the compile directive -->
+    <link rel="stylesheet" href="{% static "scss/registration.scss"|compile %}">
 
     <title>{% block title %}User Navigation{% endblock %}</title>
 </head>
