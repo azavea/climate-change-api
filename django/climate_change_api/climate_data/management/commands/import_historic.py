@@ -20,9 +20,7 @@ MODELS = ClimateModel.objects.all()
 
 
 def get_historic_raw_data(domain, token, city_id, model=None, variables=None):
-    """
-    Gets the historic data for a city from a climate-change-api instance
-    """
+    """Get the historic data for a city from a climate-change-api instance."""
     url = RAWDATA_URL.format(domain=domain,
                              city=city_id)
     params = {}

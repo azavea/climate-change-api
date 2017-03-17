@@ -107,11 +107,10 @@ def process_message(message, queue):
 
 
 class Command(BaseCommand):
-    """Processes jobs from SQS to extract data from NASA NEX NetCDF files
+    """Processes jobs from SQS to extract data from NASA NEX NetCDF files.
 
     Processes messages with the following format:
     {"scenario_id": 1, "model_id": 1, "year": "2016"}
-
     """
 
     help = 'Processes jobs from SQS to extract data from NASA NEX NetCDF files'

@@ -60,7 +60,7 @@ THRESHOLD_COMPARATOR_PARAM_DOCSTRING = ("Required. The comparison type against t
 
 
 class IndicatorParam(object):
-    """ Defines an individual query parameter for an Indicator request
+    """Defines an individual query parameter for an Indicator request.
 
     @param name: The name of the query parameter
     @param description: Human readable descriptive help string describing use of the parameter
@@ -68,8 +68,8 @@ class IndicatorParam(object):
     @param default: Default value to use for parameter if none provided
     @param validators: Array of functions or classes implementing the django.core.validators
                        interface, used to validate the parameter.
-
     """
+
     def __init__(self, name, description='', required=True, default=None, validators=None):
         self.name = name
         self.description = description
@@ -79,12 +79,11 @@ class IndicatorParam(object):
         self.value = None
 
     def validate(self, value):
-        """ Validates the parameter by running all defined validators
+        """Validate the parameter by running all defined validators.
 
         Checks if param is required even if no validators are defined.
 
         Raises django.core.exceptions.ValidationError on the first failed validation check.
-
         """
         value = value if value is not None else self.default
 
@@ -101,10 +100,9 @@ class IndicatorParam(object):
         self.value = value
 
     def to_dict(self):
-        """ Return complete representation of this class as a serializable dict
+        """Return complete representation of this class as a serializable dict.
 
         Makes the IndicatorParam class self documenting.
-
         """
         description = OrderedDict([
             ('name', self.name),
@@ -116,17 +114,18 @@ class IndicatorParam(object):
             description['default'] = self.default
         return description
 
-    def __repr__(self):
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
         return str(self.to_dict())
 
 
 class IndicatorParams(object):
-    """ Superclass used to define parameters necessary for an Indicator class to function
+    """Superclass used to define parameters necessary for an Indicator class to function.
 
     Params can be defined either as class or instance variables. Prefer class variables
     if the IndicatorParam in question has no run-time dependencies.
-
     """
+
     models = IndicatorParam('models',
                             description=MODELS_PARAM_DOCSTRING,
                             required=False,
@@ -149,12 +148,11 @@ class IndicatorParams(object):
                                      validators=None)
 
     def __init__(self, default_units, available_units, valid_aggregations):
-        """ Initialize additional params that are instance specific
+        """Initialize additional params that are instance specific.
 
         Would love a workaround so that we don't have to do this, and can define all params
         statically. But, units has defaults/choices that are specific to the indicator and params
         we're validating, so we can't do that here.
-
         """
         available_units_validator = ChoicesValidator(available_units)
         valid_aggregations_validator = ChoicesValidator(valid_aggregations)
@@ -170,7 +168,7 @@ class IndicatorParams(object):
                                                validators=[valid_aggregations_validator])
 
     def validate(self, parameters):
-        """ Validate all parameters """
+        """Validate all parameters."""
         for param_class in self._get_params_classes():
             value = parameters.get(param_class.name, None)
             param_class.validate(value)
@@ -179,12 +177,13 @@ class IndicatorParams(object):
         return [c.to_dict() for c in self._get_params_classes()]
 
     def _get_params_classes(self):
-        """ Return a list of the IndicatorParam instances defined on this class """
+        """Return a list of the IndicatorParam instances defined on this class."""
         return sorted([getattr(self, x) for x in dir(self)
                       if isinstance(getattr(self, x), IndicatorParam)],
                       key=lambda c: c.name)
 
-    def __repr__(self):
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
         return str(self.to_dict())
 
 

@@ -7,7 +7,7 @@ from indicators.validators import ChoicesValidator, IntRangeValidator
 class ValidatorTestCase(TestCase):
 
     def should_succeed_with_value(self, validator, value):
-        """ Helper method to raise failure if validator(value) should succeed but fails """
+        """Raise failure if validator(value) should succeed but fails."""
         try:
             validator(value)
         except ValidationError as e:

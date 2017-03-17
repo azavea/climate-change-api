@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def get_features_from_response(response):
-    """ Yield json features via context manager from a boto3 StreamingResponse """
+    """Yield json features via context manager from a boto3 StreamingResponse."""
     features = json.load(response['Body'])['features']
     yield features
     del features
@@ -24,8 +24,7 @@ def get_features_from_response(response):
 
 
 class Command(BaseCommand):
-    """
-    Imports a ecoregions.geojson file into the database from s3
+    """Imports a ecoregions.geojson file into the database from s3.
 
     ecoregions.geojson is a geojson file where the features have
     at minimum the following properties:

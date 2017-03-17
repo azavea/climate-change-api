@@ -3,9 +3,10 @@ from rest_framework.renderers import BaseRenderer
 
 
 class GeobufRenderer(BaseRenderer):
-    """ Renderer for downloading geobuf versions of GeoJSON files
+    """Renderer for downloading geobuf versions of GeoJSON files.
 
-    See https://github.com/mapbox/geobuf """
+    See https://github.com/mapbox/geobuf
+    """
 
     media_type = 'application/octet-stream'
     format = 'pbf'

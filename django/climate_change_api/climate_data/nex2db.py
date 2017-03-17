@@ -10,9 +10,7 @@ from django.db import IntegrityError
 
 
 class Nex2DB(object):
-    """
-    Import data from NetCDF files to database
-    """
+    """Import data from NetCDF files to database."""
 
     # cache list of cites to guarantee ordering during import
     cities = None
@@ -37,9 +35,9 @@ class Nex2DB(object):
             return datetime.date(*timetuple[0:3])
 
     def get_var_data(self, var_name, path):
-        """
-        Read out data from a NetCDF file and return its data, translated, for only the points
-        representing the cities in the database.
+        """Read out data from a NetCDF file and return its data, translated.
+
+        Reads only the points representing the cities in the database.
 
         @param var_name Name of the variable in this NetCDF (tasmin, tasmax, or pr)
         @param path Full path to the NetCDF file on disk
@@ -49,7 +47,6 @@ class Nex2DB(object):
                    keyed by corresponding date
             cities: map of each city by internal ID to the cell coordinates it matched to
         """
-
         # data in the climate NetCDF files can be referenced as:
         # ds.variables[var name][day of year index][latitude index][longitude index]
         self.logger.debug('processing NetCDF at %s', path)
@@ -93,14 +90,12 @@ class Nex2DB(object):
         return {'cities': city_to_coords, 'cells': cell_data}
 
     def nex2db(self, variable_paths, data_source):  # NOQA: C901
-        """
-        Extracts data about cities from three NetCDF files and writes it to the database.
+        """Extract data about cities from three NetCDF files and writes it to the database.
 
         @param variable_paths Dictionary of variable identifier to path for the corresponding
                               NetCDF file
         @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
-
         assert(set(variable_paths) == ClimateData.VARIABLE_CHOICES)
 
         variable_data = {label: self.get_var_data(label, path)

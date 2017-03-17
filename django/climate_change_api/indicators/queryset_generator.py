@@ -8,7 +8,7 @@ from climate_data.filters import ClimateDataFilterSet
 
 
 def get(time_aggregation):
-    """ Provide the correct queryset generator class based on indicator time aggregation """
+    """Provide the correct queryset generator class based on indicator time aggregation."""
     return {
         'monthly': MonthQuerysetGenerator,
         'quarterly': QuarterQuerysetGenerator,
@@ -19,10 +19,10 @@ def get(time_aggregation):
 
 
 class QuerysetGenerator(object):
-    """ Utility class to create querysets for ClimateData for a given time aggregation
+    """Utility class to create querysets for ClimateData for a given time aggregation.
 
     Incorporates filtering by year as the year a data point is associated with can be dependant on
-    the time aggregation used
+    the time aggregation used.
     """
 
     CaseRange = namedtuple('CaseRange', ('key', 'start', 'length'))
@@ -31,9 +31,9 @@ class QuerysetGenerator(object):
 
     @staticmethod
     def get_leap_year_sets():
-        """ Builds objects that categorize years by a common feature
+        """Build objects that categorize years by a common feature.
 
-        By default categorizes years by whether they are a leap year or not
+        By default categorizes years by whether they are a leap year or not.
         """
         all_years = set(ClimateDataSource.objects.distinct('year')
                                                  .values_list('year', flat=True))
@@ -72,23 +72,22 @@ class QuerysetGenerator(object):
 
     @classmethod
     def get_intervals(cls, label):
-        """ Returns an ordered series intervals to map days to interval segments
+        """Return an ordered series intervals to map days to interval segments.
 
-        Each value should be a tuple of (start, length), measured in day-of-year
+        Each value should be a tuple of (start, length), measured in day-of-year.
         """
         raise NotImplementedError()
 
     @classmethod
     def make_ranges(cls, label):
-        """ Takes the values of get_intervals and wraps them in CaseRange objects
-        """
+        """Take the values of get_intervals and wraps them in CaseRange objects."""
         cases = cls.get_intervals(label)
         return [cls.CaseRange(cls.get_interval_key(i), start, length)
                 for (i, (start, length)) in enumerate(cases)]
 
     @classmethod
     def get_ranges(cls):
-        """ Build mapping from day of year to month.
+        """Build mapping from day of year to month.
 
         Gets the year range by querying what data exists and builds CaseRange objects for each
         month.
@@ -103,8 +102,10 @@ class QuerysetGenerator(object):
 
     @classmethod
     def keys(cls):
-        """ Generates a nested Case aggregation that assigns the range key to each
-        data point.  It first splits on leap year or not then checks day_of_year against ranges.
+        """Generate a nested Case aggregation.
+
+        Assigns the range key to each data point.
+        It first splits on leap year or not then checks day_of_year against ranges.
         """
         if cls.range_config is None:
             cls.range_config = cls.get_ranges()
@@ -121,8 +122,9 @@ class QuerysetGenerator(object):
 
 
 class YearQuerysetGenerator(QuerysetGenerator):
-    """ Special case generator for yearly annotations
-    Yearly annotations don't need any special logic, so we can short-circuit the whole process
+    """Special case generator for yearly annotations.
+
+    Yearly annotations don't need any special logic, so we can short-circuit the whole process.
     """
 
     @classmethod
@@ -131,11 +133,12 @@ class YearQuerysetGenerator(QuerysetGenerator):
 
 
 class LengthQuerysetGenerator(QuerysetGenerator):
-    """ QuerysetGenerator based on a list of period lengths
+    """QuerysetGenerator based on a list of period lengths.
 
     Assumes that the periods are consecutive, and that each period takes place immediately
     following the previous period.
     """
+
     lengths = {}
 
     @classmethod
@@ -163,10 +166,11 @@ class QuarterQuerysetGenerator(LengthQuerysetGenerator):
 
 
 class CustomQuerysetGenerator(QuerysetGenerator):
-    """ QuerySet generator for user-defined date ranges within a given calendar year
+    """QuerySet generator for user-defined date ranges within a given calendar year.
 
     Dates cannot span across year, OffsetYearQuerysetGenerator is necessary for that.
     """
+
     custom_spans = None
 
     @classmethod
@@ -222,8 +226,7 @@ class OffsetYearQuerysetGenerator(QuerysetGenerator):
 
     @classmethod
     def make_ranges(cls, label):
-        """ Builds a pair of CaseRanges to represent a 366 day year split across two calendar years
-        """
+        """Build a pair of CaseRanges representing 366 day year split across two calendar years."""
         year_len = 366
         offset = cls.custom_offset
         return [

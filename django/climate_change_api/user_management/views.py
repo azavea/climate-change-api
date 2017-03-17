@@ -1,10 +1,9 @@
-"""
-Customized of Django-registration plug-in's HMAC implementation
-A two-step (registration followed by activation) workflow, implemented
-by emailing an HMAC-verified timestamped activation token to the user
-on signup.
+"""Customized version of Django-registration plug-in's HMAC implementation.
 
+A two-step (registration followed by activation) workflow, implemented by emailing an HMAC-verified
+timestamped activation token to the user on signup.
 """
+
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -24,7 +23,8 @@ from user_management.serializers import AuthTokenSerializer
 
 
 class RegistrationView(BaseRegistrationView):
-    """ Extends default Django-registration HMAC view """
+    """Extends default Django-registration HMAC view."""
+
     form_class = UserForm
 
 
@@ -33,7 +33,7 @@ class UserProfileView(LoginRequiredMixin, View):
     authentication_classes = (TokenAuthentication, )
 
     def create_new_profile(self, request):
-        """ Create userprofile instance """
+        """Create userprofile instance."""
         if not hasattr(request.user, 'userprofile'):
             newprofile = UserProfile.create(user=request.user)
             request.user.userprofile = newprofile
@@ -49,7 +49,7 @@ class UserProfileView(LoginRequiredMixin, View):
         return self.initial
 
     def get(self, request, *args, **kwargs):
-        """ If first time signing in, create user profile """
+        """Create user profile if first time signing in."""
         self.create_new_profile(request)
 
         self.get_initial(request)
@@ -72,7 +72,7 @@ class UserProfileView(LoginRequiredMixin, View):
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
 
     def new_token(self, request):
-        """ Generate new auth token from within the profile page"""
+        """Generate new auth token from within the profile page."""
         if request.method not in SAFE_METHODS:
             user = request.user
             if user.auth_token:
@@ -83,7 +83,7 @@ class UserProfileView(LoginRequiredMixin, View):
 
 
 class ClimateAPIObtainAuthToken(ObtainAuthToken):
-    """ Anonymous endpoint for users to request tokens from for authentication """
+    """Anonymous endpoint for users to request tokens from for authentication."""
 
     throttle_classes = (ObtainAuthTokenThrottle,)
     serializer_class = AuthTokenSerializer

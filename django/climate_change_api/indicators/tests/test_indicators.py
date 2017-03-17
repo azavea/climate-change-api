@@ -61,7 +61,7 @@ class IndicatorTests(ClimateDataSetupMixin, object):
         self.assertEqual(data, self.test_models_filter_equals)
 
     def test_unit_conversion_definitions(self):
-        """ Some sanity checks for unit conversion class attributes """
+        """Check sanity of unit conversion class attributes."""
         self.assertIn(self.indicator_class.default_units, self.indicator_class.available_units)
 
 
