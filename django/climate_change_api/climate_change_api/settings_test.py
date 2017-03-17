@@ -1,4 +1,4 @@
-from settings import *  # NOQA
+from settings import *  # NOQA: F401,F403
 
 CACHES = {
     'default': {

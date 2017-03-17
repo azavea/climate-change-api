@@ -42,7 +42,7 @@ def handle_failing_message(message, failures):
 
     else:
         # Re-place message in the queue by making it instantly visible
-        # See http://boto3.readthedocs.io/en/latest/reference/services/sqs.html#SQS.Message.change_visibility  # NOQA
+        # See http://boto3.readthedocs.io/en/latest/reference/services/sqs.html#SQS.Message.change_visibility  # NOQA: E501
         message.change_visibility(VisibilityTimeout=0)
 
 
