@@ -100,7 +100,8 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             ORDER BY year, day_of_year;
 
         """
-        assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'  # NOQA: E501
+        assert isinstance(queryset, QuerySet), (
+            'ClimateCityScenarioDataSerializer must be given a queryset')
 
         aggregation = self._context['aggregation']
         aggregation_function = getattr(django.db.models, aggregation.capitalize())
