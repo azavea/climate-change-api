@@ -36,7 +36,7 @@ def make_request(url, token, failures=10):
             res = requests.get(url, headers={'Authorization': 'Token {}'.format(token)})
             res.raise_for_status()
             data = res.json()
-            logger.info('%s fetched in %f seconds', url, time()-start_time)
+            logger.info('%s fetched in %f seconds', url, time() - start_time)
             return data
         except requests.exceptions.HTTPError as e:
             if res.status_code == 401:
