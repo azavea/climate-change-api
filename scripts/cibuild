@@ -48,12 +48,13 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         aws s3 sync --dryrun \
           "${DIR}/../nginx/srv/dist/html" "s3://${CC_DOCS_FILES_BUCKET}"
 
-        # Since we're just running a test here, we unset the GIT_COMMIT so that
+        # Since we're just running a test here, we unset the COMMIT so that
         # `collectstatic` doesn't try to upload to S3
-        GIT_COMMIT="" docker-compose \
+        GIT_COMMIT="${GIT_COMMIT}" docker-compose \
             -f docker-compose.yml \
             -f docker-compose.test.yml \
             run --rm --no-deps --entrypoint "./manage.py" \
+            -e "COMMIT=" \
             django collectstatic --noinput
 
         echo "[DRY RUN] Upload complete!"
