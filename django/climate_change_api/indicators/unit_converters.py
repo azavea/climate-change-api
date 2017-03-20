@@ -17,9 +17,9 @@ class UnitConverter(object):
 
     @classmethod
     def get(cls, start, end):
-        """ Factory method to instantiate a converter if necessary
+        """Instantiate a converter if necessary via factory method.
 
-        In cases where we're doing a noop conversion, instead we'll return a pass-through lambda
+        In cases where we're doing a noop conversion, instead we'll return a pass-through lambda.
         """
         if start == end:
             # We're not doing a conversion, so no need to create a converter class
@@ -62,11 +62,12 @@ class TemperatureConverter(OffsetLinearConverter):
 
 
 class TemperatureDeltaConverter(LinearConverter):
-    """ Specialized version of TemperatureConverter to convert a degree temperature as a quantity
+    """Specialized version of TemperatureConverter to convert a degree temperature as a quantity.
 
     This does not adjust for different 0-points. That is, 1 degree Centigrade is equal to exactly
     1.8 degrees Fahrenheit.
     """
+
     units = {
         'C': 1,
         'F': 1.8,
@@ -75,11 +76,12 @@ class TemperatureDeltaConverter(LinearConverter):
 
 
 class PrecipitationRateConverter(LinearConverter):
-    """ Define units for rate of precipitation
+    """Define units for rate of precipitation.
 
     To convert from mass/area/second to height, we're assuming 1kg water == .001 m^3 which makes
     kg/m^2 equivalent to millimeters.
     """
+
     units = {
         'kg/m^2/s': 1,
         'kg/m^2/day': SECONDS_PER_DAY,
@@ -90,7 +92,7 @@ class PrecipitationRateConverter(LinearConverter):
 
 
 class PrecipitationConverter(LinearConverter):
-    """ Define units for precipitation
+    """Define units for precipitation.
 
     Internally precipitation is stored as mass per area per time, but for total precipitation
     we need to present the result as a fixed amount... either a mass per area or linear distance.
@@ -98,6 +100,7 @@ class PrecipitationConverter(LinearConverter):
     To convert from mass/area to height, we're assuming 1kg water == .001 m^3 which makes
     kg/m^2 equivalent to millimeters.
     """
+
     units = {
         'kg/m^2': 1,
         'mm': 1,
@@ -120,16 +123,16 @@ class ConversionMixin(object):
 
 
 class TemperatureUnitsMixin(ConversionMixin):
-    """ Define units for temperature conversion.
-    """
+    """Define units for temperature conversion."""
+
     converter_class = TemperatureConverter
     storage_units = 'K'
     default_units = 'F'
 
 
 class TemperatureDeltaUnitsMixin(TemperatureUnitsMixin):
-    """ Uses the same units as the TemperatureUnitsMixin, but doesn't adjust for 0-point offset
-    """
+    """Uses the same units as the TemperatureUnitsMixin, but doesn't adjust for 0-point offset."""
+
     converter_class = TemperatureDeltaConverter
 
 

@@ -14,8 +14,10 @@ from rest_framework.authtoken.models import Token
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
-    """ Create auth token upon new user creation.
-    Account access still requires email verification """
+    """Create auth token upon new user creation.
+
+    Account access still requires email verification.
+    """
     if created:
         Token.objects.create(user=instance)
 
@@ -32,9 +34,7 @@ class ClimateUserManager(BaseUserManager):
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
-        """
-        Creates and saves a User with the given email and password.
-        """
+        """Create and save a User with the given email and password."""
         if not email:
             raise ValueError('An email must be provided')
         email = self.normalize_email(email)
@@ -87,7 +87,9 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField('date joined', default=timezone.now)
 
     burst_rate = models.CharField('burst rate', default=get_default_burst_rate, max_length=20)
-    sustained_rate = models.CharField('sustained rate', default=get_default_sustained_rate, max_length=20)
+    sustained_rate = models.CharField('sustained rate',
+                                      default=get_default_sustained_rate,
+                                      max_length=20)
 
     REQUIRED_FIELDS = []
 
@@ -100,27 +102,24 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
-        """
-        Returns the first_name plus the last_name, with a space in between.
-        """
+        """Return the first_name plus the last_name, with a space in between."""
         full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
-        "Returns the short name for the user."
+        """Return the short name for the user."""
         return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
-        """
-        Sends an email to this User.
-        """
+        """Send an email to this User."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
 class UserProfile(models.Model):
-    """ Holds additional personal fields to associate with a user """
+    """Holds additional personal fields to associate with a user."""
 
     def __unicode__(self):
+        """Return pretty string representation of model."""
         return '{}'.format(self.user.email)
 
     user = models.OneToOneField(ClimateUser)

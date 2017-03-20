@@ -51,7 +51,7 @@ AWS_AVAILBILITY_ZONE = None
 try:
     EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4',
                                   timeout=0.1).text
-    AWS_AVAILABILITY_ZONE = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone',  # NOQA
+    AWS_AVAILABILITY_ZONE = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone',  # NOQA: E501
                                          timeout=0.1).text
 except requests.exceptions.RequestException:
     pass
@@ -303,7 +303,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
-        ],
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'PAGE_SIZE': 20,
@@ -316,8 +316,8 @@ REST_FRAMEWORK = {
 
 # only enable browsable API in development
 if DEBUG:
-    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append('rest_framework.authentication.SessionAuthentication')  # NOQA
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')  # NOQA
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append('rest_framework.authentication.SessionAuthentication')  # NOQA: E501
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')  # NOQA: E501
 
 
 # Django Rest Framework extensions
@@ -343,7 +343,7 @@ if DEBUG:
 
 SQS_QUEUE_NAME = os.getenv('CC_SQS_QUEUE_NAME', 'climate-api')
 SQS_IMPORT_QUEUE_ATTRIBUTES = {
-    'VisibilityTimeout': str(3600*4),
+    'VisibilityTimeout': str(3600 * 4),
     'ReceiveMessageWaitTimeSeconds': str(10),
     'MaximumMessageSize': str(1024)
 }

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_message(queue, message):
-    """Create a message in SQS with the provided body"""
+    """Create a message in SQS with the provided body."""
     body = json.dumps(message)
     queue.send_message(MessageBody=body)
     logger.debug(body)
@@ -22,7 +22,7 @@ def get_model_id_from_name(name):
 
 
 class Command(BaseCommand):
-    """Creates jobs on SQS to extract data from NASA NEX NetCDF files
+    """Creates jobs on SQS to extract data from NASA NEX NetCDF files.
 
     Creates messages with the following format:
     {"var": "tasmin", "model": 1, "year": "2016"}

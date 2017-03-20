@@ -69,10 +69,9 @@ class Indicator(object):
 
     @classmethod
     def init_params_class(cls):
-        """ Return the instantiated IndicatorParams object for this class
+        """Return the instantiated IndicatorParams object for this class.
 
-        Should not validate the IndicatorParams
-
+        Should not validate the IndicatorParams.
         """
         return cls.params_class(cls.default_units, cls.available_units, cls.valid_aggregations,
                                 **cls.params_class_kwargs)
@@ -80,14 +79,14 @@ class Indicator(object):
     @classmethod
     def name(cls):
         def convert(name):
-            """ Convert caps case string to snake case, e.g. IndicatorClass -> indicator_class """
+            """Convert caps case string to snake case, e.g. IndicatorClass -> indicator_class."""
             s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
         return convert(cls.__name__)
 
     @classmethod
     def to_dict(cls):
-        """ Return a dict representation of the indicator """
+        """Return a dict representation of the indicator."""
         return OrderedDict([
             ('name', cls.name()),
             ('label', cls.label),
@@ -100,11 +99,10 @@ class Indicator(object):
         ])
 
     def get_queryset(self):
-        """ Get the initial indicator queryset
+        """Get the initial indicator queryset.
 
         ClimateData initially filtered by city/scenario and optionally years/models as passed
-        by the constructor
-
+        by the constructor.
         """
         # Get the queryset generator for this indicator's time aggregation
         generator = queryset_generator.get(self.params.time_aggregation.value)
@@ -134,14 +132,13 @@ class Indicator(object):
         return self.variables[0]
 
     def aggregate(self):
-        """ Calculate the indicator aggregation
+        """Calculate the indicator aggregation.
 
         This method should use self.queryset to calculate the indicator, returning a list of dicts
         that matches the form returned by the Django QuerySet `values` method and includes the
         target value under the 'value' key.
         e.g. { 'data_source__year': 2077, 'data_source__model': 4, 'value': 74.59}
         """
-
         if self.conditions:
             agg_function = self.agg_function(Case(When(then=self.expression, **self.conditions),
                                              default=self.default_value,
@@ -152,7 +149,7 @@ class Indicator(object):
         return (self.queryset.values(*self.aggregate_keys).annotate(value=agg_function))
 
     def convert_units(self, aggregations):
-        """ Convert aggregated results to the requested unit.
+        """Convert aggregated results to the requested unit.
 
         @param aggregations list-of-dicts returned by aggregate method
         @returns Dict in same format as the aggregations parameter, with values converted
@@ -165,7 +162,7 @@ class Indicator(object):
             yield item
 
     def collate_results(self, aggregations):
-        """ Take results as a series of datapoints and collate them by key
+        """Take results as a series of datapoints and collate them by key.
 
         @param aggregations list-of-dicts returned by aggregate method
         @returns Dict of list of values, keyed by the queryset's agg_key column
@@ -184,17 +181,18 @@ class Indicator(object):
 
 
 class CountIndicator(Indicator):
-    """ Class to count days on which a condition is met.
+    """Counts days on which a condition is met.
 
     Essentially a specialized version of the AggregationIndicator where all values count as 1
     if they match the conditions and 0 in all other cases.
     """
+
     agg_function = Sum
     expression = 1
 
 
 class YearlySequenceIndicator(CountIndicator):
-    """ Abstract indicator to count series of consecutive days on which a condition is met.
+    """Abstract indicator to count series of consecutive days on which a condition is met.
 
     The query is done with raw SQL, so the condition has to be a string that constitutes a
     valid condition when dropped into the WHEN clause inside the query.
@@ -203,18 +201,20 @@ class YearlySequenceIndicator(CountIndicator):
     valid_aggregations = ('yearly',)
 
     def row_group_key(self, row):
-        """ Key function for groupby to use to break input stream into chunks in indicators that
-        require processing in code."""
+        """Break input stream into chunks in indicators that require processing in code.
+
+        For use in GROUP BY.
+        """
         return tuple(row[key] for key in self.aggregate_keys)
 
     def get_streaks(self):
-        """
-        Uses a query to partition the data series into consecutive days on which the condition is
-        or is not met and return all the streaks sorted by year and model.
+        """Partition the data series by query into consecutive days by condition.
 
-        Starts from the existing queryset with year/model/etc filters already applied.
+        Return all the streaks sorted by year and model.
 
-        Returns non-matching as well as matching sequences to guarantee that any year that matches
+        Start from the existing queryset with year/model/etc filters already applied.
+
+        Return non-matching as well as matching sequences to guarantee that any year that matches
         the filter parameters and for which we have data will be represented in the results set.
         Filtering out non-matches inside the query would mean we get no results for years with no
         matches, making them indistinguishable from years that were filtered out or for which
@@ -244,17 +244,16 @@ class YearlySequenceIndicator(CountIndicator):
 
 
 class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator):
-    """ Abstract indicator to count the longest series of consecutive days on which a condition is
-    met.
+    """Abstract indicator to count longest series of consecutive days on which a condition is met.
 
     The query is done with raw SQL, so the condition has to be a string that constitutes a
     valid condition when dropped into the WHEN clause inside the query.
     """
 
     def aggregate(self):
-        """
-        Gets streaks of matching and non-matching days then picks the longest matching streak
-        and returns its length, or zero if there are no matching streaks.
+        """Get streaks of days by match then picks the longest matching streak.
+
+        Return the streak length, or zero if there are no matching streaks.
         """
         sequences = self.get_streaks()
         for key_vals, streaks in groupby(sequences, self.row_group_key):
@@ -269,7 +268,7 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
 
 
 class BasetempIndicatorMixin(object):
-    """ Framework for pre-processing the basetemp parameter to a native unit """
+    """Framework for pre-processing the basetemp parameter to a native unit."""
 
     def __init__(self, *args, **kwargs):
         super(BasetempIndicatorMixin, self).__init__(*args, **kwargs)
@@ -284,7 +283,7 @@ class BasetempIndicatorMixin(object):
 
 
 class ThresholdIndicatorMixin(object):
-    """ Framework for capturing and pre-processing threshold parameters """
+    """Framework for capturing and pre-processing threshold parameters."""
 
     params_class = ThresholdIndicatorParams
 
@@ -311,7 +310,8 @@ class ThresholdIndicatorMixin(object):
 
     @property
     def conditions(self):
-        return {str(self.variables[0]) + '__' + str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
+        return {str(self.variables[0]) + '__' +
+                str(self.params.threshold_comparator.value): float(self.params.threshold.value)}
 
 
 class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):

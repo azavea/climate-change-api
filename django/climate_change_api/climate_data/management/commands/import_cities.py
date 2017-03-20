@@ -16,13 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    """Imports a cities.json file into the database from s3
+    """Imports a cities.json file into the database from s3.
 
     cities.json is a geojson file where the features are points and have at
     minimum the following properties:
 
     name - city name
-    admin1 - administrative name"""
+    admin1 - administrative name
+    """
 
     help = 'imports a cities.json file into the database from s3'
 

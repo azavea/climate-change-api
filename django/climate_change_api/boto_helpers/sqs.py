@@ -11,7 +11,7 @@ QUEUE_EXISTS_DIFFERENT_ATTRIBUTES_TEXT = ('queue already exists with the same na
 
 
 def get_queue(**kwargs):
-    """ A helper method to get an SQS queue, updating the queue attributes if they've changed """
+    """Get an SQS queue, updating the queue attributes if they've changed."""
     sqs = boto3.resource('sqs')
     try:
         queue = sqs.create_queue(**kwargs)

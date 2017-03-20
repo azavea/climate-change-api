@@ -17,6 +17,8 @@ from climate_data.models import (City,
                                  Region,
                                  Scenario)
 
+logger = logging.getLogger(__name__)
+
 
 class ClimateDataCellSerializer(serializers.ModelSerializer):
 
@@ -28,8 +30,6 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClimateDataCell
-
-logger = logging.getLogger(__name__)
 
 
 class CitySerializer(GeoFeatureModelSerializer):
@@ -67,11 +67,11 @@ class ClimateDataSerializer(serializers.ModelSerializer):
 
 
 class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
-    """ Read-only custom serializer to generate the data object for the ClimateDataList view
+    """Read-only custom serializer to generate the data object for the ClimateDataList view.
 
     Since we will be combining multiple ClimateData model instances into a single unified
     output, this serializer takes a ClimateData queryset and does not use the many=True argument,
-    but does require the serializer `context` kwarg with a key 'variables'
+    but does require the serializer `context` kwarg with a key 'variables'.
 
     :param instance Queryset A ClimateData Queryset
         It should already be filtered on City and Scenario before being passed to the serializer
@@ -80,8 +80,8 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         the output.
         Provide key 'aggregation' with one of ('min', 'max', 'avg') to aggregate the data values
         across models. Default is 'avg'.
-
     """
+
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
@@ -90,7 +90,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             self._context['aggregation'] = 'avg'
 
     def to_representation(self, queryset):
-        """ Serialize queryset to the expected python object format
+        """Serialize queryset to the expected python object format.
 
         The DB query should be roughly equivalent to:
             SELECT year, day_of_year, avg(tasmin) as tasmin, avg(tasmax) as tasmax, avg(pr) as pr
@@ -98,9 +98,9 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             WHERE scenario_id = 1 and city_id = 1
             GROUP BY year, day_of_year
             ORDER BY year, day_of_year;
-
         """
-        assert isinstance(queryset, QuerySet), 'ClimateCityScenarioDataSerializer must be given a queryset'
+        assert isinstance(queryset, QuerySet), (
+            'ClimateCityScenarioDataSerializer must be given a queryset')
 
         aggregation = self._context['aggregation']
         aggregation_function = getattr(django.db.models, aggregation.capitalize())

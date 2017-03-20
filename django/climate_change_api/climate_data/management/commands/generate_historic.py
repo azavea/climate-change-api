@@ -18,10 +18,7 @@ MODELS = ClimateModel.objects.all()
 
 
 def generate_baselines(mapcells, queryset):
-    """
-    Generates baselines for cells that are represented by the queryset but do not have any baseline
-    objects of their own.
-    """
+    """Build baselines for cells represented by the queryset but have no baselines of their own."""
     for cell in mapcells.filter(baseline__isnull=True):
         logger.info("Importing baselines for cell (%f,%f)", cell.lat, cell.lon)
         data = queryset.filter(map_cell=cell)
