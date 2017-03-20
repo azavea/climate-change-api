@@ -1,6 +1,5 @@
 from django.contrib.gis.geos import Point
 
-from climate_data.models import ClimateModel
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           ScenarioFactory,
@@ -12,7 +11,8 @@ from climate_data.tests.factories import (CityFactory,
 
 
 class CityDataSetupMixin(object):
-    """ Creates a set of cities as mock data """
+    """Creates a set of cities as mock data."""
+
     def setUp(self):
         super(CityDataSetupMixin, self).setUp()
 
@@ -22,7 +22,7 @@ class CityDataSetupMixin(object):
 
 
 class ClimateDataSetupMixin(object):
-    """ Mixin to a TestCase class to provide some basic climate data to test against
+    """Mixin to a TestCase class to provide some basic climate data to test against.
 
     Be sure to add this Mixin as an argument _before_ the TestCase class, since python uses
     the right-most class as the base class, and this is not a base class.
@@ -56,8 +56,8 @@ class ClimateDataSetupMixin(object):
             },
         }
     }
-
     """
+
     def setUp(self):
         super(ClimateDataSetupMixin, self).setUp()
 
@@ -83,13 +83,11 @@ class ClimateDataSetupMixin(object):
         self.ds_s1_m2_2001 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model2,
                                                       year=2001)
 
-
         self.ds_s2_m1_2000 = ClimateDataSourceFactory(scenario=self.rcp85, model=self.model1,
                                                       year=2000)
 
         self.ds_s2_m2_2000 = ClimateDataSourceFactory(scenario=self.rcp85, model=self.model2,
                                                       year=2000)
-
 
         ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2000, day_of_year=1,
                            tasmax=10, tasmin=10, pr=10)

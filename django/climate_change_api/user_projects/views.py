@@ -8,8 +8,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        """
-        Ensures users are only able to view their own projects
-        """
+        """Ensure users are only able to view their own projects."""
         user = self.request.user
         return Project.objects.filter(owner=user)

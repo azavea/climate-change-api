@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    """
-    Set custom throttling values on a specific API user
+    """Set custom throttling values on a specific API user.
 
     Example usage:
     ./manage.py set_throttling_rates test@test.com,a@abc.com --burst 10000/day

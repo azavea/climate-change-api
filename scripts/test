@@ -69,6 +69,20 @@ then
             run --rm --entrypoint "./manage.py" \
             django loaddata climate-models
 
+        # if there are no violations, flake8 doesn't write to file
+        # start with file present and empty
+        set +e
+        echo "Remove linter output file, if present"
+        docker-compose \
+            run --rm --entrypoint "rm" \
+            django violations.txt
+        set -e
+
+        echo "Running python linter"
+        docker-compose \
+            run --rm --entrypoint "flake8" \
+            django --output-file=violations.txt --exit-zero --tee
+
         echo "Running tests"
         GIT_COMMIT="${GIT_COMMIT}" docker-compose \
             ${DOCKER_COMPOSE_OPTS} \

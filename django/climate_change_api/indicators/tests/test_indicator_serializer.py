@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from indicators.serializers import IndicatorSerializer
 
+
 class IndicatorSerializerTestCase(TestCase):
     def setUp(self):
         self.serializer = IndicatorSerializer()
@@ -11,7 +12,7 @@ class IndicatorSerializerTestCase(TestCase):
         }
 
     def test_serializer_aggregation(self):
-        """ Ensure all available aggregation types return the correct values """
+        """Ensure all available aggregation types return the correct values."""
         aggregations = ('avg', 'max', 'min', 'median', 'stddev', '95th', '99th',)
         results = self.serializer.to_representation(self.data, aggregations=aggregations)
         self.assertEqual(results, {
@@ -27,9 +28,9 @@ class IndicatorSerializerTestCase(TestCase):
         })
 
     def test_serializer_aggregation_default(self):
-        """ Ensure that the default returns at least one aggregation type """
+        """Ensure that the default returns at least one aggregation type."""
         results = self.serializer.to_representation(self.data)
-        self.assertGreater(len(results['2010'].keys()),  0)
+        self.assertGreater(len(results['2010'].keys()), 0)
 
     def test_serializer_aggregation_ignores_bad_input(self):
         aggregations = ('avg', 'nope', '', None, 23, {})

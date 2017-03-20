@@ -42,7 +42,7 @@ def handle_failing_message(message, failures):
 
     else:
         # Re-place message in the queue by making it instantly visible
-        # See http://boto3.readthedocs.io/en/latest/reference/services/sqs.html#SQS.Message.change_visibility  # NOQA
+        # See http://boto3.readthedocs.io/en/latest/reference/services/sqs.html#SQS.Message.change_visibility  # NOQA: E501
         message.change_visibility(VisibilityTimeout=0)
 
 
@@ -107,11 +107,10 @@ def process_message(message, queue):
 
 
 class Command(BaseCommand):
-    """Processes jobs from SQS to extract data from NASA NEX NetCDF files
+    """Processes jobs from SQS to extract data from NASA NEX NetCDF files.
 
     Processes messages with the following format:
     {"scenario_id": 1, "model_id": 1, "year": "2016"}
-
     """
 
     help = 'Processes jobs from SQS to extract data from NASA NEX NetCDF files'

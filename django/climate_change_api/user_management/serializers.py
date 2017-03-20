@@ -4,10 +4,7 @@ from rest_framework import serializers
 
 
 class AuthTokenSerializer(serializers.Serializer):
-    """
-    Adopted from Django Rest Framework's AuthTokenSerializer to handle
-    login by e-mail address
-    """
+    """Adopted from Django Rest Framework's AuthTokenSerializer to handle e-mail login."""
 
     email = serializers.CharField(label='Email')
     password = serializers.CharField(label='Password', style={'input_type': 'password'})

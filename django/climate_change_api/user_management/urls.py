@@ -1,8 +1,4 @@
-"""
-URLconf for registration and activation, using django-registration's
-HMAC activation workflow.
-
-"""
+"""URLconf for registration and activation, using django-registration's HMAC activation workflow."""
 
 from django.conf.urls import include, url
 from user_management.views import RegistrationView, UserProfileView

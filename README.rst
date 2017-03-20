@@ -27,6 +27,10 @@ This project conforms to the specification provided by `Azaveas Scripts to Rule 
 Running Tests
 -------------
 
+Run Django linter with::
+
+    ./scripts/console django 'flake8'
+
 Run Django tests with::
 
     ./scripts/console django './manage.py test --settings climate_change_api.settings_test'

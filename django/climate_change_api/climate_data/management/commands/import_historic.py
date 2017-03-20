@@ -20,9 +20,7 @@ MODELS = ClimateModel.objects.all()
 
 
 def get_historic_raw_data(domain, token, city_id, model=None, variables=None):
-    """
-    Gets the historic data for a city from a climate-change-api instance
-    """
+    """Get the historic data for a city from a climate-change-api instance."""
     url = RAWDATA_URL.format(domain=domain,
                              city=city_id)
     params = {}
@@ -140,13 +138,13 @@ class Command(BaseCommand):
             day_variable_tuples = izip(*day_tuples)
 
             records = (HistoricAverageClimateData(
-                    map_cell=local_city.map_cell,
-                    day_of_year=day_of_year,
-                    # Some models might not have data for a specific day, so we
-                    #  need to exclude those values from the average
-                    tasmin=np.mean([v for v in tasmin if v is not None]),
-                    tasmax=np.mean([v for v in tasmax if v is not None]),
-                    pr=np.mean([v for v in pr if v is not None]))
+                map_cell=local_city.map_cell,
+                day_of_year=day_of_year,
+                # Some models might not have data for a specific day, so we
+                #  need to exclude those values from the average
+                tasmin=np.mean([v for v in tasmin if v is not None]),
+                tasmax=np.mean([v for v in tasmax if v is not None]),
+                pr=np.mean([v for v in pr if v is not None]))
                 for (day_of_year, (tasmin, tasmax, pr)) in enumerate(day_variable_tuples))
 
             logger.info('Creating historic aggregated data records for city')

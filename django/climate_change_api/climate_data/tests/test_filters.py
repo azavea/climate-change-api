@@ -7,7 +7,10 @@ from climate_data.models import ClimateData
 
 
 class ClimateDataFilterSetTestCase(ClimateDataSetupMixin, TestCase):
-    """ TODO: Test the response querysets, not just their length """
+    """Test filtering climate datasets.
+
+    TODO: Test the response querysets, not just their length.
+    """
 
     def setUp(self):
 
