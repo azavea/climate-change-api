@@ -21,8 +21,7 @@ RUN set -ex \
     && pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm -rf /tmp/* \
     && apt-get purge -y --auto-remove ${buildDeps} \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install django-static-precompiler[libsass]
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./ /opt/django
 
