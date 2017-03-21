@@ -42,14 +42,14 @@ Getting a token
 
 From the command line, you may request your token by providing the `Climate API`_ your account information::
 
-    curl -k -X POST https://api.staging.futurefeelslike.com/api-token-auth/ -d email=<your_email> -d password=<your_password>
+    curl -k -X POST https://climate.azavea.com/api-token-auth/ -d email=<your_email> -d password=<your_password>
 
 
 Making your first request
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Any API request must be made with an active account token in the request header::
 
-    curl -i https://api.staging.futurefeelslike.com/api/scenario/ -H "Authorization: Token <your_token>"
+    curl -i https://climate.azavea.com/api/scenario/ -H "Authorization: Token <your_token>"
 
 Voila! You've just make your first `Climate API`_ request.
 
@@ -57,8 +57,8 @@ Voila! You've just make your first `Climate API`_ request.
 .. URLS:
 
 .. _JSON: https://msdn.microsoft.com/en-us/library/bb299886.aspx
-.. _Log in: https://api.staging.futurefeelslike.com/accounts/login/
-.. _Logging in: https://api.staging.futurefeelslike.com/accounts/login/
-.. _sign up: https://api.staging.futurefeelslike.com/accounts/register/
-.. _Climate API: https://api.staging.futurefeelslike.com/
+.. _Log in: https://climate.azavea.com/accounts/login/
+.. _Logging in: https://climate.azavea.com/accounts/login/
+.. _sign up: https://climate.azavea.com/accounts/register/
+.. _Climate API: https://climate.azavea.com/
 .. _IPCC: https://www.ipcc.ch/index.htm

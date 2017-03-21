@@ -222,7 +222,7 @@ These parameters can be used to tweak the `Indicator data`_ request for any indi
 
 To see this in action, step through `how to make an indicator request`_.
 
-.. _`contact us`: support@futurefeelslike.com
+.. _`contact us`: climate@azavea.com
 .. _`Climate Data`: api_reference.html#climate-data
 .. _`Indicator list`: api_reference.html#indicator-list
 .. _`Indicator detail`: api_reference.html#indicator-detail
