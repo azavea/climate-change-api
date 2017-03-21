@@ -263,6 +263,7 @@ STATIC_PRECOMPILER_COMPILERS = (
     ('static_precompiler.compilers.libsass.SCSS', {
         "sourcemap_enabled": True,
         "precision": 8,
+        "load_paths": ["/opt/django/scss/global"]
     }),
 )
 
