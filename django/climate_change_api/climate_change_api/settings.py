@@ -267,6 +267,7 @@ STATIC_PRECOMPILER_ROOT = 'media/static/'
 STATIC_PRECOMPILER_COMPILERS = (
     ('static_precompiler.compilers.libsass.SCSS', {
         "precision": 8,
+        "load_paths": ["/opt/django/scss/global"]
     }),
 )
 
