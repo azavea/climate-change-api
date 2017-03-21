@@ -15,4 +15,4 @@ In addition, the HTTP Header ``Retry-After`` will be set with an integer value i
 
 If you have a use case that requires a call volume that exceeds the default rate limits, feel free to `contact us`_.
 
-.. _`contact us`: support@futurefeelslike.com
+.. _`contact us`: climate@azavea.com
