@@ -1,10 +1,15 @@
+{% load compile_static %}
+{% load staticfiles %}
 {% load bootstrap3 %}
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     {% bootstrap_css %}
+
+    <!-- ** NOTE ** Any additional SCSS files must be linked below with the compile directive -->
+    <link rel="stylesheet" href="{% static "main.scss"|compile %}">
+
     <title>{% block title %}User Navigation{% endblock %}</title>
 </head>
 
