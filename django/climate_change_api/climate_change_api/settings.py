@@ -253,6 +253,10 @@ else:
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
 
+
+# Django static pre-compiler
+# http://django-static-precompiler.readthedocs.io/en/stable/#libsass
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
