@@ -179,6 +179,13 @@ class Indicator(object):
         return self.serializer.to_representation(collations,
                                                  aggregations=self.params.agg.value.split(','))
 
+    def row_group_key(self, row):
+        """Break input stream into chunks in indicators that require processing in code.
+
+        For use in GROUP BY.
+        """
+        return tuple(row[key] for key in self.aggregate_keys)
+
 
 class CountIndicator(Indicator):
     """Counts days on which a condition is met.
@@ -199,13 +206,6 @@ class YearlySequenceIndicator(CountIndicator):
     """
 
     valid_aggregations = ('yearly',)
-
-    def row_group_key(self, row):
-        """Break input stream into chunks in indicators that require processing in code.
-
-        For use in GROUP BY.
-        """
-        return tuple(row[key] for key in self.aggregate_keys)
 
     def get_streaks(self):
         """Partition the data series by query into consecutive days by condition.
