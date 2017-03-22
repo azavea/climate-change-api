@@ -45,7 +45,7 @@ resource "aws_route53_record" "bastion" {
 
 resource "aws_route53_record" "cc_api" {
   zone_id = "${aws_route53_zone.external.zone_id}"
-  name    = "api.${var.r53_public_hosted_zone}"
+  name    = "${var.r53_public_hosted_zone}"
   type    = "A"
 
   alias {
