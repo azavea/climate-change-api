@@ -125,11 +125,12 @@ MIDDLEWARE_CLASSES = [
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
 ]
 
-ROLLBAR = {
-    'access_token': os.getenv('CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN'),
-    'environment': os.getenv('CC_STACK_TYPE'),
-    'root': os.getcwd()
-}
+if not DEBUG:
+    ROLLBAR = {
+        'access_token': os.getenv('CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN'),
+        'environment': os.getenv('CC_STACK_TYPE'),
+        'root': os.getcwd()
+    }
 
 ROOT_URLCONF = 'climate_change_api.urls'
 
