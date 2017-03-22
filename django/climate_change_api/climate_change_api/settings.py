@@ -248,6 +248,7 @@ if os.getenv('COMMIT'):
     AWS_HEADERS = {
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
+    STATIC_PRECOMPILER_ROOT = '/media/static'
 else:
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
