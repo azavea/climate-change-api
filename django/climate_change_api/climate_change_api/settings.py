@@ -108,7 +108,7 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'support@futurefeelslike.com')
+DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'climate@azavea.com')
 
 
 MIDDLEWARE_CLASSES = [
@@ -248,6 +248,7 @@ if os.getenv('COMMIT'):
     AWS_HEADERS = {
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
+    STATIC_PRECOMPILER_ROOT = '/media/static'
 else:
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
@@ -378,7 +379,7 @@ if DEBUG:
 
 AUTH_USER_MODEL = 'user_management.ClimateUser'
 
-API_DOCUMENTATION_URL = 'https://docs.staging.futurefeelslike.com/'
+API_DOCUMENTATION_URL = 'https://climate.azavea.com/docs'
 
 if DEBUG:
     API_DOCUMENTATION_URL = 'http://localhost:8084/'
