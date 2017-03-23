@@ -17,5 +17,6 @@ if __name__ == "__main__":
     try:
         execute_from_command_line(sys.argv)
     except:
-        rollbar.report_exc_info()
+        if rollbar_settings:
+            rollbar.report_exc_info()
         raise
