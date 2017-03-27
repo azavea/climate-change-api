@@ -10,7 +10,7 @@ from climate_data.models import ClimateData
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-import queryset_generator
+from . import queryset_generator
 
 
 class Indicator(object):

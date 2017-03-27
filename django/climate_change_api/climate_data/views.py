@@ -36,7 +36,7 @@ from climate_data.serializers import (CitySerializer,
                                       RegionListSerializer,
                                       ScenarioSerializer)
 from indicators import indicator_factory, list_available_indicators
-from renderers import GeobufRenderer
+from .renderers import GeobufRenderer
 
 
 logger = logging.getLogger(__name__)
