@@ -110,11 +110,11 @@ def boundary_from_point(point, srid=4326):
         'vintage': 'Current_Current',
         'x': point.x,
         'y': point.y,
-        'layers': ','.join(list(CENSUS_LAYERS.keys()))
+        'layers': ','.join(CENSUS_LAYERS.keys())
     }
     results = geocoder_api_request('geographies', 'coordinates', params=params)
 
-    for boundary_type, layer_id in list(CENSUS_LAYERS.items()):
+    for boundary_type, layer_id in CENSUS_LAYERS.items():
         boundaries = results['geographies'][boundary_type]
         if len(boundaries) > 0:
             try:

@@ -30,12 +30,12 @@ class IndicatorSerializerTestCase(TestCase):
     def test_serializer_aggregation_default(self):
         """Ensure that the default returns at least one aggregation type."""
         results = self.serializer.to_representation(self.data)
-        self.assertGreater(len(list(results['2010'].keys())), 0)
+        self.assertGreater(len(results['2010'].keys()), 0)
 
     def test_serializer_aggregation_ignores_bad_input(self):
         aggregations = ('avg', 'nope', '', None, 23, {})
         results = self.serializer.to_representation(self.data, aggregations=aggregations)
-        self.assertEqual(len(list(results['2010'].keys())), 1)
+        self.assertEqual(len(results['2010'].keys()), 1)
 
     def test_serializer_percentiles(self):
         aggregations = ('1th', '5th', '95th', '99th',)

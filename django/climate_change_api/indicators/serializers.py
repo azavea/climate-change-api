@@ -88,4 +88,4 @@ class IndicatorSerializer(object):
             aggregation_map[p] = create_percentile_lambda(percentile)
 
         return {key: {agg: aggregation_map[agg](values) for agg in aggregations}
-                for (key, values) in list(results.items())}
+                for (key, values) in results.items()}

@@ -132,7 +132,7 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
 
     start_time = time()
     assert len(data['climate_models']) == 1
-    for year, yeardata in list(data['data'].items()):
+    for year, yeardata in data['data'].items():
         try:
             data_source = ClimateDataSource.objects.get(model=model,
                                                         scenario=scenario,

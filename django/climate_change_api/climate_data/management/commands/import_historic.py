@@ -40,7 +40,7 @@ def get_baseline(domain, token, city, model):
     response = get_historic_raw_data(domain, token, city, model.name, VARIABLES)
     yearly_data = response['data']
 
-    flat_values = {var: [v for year_data in list(yearly_data.values())
+    flat_values = {var: [v for year_data in yearly_data.values()
                          for v in year_data[var] if v is not None]
                    for var in VARIABLES}
 
@@ -121,7 +121,7 @@ class Command(BaseCommand):
             # (((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...),  <- tasmin
             #  ((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...),  <- tasmax
             #  ((y1d1, y1d2, ...), (y2d1, y2d2, ...), ...))  <- pr
-            variable_data = ((year[var] for year in list(data.values())) for var in VARIABLES)
+            variable_data = ((year[var] for year in data.values()) for var in VARIABLES)
 
             # Join the years together on day, so we have a structure like
             # (((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmin
@@ -135,7 +135,7 @@ class Command(BaseCommand):
             #        tasmin             tasmax                pr
             # (((y1d1, y2d1, ...), (y1d1, y2d1, ...), (y1d1, y2d1, ...)),
             #  ((y1d2, y2d2, ...), (y1d2, y2d2, ...), (y1d2, y2d2, ...)), ...)
-            day_variable_tuples = list(zip(*day_tuples))
+            day_variable_tuples = zip(*day_tuples)
 
             records = (HistoricAverageClimateData(
                 map_cell=local_city.map_cell,
