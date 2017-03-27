@@ -1,7 +1,7 @@
 Indicators
 ==========
 
-A complete list of API indicators with explanations
+A complete list of API indicators with explanations. Unless otherwise indicated, temperature and precipitation values are averaged across all requested models for the specified period of time. For brevity, temperature refers to surface air temperature.
 
 .. contents:: :depth: 2
 
