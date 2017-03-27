@@ -14,7 +14,7 @@ class LengthQuerysetGenerator(object):
         self.assertEqual(total, 366)
 
     def test_get_intervals(self):
-        for label, result in list(self.intervals.items()):
+        for label, result in self.intervals.items():
             intervals = self.generator.get_intervals(label)
             self.assertEqual(intervals, result)
 

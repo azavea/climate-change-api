@@ -50,7 +50,7 @@ class ClimateDataFilterSet(filters.FilterSet):
                 year_range = year_range_str.split(':')
                 if len(year_range) == 2:
                     # Pair the two years with their comparators, gte and lte respectively
-                    bounds = list(zip(['gte', 'lte'], year_range))
+                    bounds = zip(['gte', 'lte'], year_range)
                     # Create two Q objects with the proper column, comparator and boundary year
                     start, end = [Q(**{"%s__%s" % (self.year_col, comparator): year})
                                   for comparator, year in bounds]

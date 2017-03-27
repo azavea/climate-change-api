@@ -116,7 +116,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         output = {}
         columns = [col[0] for col in cursor.description]
         for row in cursor.fetchall():
-            result = dict(list(zip(columns, row)))
+            result = dict(zip(columns, row))
 
             year = result['year']
             if year not in output:

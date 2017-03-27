@@ -100,7 +100,7 @@ def process_message(message, queue):
         raise
     finally:
         # Success or failure, clean up the .nc files
-        for path in list(variables.values()):
+        for path in variables.values():
             os.unlink(path)
 
     logger.debug('SQS message processed')
