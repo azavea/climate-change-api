@@ -1,7 +1,9 @@
 Indicators
 ==========
 
-A complete list of API indicators with explanations. Unless otherwise indicated, temperature and precipitation values are averaged across all requested models for the specified period of time. For brevity, temperature refers to surface air temperature.
+A complete list of API indicators with explanations. To use any indicator, get its `parameter details`_.
+
+In the explanations below, assume temperature and precipitation values are aggregated across all requested models for a specified period of time. For brevity, temperature refers to surface air temperature.
 
 .. contents:: :depth: 2
 
@@ -136,3 +138,7 @@ Yearly Max Consecutive Dry Days
 -------------------------------
 
 .. include::  indicators/yearly_max_consecutive_dry_days.rst
+
+
+
+.. _parameter details: api_reference.html#indicator-data-parameters
