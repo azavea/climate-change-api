@@ -45,15 +45,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['bucket'] and options['key']:
-            print("Pulling geojson from s3 bucket...")
+            print('Pulling geojson from s3 bucket...')
             client = boto3.client('s3')
             response = client.get_object(Bucket=options['bucket'],
                                          Key=options['key'])
             with get_features_from_response(response) as features:
-                print("Loading data...")
+                print('Loading data...')
                 data = {}
                 for feature in features:
-                    l1, l2 = list(map(int, feature['properties']['NA_L2CODE'].split('.')))
+                    l1, l2 = [int(val) for val in feature['properties']['NA_L2CODE'].split('.')]
                     if (l1, l2) in data:
                         data[(l1, l2)]['geom'].append(json.dumps(feature['geometry']))
                     else:
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                 Region.objects.update_or_create(level1=region['level1'],
                                                 level2=region['level2'],
                                                 defaults=region)
-                print("Loaded {}, {}".format(region['level1_description'],
+                print('Loaded {}, {}'.format(region['level1_description'],
                                              region['level2_description']))
 
         for city in City.objects.all():
