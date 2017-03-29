@@ -127,8 +127,7 @@ class Command(BaseCommand):
             # (((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmin
             #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmax
             #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...))  <- pr
-            # n.b. izip is the iterative version of zip, allowing lazy evaluation
-            day_tuples = (list(zip(*years)) for years in variable_data)
+            day_tuples = (zip(*years) for years in variable_data)
 
             # Join the days together so we have a tuple per day with yearly
             # readings grouped by variable
