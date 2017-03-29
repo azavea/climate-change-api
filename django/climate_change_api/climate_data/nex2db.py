@@ -104,7 +104,7 @@ class Nex2DB(object):
         # Collate the variables into one list keyed by coordinates
         cell_list = {}
         city_coords = {}
-        self.logger.debug("Collating results")
+        self.logger.debug('Collating results')
         for label, results in variable_data.items():
             for coords, timeseries_data in results['cells'].items():
                 if coords not in cell_list:

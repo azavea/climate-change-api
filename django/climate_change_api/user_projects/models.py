@@ -17,6 +17,6 @@ class Project(models.Model):
 
     project_data = JSONField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Return pretty string representation of model."""
         return str(self.id)
