@@ -35,7 +35,9 @@ class Command(BaseCommand):
         client = boto3.client('s3')
         response = client.get_object(Bucket=options['bucket'],
                                      Key=options['key'])
-        cities = json.load(response['Body'])['features']
+        byte_data = response['Body'].read()
+        json_data = json.loads(byte_data.decode(encoding='utf-8'))
+        cities = json_data['features']
         success = 0
         error = 0
         for city_data in cities:

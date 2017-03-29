@@ -17,9 +17,11 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def get_features_from_response(response):
     """Yield json features via context manager from a boto3 StreamingResponse."""
-    features = json.load(response['Body'])['features']
+    byte_data = response['Body'].read()
+    features = json.loads(byte_data.decode(encoding='utf-8'))['features']
     yield features
     del features
+    del byte_data
     gc.collect()
 
 
