@@ -14,38 +14,63 @@
 </head>
 
 <body>
+    <div id="header">
+    <div class="navbar">
+      <div class="container">
+        <div class="navbar-left">
+          <a href="#" class="brand">
+            <img src="/static/images/climate-logo.svg" alt="">
+          </a>
+        </div>
+        <div class="navbar-right">
+          <nav>
+            <a href="{{ API_DOCUMENTATION_URL }}">Documentation</a>
+            {% if user.is_authenticated %}
+                <a href="#">Account</a>
+                <a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a>
+            {% else %}
+                <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
+                <a href="#">Get started</a>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+    {% block header %}
+
+    {% endblock %}
+    </div>
+
+    {% block precontent %}{% endblock %}
+
     <div class="container">
-        <div id="header">
-        {% block header %}
-
-        {% if user.is_authenticated %}
-            {% trans "Logged in" %}: {{ user.get_full_name }}
-            (<a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a> |
-            <a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a>)
-        {% else %}
-           <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
-        {% endif %}
-        <hr />
-        {% endblock %}
+        <div class="row">
+            <div class="column-12">
+                <div id="content">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div id="content">
-        {% block content %}{% endblock %}
-        </div>
+    <div id="footer">
 
-        <div id="footer">
-        {% block footer %}
-            <hr />
-            <p>
-                <a
-                    href="{{ API_DOCUMENTATION_URL }}"
-                    target="_blank"
-                >
-                    API Documentation
-                </a>
-            </p>
-        {% endblock %}
+    {% block footer %}
+        <div class="container">
+            <div class="row">
+                <div class="column-12">
+                    <div id="content">
+                        <a
+                            href="{{ API_DOCUMENTATION_URL }}"
+                            target="_blank"
+                        >
+                            API Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
+    {% endblock %}
     </div>
     {% bootstrap_javascript jquery=1 %}
 </body>
