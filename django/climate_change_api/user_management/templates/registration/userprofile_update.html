@@ -2,24 +2,52 @@
 {% load i18n %}
 
 {% load bootstrap3 %}
+
+{% block precontent %}
+<section class="background-light section-user section-user-welcome">
+  <div class="container">
+    <div class="row stack-xs">
+      <div class="column-6">
+        <h1>Welcome to the Climate API!</h1>
+        <p>Here you will be able to view your API token, read documentation, and configure your user profile.</p>
+      </div>
+      <div class="column-6 text-center">
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock precontent %}
+
 {% block content %}
 
-<h1>User Profile</h1>
+<div class="row stack-xs">
+  <div class="column-6">
+    <section class="section-user">
+      <div name="apitoken">
+        <h3>API token</h3>
+        <pre>{{ user.auth_token }}</pre>
+      </div>
 
-<form action="" method="post">
-  {% csrf_token %}
-  {% bootstrap_form form %}
-  {% buttons submit='Update' button_class="btn-primary" %}{% endbuttons %}
-</form>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTokenModal">
+        Get New API Token
+      </button>
 
-<div name="apitoken">
-  <h2>API token</h2>
-  <pre>{{ user.auth_token }}</pre>
+
+    </section>
+
+    <section class="section-user">
+      <h3>User Profile</h3>
+
+      <form action="" method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit='Update' button_class="btn-primary" %}{% endbuttons %}
+      </form>
+
+      <a href="{% url 'auth_password_change' %}"> {% trans "Change password" %}</a>
+    </section>
+  </div>
 </div>
-
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTokenModal">
-  Get New API Token
-</button>
 
 <!-- Modal -->
 <div class="modal fade" id="newTokenModal" tabindex="-1" role="dialog" aria-labelledby="newTokenModalLabel">
