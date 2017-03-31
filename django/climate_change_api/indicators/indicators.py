@@ -156,7 +156,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Precipitation Events'
     description = ('Total number of times per period daily precipitation exceeds the specified '
-                   'percentile of observations from 1960 to 1995')
+                   'percentile of observations from 1961-1990')
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 99}
     variables = ('pr',)
@@ -171,7 +171,7 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
 class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Heat Events'
     description = ('Total number of times per period daily maximum temperature exceeds the '
-                   'specified percentile of observations from 1960 to 1995')
+                   'specified percentile of observations from 1961-1990')
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 99}
     variables = ('tasmax',)
@@ -186,7 +186,7 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
 class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Cold Events'
     description = ('Total number of times per period daily minimum temperature is below the '
-                   'specified percentile of observations from 1960 to 1995')
+                   'specified percentile of observations from 1961-1990')
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 1}
     variables = ('tasmin',)
