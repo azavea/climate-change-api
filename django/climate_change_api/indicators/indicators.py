@@ -234,18 +234,16 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
 
 class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
     label = 'Accumulated Freezing Degree Days'
-    description = ('Maximum accumulated total of degree days, bounded at freezing. Consecutively '
-                   'adds the difference for each day from freezing and tracks the highest total '
-                   'across the aggregation period.')
+    description = ('Maximum cumulative total of differences in average daily temperature and '
+                   'freezing for consecutive days across the aggregation period.')
     variables = ('tasmax', 'tasmin')
 
     @property
     def expression(self):
-        return (F('tasmax') + F('tasmin')) / 2 - 273.15
+        return 273.15 - (F('tasmax') + F('tasmin')) / 2
 
     def aggregate(self):
-        """ Loop over all data points in each aggregation period and track the maximum total
-        """
+        # Loop over all data points in each aggregation period and track the maximum total
         self.queryset = (self.queryset.values(*self.aggregate_keys).annotate(value=self.expression)
                          .order_by('data_source__model', 'agg_key', 'data_source__year',
                                    'day_of_year'))
@@ -254,7 +252,7 @@ class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
             total = 0
             max_total = 0
             for day in days:
-                total -= day['value']
+                total += day['value']
                 if total < 0:
                     # Total cannot go below 0
                     total = 0
