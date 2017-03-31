@@ -1,9 +1,11 @@
 Indicators
 ==========
 
-A complete list of API indicators with explanations. To use any indicator, get its `parameter details`_.
+<<<<<<< HEAD
+A complete list of API indicators with explanations. While the historical scenario offers data from 1950-2005, historic norms only consider data from 1961-1990 for consistency with literature on some indicators. To use any indicator, get its `parameter details`_.
 
 In the explanations below, assume temperature and precipitation values are aggregated across all requested models for a specified period of time. For brevity, temperature refers to surface air temperature.
+
 
 .. contents:: :depth: 2
 
