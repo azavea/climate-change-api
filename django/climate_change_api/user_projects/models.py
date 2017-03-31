@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 import uuid
 
@@ -17,6 +17,6 @@ class Project(models.Model):
 
     project_data = JSONField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Return pretty string representation of model."""
-        return unicode(self.id)
+        return str(self.id)

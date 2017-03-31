@@ -17,7 +17,7 @@ class IndicatorSerializer(object):
         'stddev': np.std,
         'stdev': np.std
     }
-    _AGGREGATION_CHOICES = _AGGREGATION_MAP.keys()
+    _AGGREGATION_CHOICES = list(_AGGREGATION_MAP.keys())
     _PERCENTILE_REGEX = re.compile('([0-9]?[0-9])th', re.IGNORECASE)
 
     def to_representation(self, results, **kwargs):
@@ -88,4 +88,4 @@ class IndicatorSerializer(object):
             aggregation_map[p] = create_percentile_lambda(percentile)
 
         return {key: {agg: aggregation_map[agg](values) for agg in aggregations}
-                for (key, values) in results.iteritems()}
+                for (key, values) in results.items()}

@@ -5,7 +5,7 @@ import collections
 import numpy
 import netCDF4
 
-from models import City, ClimateData, ClimateDataCell
+from .models import City, ClimateData, ClimateDataCell
 from django.db import IntegrityError
 
 
@@ -99,18 +99,18 @@ class Nex2DB(object):
         assert(set(variable_paths) == ClimateData.VARIABLE_CHOICES)
 
         variable_data = {label: self.get_var_data(label, path)
-                         for label, path in variable_paths.iteritems()}
+                         for label, path in variable_paths.items()}
 
         # Collate the variables into one list keyed by coordinates
         cell_list = {}
         city_coords = {}
         self.logger.debug('Collating results')
-        for label, results in variable_data.iteritems():
-            for coords, timeseries_data in results['cells'].iteritems():
+        for label, results in variable_data.items():
+            for coords, timeseries_data in results['cells'].items():
                 if coords not in cell_list:
                     cell_list[coords] = collections.defaultdict(dict)
 
-                for date, value in timeseries_data.iteritems():
+                for date, value in timeseries_data.items():
                     cell_list[coords][date].update({
                         label: value
                     })
@@ -123,7 +123,7 @@ class Nex2DB(object):
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
 
-        for coords, timeseries_data in cell_list.iteritems():
+        for coords, timeseries_data in cell_list.items():
             (lat, lon) = coords
             try:
                 cell_model = cell_models[coords]
@@ -136,7 +136,7 @@ class Nex2DB(object):
                 cell_models[coords] = cell_model
 
             climatedata_list = []
-            for date, values in timeseries_data.iteritems():
+            for date, values in timeseries_data.items():
                 # Testing, ensure that we have values for all variables
                 # (set(dict) produces an unordered set of keys, no values)
                 assert(set(values) == ClimateData.VARIABLE_CHOICES)

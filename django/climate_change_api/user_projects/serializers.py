@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
-from models import Project
-from validators import validate_user_project
+from .models import Project
+from .validators import validate_user_project
 
 
 class ProjectSerializer(serializers.ModelSerializer):

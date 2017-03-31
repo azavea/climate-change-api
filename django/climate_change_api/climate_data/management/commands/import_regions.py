@@ -17,9 +17,11 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def get_features_from_response(response):
     """Yield json features via context manager from a boto3 StreamingResponse."""
-    features = json.load(response['Body'])['features']
+    byte_data = response['Body'].read()
+    features = json.loads(byte_data.decode(encoding='utf-8'))['features']
     yield features
     del features
+    del byte_data
     gc.collect()
 
 
@@ -45,15 +47,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['bucket'] and options['key']:
-            print "Pulling geojson from s3 bucket..."
+            print('Pulling geojson from s3 bucket...')
             client = boto3.client('s3')
             response = client.get_object(Bucket=options['bucket'],
                                          Key=options['key'])
             with get_features_from_response(response) as features:
-                print "Loading data..."
+                print('Loading data...')
                 data = {}
                 for feature in features:
-                    l1, l2 = map(int, feature['properties']['NA_L2CODE'].split('.'))
+                    l1, l2 = [int(val) for val in feature['properties']['NA_L2CODE'].split('.')]
                     if (l1, l2) in data:
                         data[(l1, l2)]['geom'].append(json.dumps(feature['geometry']))
                     else:
@@ -65,14 +67,14 @@ class Command(BaseCommand):
                             'geom': [json.dumps(feature['geometry'])]
                         }
 
-            for region in data.itervalues():
+            for region in data.values():
                 geom = MultiPolygon(*(GEOSGeometry(x) for x in region['geom'])).simplify(0.001)
                 region['geom'] = geom
                 Region.objects.update_or_create(level1=region['level1'],
                                                 level2=region['level2'],
                                                 defaults=region)
-                print "Loaded {}, {}".format(region['level1_description'],
-                                             region['level2_description'])
+                print('Loaded {}, {}'.format(region['level1_description'],
+                                             region['level2_description']))
 
         for city in City.objects.all():
             try:
