@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 from django.core.mail import send_mail
 
@@ -118,7 +118,7 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
 class UserProfile(models.Model):
     """Holds additional personal fields to associate with a user."""
 
-    def __unicode__(self):
+    def __str__(self):
         """Return pretty string representation of model."""
         return '{}'.format(self.user.email)
 

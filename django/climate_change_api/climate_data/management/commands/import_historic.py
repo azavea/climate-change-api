@@ -1,8 +1,8 @@
 import logging
 
-from urllib import urlencode
+from urllib.parse import urlencode
 import numpy as np
-from itertools import izip
+
 
 from django.core.management.base import BaseCommand
 
@@ -45,7 +45,7 @@ def get_baseline(domain, token, city, model):
                    for var in VARIABLES}
 
     # For precipitation events only use days that had some rainfall
-    flat_values['pr'] = filter(lambda x: x > 0, flat_values['pr'])
+    flat_values['pr'] = [x for x in flat_values['pr'] if x > 0]
 
     # Calculate the 99th percentile of the data
     return {percentile:
@@ -127,15 +127,14 @@ class Command(BaseCommand):
             # (((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmin
             #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...),  <- tasmax
             #  ((y1d1, y2d1, ...), (y1d2, y2d2, ...), ...))  <- pr
-            # n.b. izip is the iterative version of zip, allowing lazy evaluation
-            day_tuples = (izip(*years) for years in variable_data)
+            day_tuples = (zip(*years) for years in variable_data)
 
             # Join the days together so we have a tuple per day with yearly
             # readings grouped by variable
             #        tasmin             tasmax                pr
             # (((y1d1, y2d1, ...), (y1d1, y2d1, ...), (y1d1, y2d1, ...)),
             #  ((y1d2, y2d2, ...), (y1d2, y2d2, ...), (y1d2, y2d2, ...)), ...)
-            day_variable_tuples = izip(*day_tuples)
+            day_variable_tuples = zip(*day_tuples)
 
             records = (HistoricAverageClimateData(
                 map_cell=local_city.map_cell,

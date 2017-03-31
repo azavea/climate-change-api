@@ -61,7 +61,7 @@ def get_models(domain, token):
     """Return a list of available models from an instance of climate-change-api."""
     url = MODEL_LIST_URL.format(domain=domain)
     data = make_request(url, token)
-    return map(lambda d: d['name'], data)
+    return [d['name'] for d in data]
 
 
 def get_cities(domain, token):
@@ -132,7 +132,7 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
 
     start_time = time()
     assert len(data['climate_models']) == 1
-    for year, yeardata in data['data'].iteritems():
+    for year, yeardata in data['data'].items():
         try:
             data_source = ClimateDataSource.objects.get(model=model,
                                                         scenario=scenario,

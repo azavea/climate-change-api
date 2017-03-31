@@ -10,7 +10,7 @@ from climate_data.models import ClimateData
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-import queryset_generator
+from . import queryset_generator
 
 
 class Indicator(object):
@@ -264,7 +264,7 @@ class YearlyMaxConsecutiveDaysIndicator(DaysUnitsMixin, YearlySequenceIndicator)
 
             # Return an object with each of the keys and their values, along with the
             # aggregated value
-            yield dict(zip(self.aggregate_keys, key_vals) + [('value', longest)])
+            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', longest)])
 
 
 class BasetempIndicatorMixin(object):
