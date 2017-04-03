@@ -1,0 +1,94 @@
+.map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.leaflet-top.leaflet-right {
+  margin: 0;
+  padding: 1rem;
+
+  .leaflet-control-zoom {
+    margin: 0;
+    float: right;
+    display: inline-block;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
+  }
+
+  .leaflet-control-zoom-in,
+  .leaflet-control-zoom-out {
+    display: inline-block;
+    background: $shade-dark;
+    border: 2px solid $shade-dark !important;
+    color: $shade-light;
+    vertical-align: middle;
+    height: 30px;
+    width: 30px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 24px;
+
+    &:hover {
+      display: inline-block;
+      background: $shade-normal;
+      border: 2px solid $shade-dark !important;
+      color: #fff;
+      vertical-align: middle;
+      height: 30px;
+      width: 30px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 24px;
+    }
+  }
+
+  .leaflet-control-zoom-in {
+    border-radius: 2px 0 0 2px;
+    border-right: none !important;
+
+    &:hover {
+      border-right: none !important;
+      border-radius: 2px 0 0 2px;
+    }
+  }
+  .leaflet-control-zoom-out {
+    border-radius: 0 2px 2px 0;
+
+    &:hover {
+      border-radius: 0 2px 2px 0;
+    }
+  }
+
+  .leaflet-disabled {
+    opacity: .9;
+    cursor: not-allowed;
+
+    &:hover {
+      color: $shade-light;
+    }
+  }
+}
+
+.map.leaflet-container .leaflet-control-attribution {
+  background: $shade-dark;
+  color: $text-base;
+  margin: 5px;
+  border-radius: 2px;
+  padding: 4px 10px;
+  opacity: .5;
+  transition: .1s ease-in-out opacity;
+  font-family: $font-family;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  a {
+    color: $text-base;
+    text-decoration: underline;
+  }
+}

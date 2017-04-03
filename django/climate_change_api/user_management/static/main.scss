@@ -1,4 +1,48 @@
+@import url("https://fonts.googleapis.com/css?family=Work+Sans:400,800");
+/**
+ * Utils
+**/
+@import
+  "scss/utils/mixins",
+  "scss/utils/variables",
+  "scss/utils/toolbelt";
 
-// @import 'variables';
-@import 'global_variables';
-@import './scss/registration';
+/**
+ * Base
+**/
+@import
+  "scss/base/normalize",
+  "scss/base/animation",
+  "scss/base/base",
+  "scss/base/typography",
+  "scss/base/list",
+  "scss/base/grid",
+  "scss/base/helpers";
+
+/**
+ * Layout
+**/
+@import
+  "scss/layout/container",
+  "scss/layout/section",
+  "scss/layout/navbar",
+  "scss/layout/header",
+  "scss/layout/footer";
+
+/**
+ * Components
+**/
+@import
+  "scss/components/button",
+  "scss/components/image",
+  "scss/components/form",
+  "scss/components/card",
+  "scss/components/nav",
+  "scss/components/tooltip",
+  "scss/components/map";
+
+/**
+ * Pages
+**/
+@import
+  "scss/pages/home";

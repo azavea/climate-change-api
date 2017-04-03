@@ -1,0 +1,63 @@
+/*
+ * LMC Variables
+ * If overridng bootstrap please place inside _bs-variables.scss
+ */
+
+// Brand Colors:
+$brand-primary: #405DFB;   // purple
+$brand-secondary: #2FC1D0; // green
+
+// Base Colors:
+$text-base: #6F6F76;
+$shade-light: #6F6F76;  // slightly lighter then $text-base
+$shade-normal: #465076; // deep purple
+$shade-dark: #32323C;   // deepdeep purple
+
+// Login modal colors:
+$gray: #38394f;
+$gray-light: lighten($gray, 10%); //#4d4f6d
+$gray-lighter: lighten($gray, 35%); //#8c8dad
+$gray-lightest: #ddd;
+$gray-dark: darken($gray, 2%); //#343549
+$gray-darker: #1b1c31;
+$link-color: $brand-secondary;
+$white: #fff;
+
+// Action Colors:
+$warning: #E69348; // orange
+$danger: #F98094;  // red
+$success: #21ce90;  // red
+
+// Border Radius
+$border-radius-base: 2px;
+
+//Typography
+$font-family: "work sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+/* * * *
+ * Screen Sizes
+ * Used in _mixins.scss > @mixin respond-to($breakpoint)
+ * * * */
+$breakpoints: (
+
+  'xxs': (max-width: 480px),
+
+  'xs': (max-width: 767px),
+
+  'sm': "(min-width: 768px) and (max-width: 991px)",
+  'sm-up': (min-width: 768px),
+  'sm-down': (max-width: 991px),
+
+  'md': "(min-width: 992px) and (max-width: 1180px)",
+  'md-up': (min-width: 992px),
+  'md-down': (max-width: 1180px),
+
+  'lg': (min-width: 1181px),
+);
+
+
+/* * * *
+ * Columns
+ * * * */
+$column-count: 12;
+$column-padding: 1rem;
