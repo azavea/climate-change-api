@@ -1,1 +1,1 @@
-Maximum high temperature, generated from daily data using all requested models
+Maximum High Temperature reports the highest daily temperature generated across all requested models for the given period. While averages or percentiles may be more dependable measurements of regular climatic conditions, gauging potentially new maximum heat extremes is essential for proper emergency services preparation.
