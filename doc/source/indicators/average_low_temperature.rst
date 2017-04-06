@@ -1,1 +1,1 @@
-Aggregated average low temperature, generated from daily data using all requested models
+Average Low Temperature is calculated by aggregating daily average low temperatures.  It is an appropriate metric for probable long term temperature trends.

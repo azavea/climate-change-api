@@ -1,1 +1,1 @@
-Aggregated average high temperature, generated from daily data using all requested models
+Average High Temperature is calculated by aggregating daily average high temperatures. It is an appropriate metric for probable long term temperature trends.
