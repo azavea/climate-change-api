@@ -232,6 +232,36 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
         return (F('tasmax') + F('tasmin')) / 2 - self.params.basetemp.value
 
 
+class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
+    label = 'Accumulated Freezing Degree Days'
+    description = ('Maximum cumulative total of differences in average daily temperature and '
+                   'freezing for consecutive days across the aggregation period.')
+    variables = ('tasmax', 'tasmin')
+
+    @property
+    def expression(self):
+        return 273.15 - (F('tasmax') + F('tasmin')) / 2
+
+    def aggregate(self):
+        # Loop over all data points in each aggregation period and track the maximum total
+        self.queryset = (self.queryset.values(*self.aggregate_keys).annotate(value=self.expression)
+                         .order_by('data_source__model', 'agg_key', 'data_source__year',
+                                   'day_of_year'))
+
+        for key_vals, days in groupby(self.queryset, self.row_group_key):
+            total = 0
+            max_total = 0
+            for day in days:
+                total += day['value']
+                if total < 0:
+                    # Total cannot go below 0
+                    total = 0
+                elif total > max_total:
+                    max_total = total
+
+            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', max_total)])
+
+
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '

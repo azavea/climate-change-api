@@ -6,6 +6,12 @@ A complete list of API indicators with explanations
 .. contents:: :depth: 2
 
 
+Accumulated Freezing Degree Days
+--------------------------------
+
+.. include::  indicators/accumulated_freezing_degree_days.rst
+
+
 Average High Temperature
 ------------------------
 
@@ -130,4 +136,3 @@ Yearly Max Consecutive Dry Days
 -------------------------------
 
 .. include::  indicators/yearly_max_consecutive_dry_days.rst
-
