@@ -437,6 +437,34 @@ class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
                                         'max': 4.86000000000009}}
 
 
+class CrossYearlyAccumulatedFreezingDegreeDaysTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.AccumulatedFreezingDegreeDays
+    indicator_name = 'accumulated_freezing_degree_days'
+    time_aggregation = 'offset_yearly'
+    test_indicator_rcp85_equals = {}
+    test_indicator_rcp45_equals = {'2000-2001': {'avg': 464.66999999999996, 'min': 455.67,
+                                                 'max': 473.66999999999996},
+                                   '2001-2002': {'avg': 473.66999999999996,
+                                                 'max': 473.66999999999996,
+                                                 'min': 473.66999999999996},
+                                   '2002-2003': {'avg': 473.66999999999996,
+                                                 'max': 473.66999999999996,
+                                                 'min': 473.66999999999996}}
+    # Years are filtered by the starting year, so years=2001,2002 gives data for 2001-2002
+    # and 2002-2003
+    test_years_filter_equals = {'2001-2002': {'avg': 473.66999999999996, 'max': 473.66999999999996,
+                                              'min': 473.66999999999996},
+                                '2002-2003': {'avg': 473.66999999999996,
+                                              'max': 473.66999999999996,
+                                              'min': 473.66999999999996}}
+    test_models_filter_equals = {'2000-2001': {'avg': 473.66999999999996, 'max': 473.66999999999996,
+                                               'min': 473.66999999999996},
+                                 '2001-2002': {'avg': 473.66999999999996, 'max': 473.66999999999996,
+                                               'min': 473.66999999999996},
+                                 '2002-2003': {'avg': 473.66999999999996, 'max': 473.66999999999996,
+                                               'min': 473.66999999999996}}
+
+
 class MonthlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.AverageHighTemperature
     indicator_name = 'average_high_temperature'
