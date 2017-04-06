@@ -1,1 +1,1 @@
-Total number of times per period daily minimum temperature is below the specified percentile of observations from 1960 to 1995
+Extreme Cold Events counts the total times the daily average minimum temperature is below some percentile of historic observations from 1960 to 1995. The percentile defaults to 1, referring to the coldest percentile of historic daily temperatures. It is an appropriate indicator for understanding deviations from normal climatic extremes.
