@@ -45,7 +45,7 @@ resource "aws_route53_record" "bastion" {
 
 resource "aws_route53_record" "cc_api" {
   zone_id = "${aws_route53_zone.external.zone_id}"
-  name    = "${var.r53_public_hosted_zone}"
+  name    = "app.${var.r53_public_hosted_zone}"
   type    = "A"
 
   alias {
@@ -55,10 +55,7 @@ resource "aws_route53_record" "cc_api" {
   }
 }
 
-#
-# DNS Resources
-#
-resource "aws_route53_record" "climate_docs_site" {
+resource "aws_route53_record" "cc_docs" {
   zone_id = "${aws_route53_zone.external.zone_id}"
   name    = "docs.${var.r53_public_hosted_zone}"
   type    = "A"
