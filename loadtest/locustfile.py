@@ -17,7 +17,7 @@ DEFAULT_THRESHOLD_PARAMS = {
 
 
 def general_indicator_query(locust_object, indicator, params):
-    locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}'.format(
+    locust_object.client.get('/api/climate-data/{city}/{scenario}/indicator/{indicator}/'.format(
         city=CITY_ID, scenario=SCENARIO, indicator=indicator),
         headers=locust_object.headers,
         params=params,
@@ -41,8 +41,8 @@ class UserBehavior(TaskSet):
         for indicator in indicators:
             indicator_name = indicator['name']
             if indicator_name.endswith('threshold'):
-                params = DEFAULT_THRESHOLD_PARAMS
-                if indicator_name.find('precepitation') > -1:
+                params = DEFAULT_THRESHOLD_PARAMS.copy()
+                if indicator_name.find('precipitation') > -1:
                     params['threshold_units'] = 'in'
                 self.tasks.append(partial(general_indicator_query,
                                           indicator=indicator_name,
@@ -53,7 +53,8 @@ class UserBehavior(TaskSet):
                     if agg != 'custom':
                         self.tasks.append(partial(general_indicator_query,
                                                   indicator=indicator_name,
-                                                  params={'time_aggregation': agg}))
+                                                  params={'time_aggregation': agg,
+                                                          'noCache': True}))
 
     def on_start(self):
         """ on_start is called when a Locust start before any task is scheduled """
@@ -70,10 +71,6 @@ class UserBehavior(TaskSet):
     @task(1)
     def index(self):
         self.get_api_url('/')
-
-    @task(1)
-    def api_main(self):
-        self.get_api_url('/api/')
 
     @task(1)
     def scenarios(self):
