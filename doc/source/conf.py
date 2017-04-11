@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Azavea Climate API'
-copyright = u'2016, Azavea'
+copyright = u'2016-2017, Azavea'
 author = u'Azavea'
 
 # The version info for the project you're documenting, acts as replacement for
