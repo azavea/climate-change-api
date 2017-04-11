@@ -76,7 +76,7 @@ class Command(BaseCommand):
                 print('Loaded {}, {}'.format(region['level1_description'],
                                              region['level2_description']))
 
-        for city in City.objects.all():
+        for city in City.objects.filter(region=None):
             try:
                 city.region = Region.objects.get(geom__covers=city.geom)
                 logger.info('Assigning %s, %s to %d.%d %s, %s',
