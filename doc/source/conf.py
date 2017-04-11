@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Azavea Climate Data API documentation build configuration file, created by
+# Azavea Climate API documentation build configuration file, created by
 # sphinx-quickstart on Tue May 24 13:28:42 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -55,8 +55,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Azavea Climate Data API'
-copyright = u'2016, Azavea'
+project = u'Azavea Climate API'
+copyright = u'2016-2017, Azavea'
 author = u'Azavea'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -132,7 +132,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = u'Azavea Climate Data API v0.1.0'
+#html_title = u'Azavea Climate API v0.1.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -236,7 +236,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'AzaveaClimateDataAPI.tex', u'Azavea Climate Data API Documentation',
+    (master_doc, 'AzaveaClimateDataAPI.tex', u'Azavea Climate API Documentation',
      u'Azavea', 'manual'),
 ]
 
@@ -266,7 +266,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'azaveaclimatedataapi', u'Azavea Climate Data API Documentation',
+    (master_doc, 'azaveaclimatedataapi', u'Azavea Climate API Documentation',
      [author], 1)
 ]
 
@@ -280,7 +280,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'AzaveaClimateDataAPI', u'Azavea Climate Data API Documentation',
+    (master_doc, 'AzaveaClimateDataAPI', u'Azavea Climate API Documentation',
      author, 'AzaveaClimateDataAPI', 'One line description of project.',
      'Miscellaneous'),
 ]
