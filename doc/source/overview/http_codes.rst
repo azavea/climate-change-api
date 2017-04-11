@@ -1,5 +1,5 @@
 
-The Climate Change API uses HTTP codes to indicate a successful, failed, or unsupported request. These codes follow the standards defined in :RFC:`7231` and more information about any response codes (Including the meaning for codes not mentioned here) can be found there. Below is a list of the most common response codes and what they mean for this API specifically.
+The Climate API uses HTTP codes to indicate a successful, failed, or unsupported request. These codes follow the standards defined in :RFC:`7231` and more information about any response codes (Including the meaning for codes not mentioned here) can be found there. Below is a list of the most common response codes and what they mean for this API specifically.
 
 200 OK
 ______
