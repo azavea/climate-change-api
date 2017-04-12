@@ -356,9 +356,11 @@ WATCHMAN_ERROR_CODE = 503
 WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
-    'climate_data.healthchecks.city_cells',
-    'climate_data.healthchecks.import_completion',
-    'climate_data.healthchecks.data_sources_present'
+    # TODO: re-enable health checks
+    # disabled due to use by ECS
+    # 'climate_data.healthchecks.city_cells',
+    # 'climate_data.healthchecks.import_completion',
+    # 'climate_data.healthchecks.data_sources_present'
 )
 
 # Boto setup
