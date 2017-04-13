@@ -10,7 +10,7 @@
     <!-- ** NOTE ** Any additional SCSS files must be linked below with the compile directive -->
     <link rel="stylesheet" href="{% static "main.scss"|compile %}">
 
-    <title>{% block title %}User Navigation{% endblock %}</title>
+    <title>{% block title %}User Navigation{% endblock %} - Azavea Climate API</title>
 </head>
 
 <body>
@@ -18,7 +18,7 @@
     <div class="navbar">
       <div class="container">
         <div class="navbar-left">
-          <a href="#" class="brand">
+          <a href="{% if user.is_authenticated %}{% url 'edit_profile' %}{% else %}{% url 'auth_login' %}{% endif %}" class="brand">
             <img src="/static/images/climate-logo.svg" alt="">
           </a>
         </div>
@@ -26,11 +26,10 @@
           <nav>
             <a href="{{ API_DOCUMENTATION_URL }}">Documentation</a>
             {% if user.is_authenticated %}
-                <a href="#">Account</a>
+                <a href="{% url 'edit_profile' %}">Account</a>
                 <a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a>
             {% else %}
                 <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
-                <a href="#">Get started</a>
             {% endif %}
           </nav>
         </div>
