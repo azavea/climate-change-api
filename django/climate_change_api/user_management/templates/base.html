@@ -18,7 +18,7 @@
     <div class="navbar">
       <div class="container">
         <div class="navbar-left">
-          <a href="#" class="brand">
+          <a href="{% url 'edit_profile' %}" class="brand">
             <img src="/static/images/climate-logo.svg" alt="">
           </a>
         </div>
@@ -26,11 +26,10 @@
           <nav>
             <a href="{{ API_DOCUMENTATION_URL }}">Documentation</a>
             {% if user.is_authenticated %}
-                <a href="#">Account</a>
+                <a href="{% url 'edit_profile' %}">Account</a>
                 <a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a>
             {% else %}
                 <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
-                <a href="#">Get started</a>
             {% endif %}
           </nav>
         </div>

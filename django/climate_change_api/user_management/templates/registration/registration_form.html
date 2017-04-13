@@ -11,7 +11,10 @@
     <form method="post" action=".">
       {% csrf_token %}
       {% bootstrap_form form %}
-      {% buttons submit='Submit' reset="Cancel" button_class="btn-primary" %}{% endbuttons %}
+      <div class="form-group">
+        <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
+        <a href="{% url 'auth_login' %}" class="btn">{% trans 'Cancel' %}</button>
+      </div>
     </form>
     {% endblock %}
 </body>
