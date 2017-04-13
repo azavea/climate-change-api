@@ -1,1 +1,3 @@
-Maximum number of consecutive days with no precipitation
+Yearly Max Consecutive Dry Days (CDD) reports the maximum number of consecutive days with no precipitation during the given year. This indicator is a very specific metric of wetness and dryness. For a deeper study of CDD characterizing climatic conditions and climatic changes, see `this study`_ of Xinjian, China.
+
+.. _this study: http://www.nat-hazards-earth-syst-sci.net/12/1353/2012/nhess-12-1353-2012.pdf
