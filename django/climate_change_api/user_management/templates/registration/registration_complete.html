@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+<head>
+    <title>{% block title %}Registration complete{% endblock %}</title>
+</head>
+
 {% block content %}
 <p>{% trans "You are now registered. Activation email sent." %}</p>
 <a href="{% url 'auth_login' %}" class="btn btn-primary">{% trans 'Ok!' %}</a>

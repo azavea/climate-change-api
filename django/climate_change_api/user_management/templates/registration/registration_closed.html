@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+<head>
+    <title>{% block title %}Registration closed{% endblock %}</title>
+</head>
+
 {% block content %}
 	<p>{% trans "Registration is currently closed." %}</p>
 {% endblock %}
