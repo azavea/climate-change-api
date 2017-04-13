@@ -28,11 +28,7 @@ Accessible and standardized climate data through the `Climate API`_ will help an
 Logging in
 ~~~~~~~~~~
 
-**Registration is closed at this time.**
-
 `Log in`_ or `sign up`_ for a new account with the `Climate API`_.
-
-In addition to API access, all climate API products are accessible with this account.
 
 
 Getting a token
