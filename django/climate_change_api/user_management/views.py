@@ -27,17 +27,20 @@ class RegistrationView(BaseRegistrationView):
 
     form_class = UserForm
 
+    def register(self, form):
+        new_user = super(RegistrationView, self).register(form)
+        # create profile for new user
+        new_profile = UserProfile.create(user=new_user)
+        new_profile.organization = form.cleaned_data.get('organization')
+        new_user.userprofile = new_profile
+        new_profile.save()
+        new_user.save()
+        return new_user
+
 
 class UserProfileView(LoginRequiredMixin, View):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (TokenAuthentication, )
-
-    def create_new_profile(self, request):
-        """Create userprofile instance."""
-        if not hasattr(request.user, 'userprofile'):
-            newprofile = UserProfile.create(user=request.user)
-            request.user.userprofile = newprofile
-            newprofile.save()
 
     def get_initial(self, request):
         user = request.user
@@ -49,9 +52,6 @@ class UserProfileView(LoginRequiredMixin, View):
         return self.initial
 
     def get(self, request, *args, **kwargs):
-        """Create user profile if first time signing in."""
-        self.create_new_profile(request)
-
         self.get_initial(request)
         form = UserProfileForm(initial=self.initial)
         template = 'registration/userprofile_update.html'
