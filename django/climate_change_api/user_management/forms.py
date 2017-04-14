@@ -12,10 +12,11 @@ class UserForm(RegistrationFormUniqueEmail):
     email = forms.EmailField(help_text=None)
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
+    organization = forms.CharField(max_length=255)
 
     class Meta:
         model = ClimateUser
-        fields = ('email', 'first_name', 'last_name',)
+        fields = ('email', 'first_name', 'last_name', 'organization',)
 
 
 class UserProfileForm(forms.ModelForm):
@@ -23,7 +24,7 @@ class UserProfileForm(forms.ModelForm):
 
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)
-    organization = forms.CharField(required=False)
+    organization = forms.CharField(max_length=255, required=True)
 
     class Meta:
         model = UserProfile

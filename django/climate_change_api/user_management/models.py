@@ -123,7 +123,7 @@ class UserProfile(models.Model):
         return '{}'.format(self.user.email)
 
     user = models.OneToOneField(ClimateUser)
-    organization = models.CharField(max_length=255, blank=True, default='')
+    organization = models.CharField(max_length=255, blank=False)
 
     @classmethod
     def create(self, user):
