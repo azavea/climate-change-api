@@ -1,10 +1,14 @@
 
-The Indicator endpoints detail all of the derived data "indicators" that are available. The indicators provided by the Climate API are derived quantities generated using the same raw data provided by `Climate Data`_. For a full list and explanation of indicators, see the `indicators section`_.
+The Indicator endpoints detail all of the derived data "indicators" that are available. The indicators provided by the Climate API are derived quantities generated using the same raw data provided by `Climate Data`_. For a full list and high-level explanation of indicators, see the `indicators dictionary`_.
+
+To get indicator data, query for the `Indicator list`_, get specific `Indicator params`_ through `Indicator detail`_, and finally customize your `Indicator data`_ request.
 
 If you have ideas for Indicators that aren't provided by the Climate API, but might like to add, please `contact us`_.
 
 Indicator List
 ______________
+
+Get the full list of indicators from the API.
 
 .. openapi:: /openapi/climate_api.yml
     :paths:
@@ -60,6 +64,8 @@ Response:
 Indicator Detail
 ________________
 
+Get the description and parameters of a specified indicator.
+
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/indicator/{indicator_name}/
@@ -109,10 +115,30 @@ Response:
         ]
     }
 
+
+Indicator Parameters
+_________________________
+
+Indicator object(s) are returned by `Indicator list`_ and `Indicator detail`_. The Indicator object describes all query parameters available for that indicator. Each parameter in the ``Indicator.parameters`` array is an object with the form:
+
+.. json:object:: IndicatorParam
+
+    Definition object for Indicator query parameters
+
+    :property string name: The name of the query parameter
+    :property string description: A detailed description of how to use the query parameter for indicator data requests, along with its available values if appropriate
+    :property boolean required: If true, this query parameter is required
+    :property string default: If the query parameter is not required, the default value used when none is provided
+
+These parameters can be used to tweak the `Indicator data`_ request for any indicator.
+
+To see this in action, step through `how to make an indicator request`_.
+
+
 Indicator Data
 ______________
 
-Returns data for a specified indicator and its unique required and optional query parameters. See `Indicator detail`_ for more information about these parameters.
+Returns data for a specified indicator and its unique required and optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
 
 .. note:: Requests to this endpoint are `rate-limited`_.
 
@@ -204,23 +230,6 @@ Response:
         }
     }
 
-Indicator Data Parameters
-_________________________
-
-The Indicator object describes all query parameters available for that indicator. An Indicator object is returned by `Indicator list`_ and `Indicator detail`_. Each parameter in the ``Indicator.parameters`` array is an object with the form:
-
-.. json:object:: IndicatorParam
-
-    Definition object for Indicator Data query parameters
-
-    :property string name: The name of the query parameter
-    :property string description: A detailed description of how to use the query parameter for indicator data requests, along with its available values if appropriate
-    :property boolean required: If true, this query parameter is required
-    :property string default: If the query parameter is not required, the default value used when none is provided
-
-These parameters can be used to tweak the `Indicator data`_ request for any indicator.
-
-To see this in action, step through `how to make an indicator request`_.
 
 .. _`contact us`: climate@azavea.com
 .. _`Climate Data`: api_reference.html#climate-data
@@ -228,6 +237,7 @@ To see this in action, step through `how to make an indicator request`_.
 .. _`Indicator detail`: api_reference.html#indicator-detail
 .. _`Indicator data`: api_reference.html#indicator-data
 .. _`IndicatorParam`: api_reference.html#indicator-data-parameters
+.. _`Indicator params`: api_reference.html#indicator-data-parameters
 .. _`rate-limited`: overview.html#rate-limiting
 .. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
-.. _`indicators section`: indicators.html
+.. _`indicators dictionary`: indicators.html
