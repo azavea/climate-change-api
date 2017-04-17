@@ -19,6 +19,6 @@ EXPOSE 8089
 
 ENTRYPOINT ["/bin/bash"]
 
-ENV DEFAULT_API_HOST https://climate.azavea.com
+ENV DEFAULT_API_HOST https://app.climate.azavea.com
 
 CMD ["-c", "locust --host=${API_HOST:-DEFAULT_API_HOST}"]
