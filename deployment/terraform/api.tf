@@ -201,4 +201,9 @@ data "template_file" "cc_api_management_ecs_task" {
 resource "aws_ecs_task_definition" "cc_api_management" {
   family                = "${var.environment}Management"
   container_definitions = "${data.template_file.cc_api_management_ecs_task.rendered}"
+
+  volume {
+    name      = "tmp"
+    host_path = "/tmp"
+  }
 }
