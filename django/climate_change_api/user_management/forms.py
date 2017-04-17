@@ -22,8 +22,8 @@ class UserForm(RegistrationFormUniqueEmail):
 class UserProfileForm(forms.ModelForm):
     """Defines mutable fields in the user profile and validates user-made data changes."""
 
-    first_name = forms.CharField(max_length=30, required=False)
-    last_name = forms.CharField(max_length=30, required=False)
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
     organization = forms.CharField(max_length=255, required=True)
 
     class Meta:
