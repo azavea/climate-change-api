@@ -5,7 +5,12 @@
     "entryPoint": [
       "./manage.py"
     ],
-    "mountPoints": [], 
+    "mountPoints": [
+      {
+        "sourceVolume": "tmp",
+        "containerPath": "/tmp"
+      }
+    ], 
     "name": "management",
     "image": "${management_url}",
     "environment": [
