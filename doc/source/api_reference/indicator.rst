@@ -117,7 +117,7 @@ Response:
 
 
 Indicator Parameters
-_________________________
+____________________
 
 Indicator object(s) are returned by `Indicator list`_ and `Indicator detail`_. The Indicator object describes all query parameters available for that indicator. Each parameter in the ``Indicator.parameters`` array is an object with the form:
 
@@ -133,6 +133,12 @@ Indicator object(s) are returned by `Indicator list`_ and `Indicator detail`_. T
 These parameters can be used to tweak the `Indicator data`_ request for any indicator.
 
 To see this in action, step through `how to make an indicator request`_.
+
+
+Special Parameters Explained
+____________________________
+
+The Climate API allows for various pre-defined and custom types of ``time_aggregation`` when requesting indicator data. Most are familiar, i.e. ``yearly``. A unique format available is ``offset_yearly``, which counts a year starting from the summer solstice (180 days into the Gregorian year). This captures seasons in their entirety, making seasonal analysis easy.
 
 
 Indicator Data
@@ -236,8 +242,8 @@ Response:
 .. _`Indicator list`: api_reference.html#indicator-list
 .. _`Indicator detail`: api_reference.html#indicator-detail
 .. _`Indicator data`: api_reference.html#indicator-data
-.. _`IndicatorParam`: api_reference.html#indicator-data-parameters
-.. _`Indicator params`: api_reference.html#indicator-data-parameters
+.. _`IndicatorParam`: api_reference.html#indicator-parameters
+.. _`Indicator params`: api_reference.html#indicator-parameters
 .. _`rate-limited`: overview.html#rate-limiting
 .. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
 .. _`indicators dictionary`: indicators.html
