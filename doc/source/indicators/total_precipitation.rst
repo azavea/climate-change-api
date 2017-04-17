@@ -2,4 +2,4 @@ Total Precipitation returns the summed daily precipitation ranging the user-spec
 
 
 .. _yearly max consecutive dry days: indicators.html#yearly-max-consecutive-dry-days
-.. _extreme_precipitation_events: indicators.html#extreme-precipitation-events
+.. _extreme precipitation events: indicators.html#extreme-precipitation-events
