@@ -3,6 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   self
+   overview
+   api_reference
+   indicators
+
+
 Getting Started
 ===============
 
@@ -15,14 +25,6 @@ The National Aeronautics and Space Administration of the United States (NASA) pr
 Currently, the Climate API includes temperature and precipitation data for cities across the entire USA historically and under two popular carbon emission scenarios projected until the end of the century.
 
 Accessible and standardized climate data through the Climate API will help answer decision makers, scientists, technologists, and citizens to answer the aforementioned questions and more. Read on to learn how to use the API.
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-
-   overview
-   api_reference
-   indicators
 
 
 Logging in
