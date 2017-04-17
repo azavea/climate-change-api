@@ -1,9 +1,13 @@
-Indicators
-==========
+Indicator Dictionary
+====================
 
-A complete list of API indicators with explanations. While the historical scenario offers data from 1950-2005, historic norms only consider data from 1961-1990 for consistency with literature on some indicators. To use any indicator, get its `parameter details`_.
+This dictionary provides a high-level description of each indicator available through the Climate API.
 
-In the explanations below, assume temperature and precipitation values are aggregated across all requested models for a specified period of time. For brevity, temperature refers to surface air temperature.
+
+.. note:: If you are trying to make an indicator REST API call, look up the indicator's `parameter details`_ or follow `how to make an indicator request`_.
+
+
+In the explanations below, assume temperature and precipitation values are aggregated across all requested models for a specified period of time. For brevity, temperature refers to surface air temperature. Historic refers to 1950-2006.
 
 
 .. contents:: :depth: 2
@@ -141,5 +145,5 @@ Yearly Max Consecutive Dry Days
 .. include::  indicators/yearly_max_consecutive_dry_days.rst
 
 
-
+.. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
 .. _parameter details: api_reference.html#indicator-data-parameters

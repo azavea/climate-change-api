@@ -4,6 +4,9 @@ For GET requests that accept parameters, required parameters are specified in th
 
     https://climate.azavea.com/api/climate-data/1/RCP45/indicator/average_high_temperature/?years=2050&units=C
 
-Above, '1', 'RCP45', and 'average_high_temperature' are required parameters representing ``:city``, ``:scenario``, and ``:indicator`` while the optional parameters ``:years`` and ``:units`` are appended in the query string.
+Above, '1', 'RCP45', and 'average_high_temperature' are required parameters representing ``:city``, ``:scenario``, and ``:indicator`` while the optional `indicator parameters`_ ``:years`` and ``:units`` are appended in the query string.
 
 For POST, PUT, PATCH, and DELETE requests, parameters not included in the URL should be encoded as JSON in the request body with a Content-Type of 'application/json'.
+
+
+.. _indicator parameters: api_reference.html#indicator-data-parameters
