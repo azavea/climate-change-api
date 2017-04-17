@@ -75,8 +75,6 @@ variable "vpc_availibility_zones" {
   type = "list"
 }
 
-#variable "ecs_iam_role" {}
-#variable "ecs_iam_profile" {}
 variable "git_commit" {}
 
 # RDS
