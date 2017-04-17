@@ -145,5 +145,6 @@ Yearly Max Consecutive Dry Days
 .. include::  indicators/yearly_max_consecutive_dry_days.rst
 
 
-.. _`how to make an indicator request`: overview.html#how-to-make-an-indicator-request
-.. _parameter details: api_reference.html#indicator-data-parameters
+
+.. _how to make an indicator request: overview.html#how-to-make-an-indicator-request
+.. _parameter details: api_reference.html#indicator-parameters
