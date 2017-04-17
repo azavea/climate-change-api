@@ -35,12 +35,6 @@ node {
       env.CC_S3STORAGE_BUCKET = 'climate-change-api-staging'
       env.GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
-      if (env.BRANCH_NAME.startsWith('release/')) {
-        // Deploy release branches into production
-        env.CC_SETTINGS_BUCKET = 'production-climate-config-us-east-1'
-        env.CC_S3STORAGE_BUCKET = 'climate-change-api-production'
-      }
-
       // Publish container images built and tested during `cibuild`
       // to the private Amazon Container Registry tagged with the
       // first seven characters of the revision SHA.
