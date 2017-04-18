@@ -1946,7 +1946,7 @@ nav.social a:not(:hover) {
 
 .wy-side-nav-search .icon-home:before {
     content: "" !important;
-    background-image: url(http://localhost:8084/_static/css/climate-logo-symbol-white.svg);
+    background-image: url(/_static/css/climate-logo-symbol-white.svg);
     width: 31px;
     height: 30px;
     background-size: 30px;
