@@ -119,7 +119,7 @@ Response:
 Indicator Parameters
 ____________________
 
-Indicator object(s) are returned by `Indicator list`_ and `Indicator detail`_. The Indicator object describes all query parameters available for that indicator. Each parameter in the ``Indicator.parameters`` array is an object with the form:
+Indicator objects are returned by `Indicator list`_ and `Indicator detail`_. The Indicator object describes all query parameters available for that indicator. Each parameter in the ``Indicator.parameters`` array is an object with the form:
 
 .. json:object:: IndicatorParam
 

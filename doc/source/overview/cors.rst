@@ -1,5 +1,5 @@
 
-As this API is designed for public use, it supports HTTP requests from any origin. To demonstrate, a sample request from an outside domain::
+To enable public use, this API supports HTTP requests from any origin. To demonstrate, here is a sample request from an outside domain::
 
    curl -i https://app.climate.azavea.com/api/scenario/ -H "Authorization: Token <your_api_token>" "Origin:https://azavea.com" -X OPTIONS
 

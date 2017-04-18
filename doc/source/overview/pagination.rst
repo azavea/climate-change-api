@@ -1,4 +1,4 @@
-The handful of endpoints with potentially large result sets are paginated.
+The endpoints with potentially large result sets are paginated.
 
 The API defaults to `limit offset pagination`_ from the Django Rest Framework. Limit pagination has query parameters:
 
@@ -7,7 +7,7 @@ The API defaults to `limit offset pagination`_ from the Django Rest Framework. L
     ``offset``: the starting position of the query in relation to the complete set of unpaginated items
 
 
-Each request to the API returns a pagination object with query results of maximum quantity ``limit`` offset in the database by ``offset`` items:
+Each request to the API returns a pagination object with query results of maximum ``limit`` items offset by ``offset`` items:
 
 .. code-block:: json
 
@@ -20,7 +20,7 @@ Each request to the API returns a pagination object with query results of maximu
 
 Access other pages of data by adjusting the parameters specified in the ``next`` or ``previous`` links.
 
-Some endpoints have other pagination styles than `limit offset pagination`_. Generally comparable to the above, any differences will be specified where they occur.
+Some endpoints have pagination styles other than `limit offset pagination`_. Differences will be specified where they occur.
 
 
 .. _`limit offset pagination`: http://www.django-rest-framework.org/api-guide/pagination/#limitoffsetpagination

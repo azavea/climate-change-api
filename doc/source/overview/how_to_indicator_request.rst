@@ -1,7 +1,7 @@
 
-Indicators are channels to interact with the Climate API temperature and precipitation data. There are over a dozen highly parametizable indicators that can be used to answer a broad set of research questions.
+Indicators are transformations which help interpret the Climate API temperature and precipitation data. There are over a dozen highly parametrizable indicators that can be used to answer a broad set of research questions.
 
-Maybe you live in or around Los Angeles, California, a megacity surrounded by farms that experiences signficiant drought. As a land use planner, farmer, utility company, mayor, you're especially interested in preparing for extreme drought. How much drier is it expected to be in LA over the next century?
+Maybe you live in or around Los Angeles, California, a megacity surrounded by farms experiencing significant drought. As a land use planner, farmer, utility company, or mayor, you're especially interested in preparing for extreme drought. How much drier is it expected to be in LA over the next century?
 
 
 Get Indicator List
