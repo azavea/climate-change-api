@@ -1,0 +1,10 @@
+section {
+  @extend %clearfix;
+  display: block;
+  position: relative;
+  padding-top: 8rem;
+  padding-bottom: 8rem;
+  @include respond-to(xs) {
+    padding: 2rem 0;
+  }
+}

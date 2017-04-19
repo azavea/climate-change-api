@@ -1,0 +1,658 @@
+swagger: "2.0"
+info:
+  title: Azavea Climate API
+  version: "0.1.0"
+host: climate.azavea.com
+schemes:
+  - https
+produces:
+  - application/json
+securityDefinitions:
+  Token:
+    type: apiKey
+    name: Authorization
+    in: header
+security:
+  - Token: []
+paths:
+  # **** /api-token-auth/ MUST BE FIRST ENDPOINT FOR DREDD ENDPOINT CHECKING TO RUN ****
+  /api-token-auth/:
+    post:
+      description: |
+        Retrieves an API authorizaton token when a registered email and password are sent in the request data via form data or JSON.
+      parameters:
+        - name: email
+          in: formData
+          type: string
+          format: email
+          required: true
+        - name: password
+          in: formData
+          type: string
+          format: password
+          required: true
+      responses:
+        "200":
+          description: Auth token
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+  /api/city/:
+    get:
+      description: |
+        List all available cities as a GeoJson paginated GeoJson Feature Collection
+      parameters:
+        - name: page
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+          required: false
+          description: |
+            Page of paginated results to return
+        - name: page_size
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+          required: false
+          description: |
+            The maximum number of returned cities per page
+      responses:
+        "200":
+          description: |
+            A GeoJson paginated GeoJson Feature Collection of City objects.
+            See City model definition.
+          schema:
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /api/city/nearest/:
+    get:
+      description: |
+        Return the nearest city or cities to the provided lat/lon as a GeoJSON Feature Collection.
+        Default to nearest 1 city unless otherwise specified by the limit parameter.
+      parameters:
+        - name: lat
+          in: query
+          type: number
+          required: true
+          description: Search latitude
+          x-example: 40
+        - name: lon
+          in: query
+          type: number
+          required: true
+          description: Search longitude
+          x-example: 60
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          default: null
+          required: false
+          description: |
+            The maximum number of cities to be returned by the query
+      responses:
+        "200":
+          description: A GeoJson paginated GeoJson Feature Collection of City objects
+          schema:
+            $ref: "#/definitions/PaginatedFeatureCollection"
+  /api/city/{pk}/:
+    get:
+      description: |
+        Look up a particular city by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+      responses:
+        "200":
+          description: A City object
+          schema:
+            $ref: "#/definitions/City"
+  /api/city/{pk}/boundary/:
+    get:
+      description: |
+        Return the boundary of the specified city as a MultiPolygon GeoJson Feature.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+      responses:
+        "200":
+          description: |
+            A MultiPolygon GeoJson Feature
+          schema:
+            $ref: "#/definitions/Boundary"
+        "404":
+          description: |
+            No valid boundary
+  /api/climate-model/:
+    get:
+      description: Lists all climate models available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of ClimateModel objects
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ClimateModel"
+  /api/climate-model/{name}/:
+    get:
+      description: Get information about a single Climate Model
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of climate model
+          required: true
+          type: string
+          x-example: ACCESS1-0
+      responses:
+        "200":
+          description: ClimateModel object
+          schema:
+            $ref: "#/definitions/ClimateModel"
+  /api/scenario/:
+    get:
+      description: Lists all scenarios available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of Scenario objects
+          schema:
+            type: array
+            x-example: RCP85
+            items:
+              $ref: "#/definitions/Scenario"
+  /api/scenario/{name}/:
+    get:
+      description: Get information about a single Scenario
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of scenario
+          required: true
+          type: string
+          x-example: RCP85
+      responses:
+        "200":
+          description: Scenario object
+          schema:
+            $ref: "#/definitions/Scenario"
+  /api/climate-data/{city}/{scenario}/:
+    get:
+      description: |
+        Daily data aggregated across all or specified models for a city and scenario. All query parameters are optional.
+      parameters:
+        - name: city
+          description: Primary key of city
+          in: path
+          type: string
+          required: true
+          x-example: 4
+        - name: scenario
+          description: |
+            Scenario name
+          in: path
+          type: string
+          required: true
+          x-example: RCP85
+        - name: models
+          description: |
+            A list of comma separated model names. Defaults to all models.
+          in: query
+          type: string
+          required: false
+          x-example: null
+        - name: variables
+          description: |
+            A list of comma separated variables.
+            Available values are "tasmax", "tasmin" and "pr".
+            Defaults to all variables.
+          in: query
+          type: string
+          x-example: pr,tasmax
+        - name: years
+          description: |
+            A list of comma separated year ranges. A year range is of the form "start[:end]", inclusive.
+            Examples: "2010", "2010:2020", "2010:2020,2030", "2010:2020,2030:2040".
+            Defaults to all years available.
+          in: query
+          type: string
+          required: false
+          x-example: "2050:2055,2060"
+        - name: agg
+          description: |
+            Get the minimum, maximum, or average of projected data across the included models. Options as: min, max, avg.
+          in: query
+          type: string
+          required: false
+          x-example: avg,min
+      responses:
+        "200":
+          description: |
+            Climate data
+          schema:
+            $ref: "#/definitions/ClimateData"
+  /api/indicator/:
+    get:
+      description: Lists all available indicators
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of Indicator objects
+          schema:
+            $ref: "#/definitions/Indicators"
+  /api/indicator/{indicator_name}/:
+    get:
+      description: Returns requested indicator
+      produces:
+        - application/json
+      parameters:
+        - name: indicator_name
+          in: path
+          description: Indicator name
+          required: true
+          type: string
+          x-example: "average_high_temperature"
+      responses:
+        "200":
+          description: An Indicator object
+          schema:
+            $ref: '#/definitions/Indicator'
+        "404":
+          description: Returned when requested indicator name cannot be found
+  /api/climate-data/{city}/{scenario}/indicator/{indicator_name}/:
+    get:
+      description: |
+        Retrieves derived climate indicator data for the requested indicator
+      produces:
+        - application/json
+      parameters:
+        - name: city
+          in: path
+          description: City ID
+          required: true
+          type: string
+          x-example: 4
+        - name: scenario
+          in: path
+          description: Scenario name
+          required: true
+          type: string
+          x-example: RCP85
+        - name: indicator_name
+          in: path
+          description: Indicator name
+          required: true
+          type: string
+          x-example: "average_high_temperature"
+      responses:
+        "200":
+          description: |
+            Indicator data
+          schema:
+            $ref: "#/definitions/ClimateData"
+        "400":
+          description: |
+            Returned when at least one of the query parameters is misconfigured or missing.
+            The response will contain a detailed message.
+        "429":
+          description: |
+            Returned when the request is rate-limited. The response will detail when the
+            request can be retried.
+  /api/region/:
+    get:
+      description: |
+        List all available regions as a paginated collection
+      parameters:
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          default: 20
+          required: false
+          description: |
+            The maximum number of regions to return
+        - name: offset
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+          required: false
+          description: |
+            Number of regions to skip when paginating
+        - name: search
+          in: query
+          type: string
+          required: false
+          description: |
+            String to search level1 and level2 descriptions with
+        - name: level1
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          required: false
+          description: |
+            Filter by level1 values
+        - name: level2
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          required: false
+          description: |
+            Filter by level2 values
+      responses:
+        "200":
+          description: |
+            A paginated collection of Region objects.
+            See Region model definition.
+          schema:
+            type: object
+            properties:
+              count:
+                type: number
+              next:
+                type: string
+              previous:
+                type: string
+              results:
+                type: array
+                items:
+                  $ref: "#/definitions/Region"
+  /api/region/{pk}/:
+    get:
+      description: |
+        Look up a particular region by primary key
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the region
+          x-example: 30
+        - name: format
+          in: query
+          type: string
+          default: json
+          required: false
+          enum:
+            - json
+            - pbf
+            - api
+          description: |
+            Output format. Either ``json`` or ``pbf``. Can also be used
+            as file suffix, such as ``example.org/api/region/30.pbf``.
+            The ``api`` format is used to show the DRF UI.
+      responses:
+        "200":
+          description: A Region object
+          schema:
+            $ref: "#/definitions/RegionGeoJSON"
+        "404":
+          description: Returned when requested region cannot be found
+definitions:
+  Boundary:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/MultiPolygon"
+      properties:
+        type: object
+        properties:
+          source:
+            type: string
+          boundary_type:
+            type: string
+  City:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/Point"
+      properties:
+        type: object
+        properties:
+          map_cell:
+            $ref: "#/definitions/Point"
+          name:
+            type: string
+          admin:
+            type: string
+        additionalProperties: true
+        required:
+        - map_cell
+        - name
+        - admin
+    additionalProperties: false
+    required:
+    - id
+    - type
+    - geometry
+    - properties
+  ClimateModel:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the climate model
+      label:
+        type: string
+        description: Human-readable name of the climate model, not necessarily unique
+      base_time:
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
+        description: The base reference time of the model, provided in ISO8061 format
+  Indicators:
+    type: array
+    items:
+      $ref: "#/definitions/Indicator"
+  Indicator:
+    type: object
+    properties:
+      name:
+        type: string
+        description: |
+          Unique name identifier for the indicator
+      label:
+        type: string
+        description: |
+          Human-readable name of the indicator, not necessarily unique
+      description:
+        type: string
+        description: |
+          A detailed, human-readable description of the indicator
+      valid_aggregations:
+        type: array
+        items:
+          type: string
+        description: |
+          A list of valid aggregation time periods that can be passed to the agg` parameter
+          of the Indicator data endpoint.
+      variables:
+        type: array
+        items:
+          type: string
+        description: |
+          The climate data variables used to calculate this indicator.
+      available_units:
+        type: array
+        items:
+          type: string
+        description: |
+          The list of units that can be passed to the "units" query parameter of the indicator data
+          endpoint.
+      default_units:
+        type: string
+        description: |
+          The default units that the indicator data will be returned with. This will always be one
+          of the options in "available_units".
+      parameters:
+        type: array
+        items:
+          $ref: "#/definitions/IndicatorParameter"
+        description: |
+          A list of all of the query parameters that this indicator supports on the indicator
+          data endpoint.
+  IndicatorParameter:
+    type: object
+    properties:
+      name:
+        type: string
+        description: |
+          The name of the query parameter. e.g. If name = "units", then this parameter would be set
+          on a request with /api/foo?units=C
+      description:
+        type: string
+        description: |
+          A more detailed description of the parameter, its options and how to use it.
+      required:
+        type: boolean
+        description: |
+          True if this parameter is required when making a request for this indicator,
+          otherwise false.
+      default:
+        type: [string, integer]
+        description: |
+          The default value of this parameter if it is not explicitly provided as part of a request.
+  MultiPolygon:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                minItems: 2
+                maxItems: 2
+  PaginatedFeatureCollection:
+    type: object
+    properties:
+      type:
+        type: string
+      count:
+        type: integer
+        description: Number of features in this response
+      next:
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
+        description: URL to next response page
+      previous:
+        type: [string, "null"] #null is necessary to make nullable, but is invalid yml
+        description: URL to previous response page
+      features:
+        type: array
+        items:
+          type: object
+        description: |
+          A list of GeoJson Features.
+          Feature type can vary and is specified in each endpoint"s documentation.
+  Point:
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: number
+          minItems: 2
+          maxItems: 2
+  Scenario:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the scenario
+      label:
+        type: string
+        description: |
+          Human-readable name of the scenario, not necessarily unique
+      description:
+        type: string
+        description: A detailed description of the definition of a scenario
+  ClimateData:
+    type: object
+    properties:
+      city:
+        $ref: "#/definitions/City"
+      scenario:
+        type: string
+      climate_models:
+        type: array
+        items:
+          type: string
+      variables:
+        type: array
+        items:
+          type: string
+      data:
+        type: object
+        description: |
+            "year": { "variable": [ day1_value, day2_value, ... , day366_value ] }
+            The variable array always has length 366. Days with no available data will be null at their index.
+  Region:
+    type: object
+    properties:
+      id:
+        type: number
+      level1:
+        type: number
+      level1_description:
+        type: string
+      level2:
+        type: number
+      level2_description:
+        type: string
+  RegionGeoJSON:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/MultiPolygon"
+      properties:
+        type: object
+        properties:
+          level1:
+            type: number
+          level1_description:
+            type: string
+          level2:
+            type: number
+          level2_description:
+            type: string

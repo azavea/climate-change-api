@@ -1,0 +1,46 @@
+*, *:after, *:before {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 62.5%;
+	font-family: $font-family;
+  height: 100%;
+}
+
+body {
+	font-size: 16px;
+	font-size: 1.6rem;
+	color: $text-base;
+  height: 100%;
+  font-family: $font-family;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+	text-decoration: none;
+	color: $brand-primary;
+
+  &:hover {
+    color: $shade-light;
+    cursor: pointer;
+  }
+
+  &:disabled, &.disabled, &[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+
+    &:hover {
+      color: $shade-light;
+    }
+  }
+}
+
+hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid #ddd;
+  clear: both;
+}

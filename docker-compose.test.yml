@@ -1,0 +1,10 @@
+version: '2.1'
+services:
+  django:
+    image: "cc-api:${GIT_COMMIT:-latest}"
+    environment:
+      - COMMIT=${GIT_COMMIT}
+      - CC_S3STORAGE_BUCKET=${CC_S3STORAGE_BUCKET:-climate-change-api-staging}
+
+  nginx:
+    image: "cc-nginx:${GIT_COMMIT:-latest}"

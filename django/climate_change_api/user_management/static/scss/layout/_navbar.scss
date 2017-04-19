@@ -1,0 +1,71 @@
+.navbar {
+  @extend %clearfix;
+  position: relative;
+  padding-top: 2.5rem;
+
+  .container {
+    display: flex;
+
+    @include respond-to('xxs') {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  nav {
+    display: inline-block;
+    vertical-align: middle;
+
+    a {
+      color: $shade-light;
+      padding: 1.5rem 1.5rem;
+
+      &:hover {
+        color: darken($shade-light, 5%);
+      }
+    }
+  }
+}
+
+.navbar.navbar-secondary {
+  background: $shade-normal;
+  padding: 1rem;
+
+  nav a:hover {
+    color: #fff;
+  }
+}
+
+.navbar-left {
+  flex: 1;
+}
+
+.navbar-right {
+
+  @include respond-to('sm-down') {
+    justify-content: flex-end;
+  }
+}
+
+.brand {
+  display: inline-block;
+  vertical-align: middle;
+
+  > img {
+    max-width: 10.8rem;
+    position: relative;
+    top: 1.3rem;
+  }
+}
+
+.navbar-vertical-divider {
+  display: inline-block;
+  width: 1px;
+  height: 48px;
+  background-color: $shade-dark;
+  vertical-align: middle;
+
+  @include respond-to('xxs') {
+    display: none;
+  }
+}
