@@ -136,7 +136,7 @@ To see this in action, step through `how to make an indicator request`_.
 
 
 Special Parameters Explained
-____________________________
+````````````````````````````
 
 The Climate API allows for various pre-defined and custom types of ``time_aggregation`` when requesting indicator data. Most are familiar, i.e. ``yearly``. A unique format available is ``offset_yearly``, which counts a year starting from the summer solstice (180 days into the Gregorian year). This captures seasons in their entirety, making seasonal analysis easy.
 
@@ -157,7 +157,7 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-data/1/RCP85/example_temperature_indicator HTTP/1.1
+    GET /api/climate-data/1/RCP85/example_temperature_indicator/ HTTP/1.1
     Host: example.org
     Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
