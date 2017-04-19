@@ -1,0 +1,1 @@
+Extreme Cold Events counts the total times the daily average minimum temperature is below some percentile of historic observations. The percentile defaults to 1, referring to the coldest percentile of historic daily temperatures. It is an appropriate indicator for understanding deviations from normal climatic extremes.

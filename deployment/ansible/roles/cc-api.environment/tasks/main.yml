@@ -1,0 +1,7 @@
+---
+
+- name: Set Environment variable for AWS profile
+  lineinfile: dest=/etc/environment regexp=^AWS_PROFILE line="AWS_PROFILE={{aws_profile}}"
+
+- name: Set Environment variable for SQS queue name
+  lineinfile: dest=/etc/environment regexp=^DEV_USER line="DEV_USER={{dev_user}}"

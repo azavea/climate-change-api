@@ -1,1 +1,17 @@
+!.gitkeep
+
 .vagrant
+*.pyc
+
+/doc/build/*
+/nginx/srv/dist/*
+*.DS_Store
+
+# Terraform
+*.tfvars
+*.tfstate
+*.tfplan
+
+# Ansible
+/deployment/ansible/node_modules
+/deployment/ansible/*.retry

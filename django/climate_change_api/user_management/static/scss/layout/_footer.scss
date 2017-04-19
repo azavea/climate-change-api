@@ -1,0 +1,12 @@
+footer {
+  @extend %clearfix;
+  display: block;
+  background-color: $brand-primary;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  color: $shade-light;
+
+  .brand {
+    max-width: 20rem;
+  }
+}

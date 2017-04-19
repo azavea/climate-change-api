@@ -1,0 +1,76 @@
+version: '2.1'
+services:
+  postgres:
+    image: quay.io/azavea/postgis:postgres9.5-postgis2.2
+    environment:
+      POSTGRES_USER: climate
+      POSTGRES_PASSWORD: climate
+      POSTGRES_DB: climate
+    expose:
+      - "5432"
+
+  django:
+    build:
+      context: ./django
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8082:8082"
+    links:
+      - memcached
+      - postgres
+    environment:
+      - CC_DEBUG=true
+      - DEV_USER=$DEV_USER
+      - DJANGO_LOG_LEVEL=INFO
+      - AWS_PROFILE=$AWS_PROFILE
+      - AWS_CACHE_DURATION=31536000
+      - CC_REGISTRATION_OPEN=
+      - COMMIT=
+    volumes:
+      - .:/opt
+      - ./django/climate_change_api/logs/:/var/log/
+      - ./nginx/srv/dist:/opt/doc/build
+      - $HOME/.aws:/root/.aws:ro
+
+  memcached:
+    image: memcached:1.4-alpine
+    command: [memcached, -I, 8M, -m, '256']
+
+  docs:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8084:443"
+    volumes:
+     - ./nginx/srv/dist/:/srv/dist/
+     - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+     - ./nginx/etc/nginx/includes/:/etc/nginx/includes/
+     - ./nginx/etc/nginx/conf.d/docs/:/etc/nginx/conf.d/
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8088:443"
+    links:
+      - django
+    volumes:
+      - ./nginx/srv/dist/:/srv/dist/
+      - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/etc/nginx/includes/:/etc/nginx/includes/
+      - ./nginx/etc/nginx/conf.d/app/:/etc/nginx/conf.d/
+
+  loadtest:
+    build:
+      context: ./loadtest
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      - API_TOKEN
+      - API_HOST
+    volumes:
+     - .:/opt

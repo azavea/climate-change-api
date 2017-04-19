@@ -1,0 +1,7 @@
+---
+
+- name: Install yamlordereddictloader
+  pip: name=yamlordereddictloader
+
+- name: Install AWS cli
+  pip: name=awscli version=1.10.33

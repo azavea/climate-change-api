@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  connection: local
+  become: True
+
+  pre_tasks:
+    - name: Update APT cache
+      apt: update_cache=yes cache_valid_time=3600
+
+  roles:
+    - { role: "azavea.terraform" }
+    - { role: "cc-api.docker" }
+    - { role: "cc-api.buildhelpers" }
+    - { role: "cc-api.environment" }
+    - { role: "cc-api.dredd" }
