@@ -10,6 +10,9 @@ class BigAutoField(models.AutoField):
     def db_type(self, connection):
         return models.BigIntegerField().db_type(connection=connection)
 
+    def get_internal_type(self):
+        return "BigIntegerField"
+
 
 class TinyForeignKey(models.ForeignKey):
     def db_type(self, connection):
