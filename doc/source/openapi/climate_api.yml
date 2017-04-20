@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   title: Azavea Climate API
   version: "0.1.0"
-host: climate.azavea.com
+host: app.climate.azavea.com
 schemes:
   - https
 produces:
