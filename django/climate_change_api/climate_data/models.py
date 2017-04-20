@@ -1,30 +1,17 @@
-
-
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import CASCADE, SET_NULL
-from django.utils.translation import ugettext_lazy as _
-from django.core import exceptions
 
 from climate_data.geo_boundary import census
 
 
-class TinyAutoField(models.AutoField):
-
-    def rel_db_type(self, connection):
-        return models.SmallIntegerField().db_type(connection=connection)
+# Back-port of the Django BigAutoField introduced in Django 1.10
+class BigAutoField(models.AutoField):
+    def db_type(self, connection):
+        return models.BigIntegerField().db_type(connection=connection)
 
     def get_internal_type(self):
-        return "SmallIntegerField"
-
-    def to_python(self, value):
-        if value is None:
-            return value
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            raise exceptions.ValidationError(
-                _("This value must be a short integer."))
+        return "BigIntegerField"
 
 
 class TinyForeignKey(models.ForeignKey):
@@ -256,6 +243,7 @@ class ClimateData(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
 
+    id = BigAutoField(primary_key=True)
     map_cell = TinyForeignKey(ClimateDataCell)
     data_source = TinyForeignKey(ClimateDataSource)
     day_of_year = models.PositiveSmallIntegerField()
