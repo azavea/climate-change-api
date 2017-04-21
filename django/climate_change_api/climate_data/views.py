@@ -23,6 +23,7 @@ from climate_data.caching import (full_url_cache_key_func,
                                   OverridableCacheResponseMixin,
                                   overridable_cache_response)
 from climate_data.filters import ClimateDataFilterSet
+from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateData,
                                  ClimateModel,
@@ -365,3 +366,11 @@ class RegionDetailView(APIView):
             response['content-disposition'] = disposition
 
         return response
+
+
+class DataCheckView(APIView):
+    """Status check of data imports."""
+
+    def get(self, request, format=None, *args, **kwargs):
+        return Response(check_data(),
+                        status=status.HTTP_200_OK)
