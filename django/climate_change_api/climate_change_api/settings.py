@@ -250,9 +250,13 @@ if os.getenv('COMMIT'):
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
     STATIC_PRECOMPILER_ROOT = '/media/static'
+    STATIC_PRECOMPILER_FINDER_LIST_FILES = True
+    STATIC_URL_PATH = False
 else:
+
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
+    STATIC_URL_PATH = True
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -263,7 +267,6 @@ STATICFILES_FINDERS = (
 
 # SCSS Static Compiler
 # http://django-static-precompiler.readthedocs.io/en/stable/#libsass
-
 STATIC_PRECOMPILER_COMPILERS = (
     ('static_precompiler.compilers.libsass.SCSS', {
         "precision": 8,
