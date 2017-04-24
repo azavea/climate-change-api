@@ -15,3 +15,4 @@
 # Ansible
 /deployment/ansible/node_modules
 /deployment/ansible/*.retry
+/database_backup
