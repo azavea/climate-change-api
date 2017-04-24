@@ -1,7 +1,12 @@
 
 The Climate Model endpoints describe the models used to generate the temperature and precipitation data provided by the Climate API.
 
-These climate models are provided by a variety of research institutions around the globe, and all follow the `CMIP5 model output specification`_.
+These climate models are provided by a variety of research institutions around the globe, and all follow the |CMIP5|.
+
+.. |CMIP5| raw:: html
+
+   <a href="http://cmip-pcmdi.llnl.gov/cmip5/docs/CMIP5_output_metadata_requirements.pdf" target="_blank">CMIP5 model output specification</a>
+
 
 Climate Model List
 __________________
@@ -68,5 +73,3 @@ Response:
         "label": "ACCESS1-0",
         "base_time": null
     }
-
-.. _`CMIP5 model output specification`: http://cmip-pcmdi.llnl.gov/cmip5/docs/CMIP5_output_metadata_requirements.pdf
