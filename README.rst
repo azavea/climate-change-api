@@ -9,7 +9,9 @@ sign into your user in the azavea-climate AWS account and create a set of access
 
 Then, run ``aws configure --profile climate`` and follow the prompts.
 
-Once your AWS profile is setup, run the following to configure the VM::
+Once your AWS profile is setup, run the following to configure the VM and load the most recent database backup:
+
+.. code-block:: bash
 
     ./scripts/setup
 
@@ -17,7 +19,22 @@ Next, ssh into the VM with ``vagrant ssh``. Then run::
 
     ./scripts/console django './manage.py createsuperuser'
 
-and follow the prompts to create an initial user to login with.
+and follow the prompts to create an initial user to login with. You will also need to create a UserProfile so that you can login to the app.
+
+In the VM:
+
+.. code-block:: bash
+
+    ./scripts/console django './manage.py shell_plus'
+
+Within the shell:
+
+.. code-block:: bash
+
+    In  [1]: my_user = ClimateUser.objects.get(email=<Your User's Email>)
+    In  [2]: UserProfile.objects.create(user=my_user)
+    Out [2]: <UserProfile: (Your User's Email)>
+
 
 Once you have a new user, run ``./scripts/server`` inside the VM to begin serving the application on port 8080.
 
@@ -94,10 +111,10 @@ Django runserver can be found on port 8082. Have the project running, in another
 and view at http://localhost:8082
 
 
-Getting Data
+Manually Getting Data
 ------------
 
-Once you have your environment set up, you need data. There are two methods available for importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance. When loading climate data, you will need to bump your API user's throttling rate (``ClimateUser.burst_rate`` and ``ClimateUser.sustained_rate``) if loading from another instance. Even if not, you'll probably want to bump it for ease of development.
+If the need arises, there are two methods available for manually importing climate data: Import from the raw NetCDF, or import from another ClimateChangeAPI instance. When loading climate data, you will need to bump your API user's throttling rate (``ClimateUser.burst_rate`` and ``ClimateUser.sustained_rate``) if loading from another instance. Even if not, you'll probably want to bump it for ease of development.
 
 
 Access the Remote Instance
@@ -122,7 +139,7 @@ From here, ``./manage.py`` commands are available to you.
 Loading Data from NetCDF
 ''''''''''''''''''''''''
 
-``./script/setup`` and ``./script/update`` will have populated your database with scenario, climate, model, city, region, and boundary data -- skip to the section "Loading Data From Staging".
+Running ``./scripts/setupdb`` will populate your database with scenario, climate model, 200 cities, region, and boundary data -- if sufficient, skip to the section "Loading Data From Staging".
 
 Run migrations::
 
@@ -222,3 +239,73 @@ cities installed before updating the fixtures.
 
 
 .. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
+
+Updating The Development Database Dump
+--------------------------------------
+
+When the database schema changes or new models/data are added to staging, it may be necessary to update the database dump used to setup the develoment environment. To create the database dump, do the following:
+
+Downoad the `azavea-climate.pem` SSH key from the fileshare and add it to your virtual machine's ssh-agent.
+
+Setup an SSH tunnel from your virtual machine, through the bastion host, to the database instance::
+
+    ssh -A -l ec2-user -L <local port>:database.service.climate.internal:5432 -Nf bastion.staging.climate.azavea.com
+
+
+After the SSH tunnel is setup, run ``pg_dump`` to take a backup of Staging and save it in the ``database_backup`` folder::
+
+    $ pg_dump -U climate -d climate -p <local port> -h localhost  -v -O -Fc -f database_backup/cc_dev_db.dump
+
+Where ``-O`` ignores table permissions, ``-p`` is the port forwarded to the bastion host, ``-h`` is the database host, and ``-Fc`` ensures that the dump is in the ``pg_restore`` custom format.
+
+Once that backup has completed and you have the dump locally, Console into the `postgres` container and use ``pg_restore`` to load the database.::
+
+    $ ./scripts/console postgres /bin/bash
+    # pg_restore -j 4 -v -O -d climate -U climate /opt/database_backup/cc_dev_db.dump
+
+After the backup is loaded, decrease the size of the database by removing ClimateData for all cities but Phoenix, AZ, Philadelphia, PA, and Houston, TX. Additionally, ClimateUser, Session objects, Tokens, UserProfiles and Projects should be removed. From inside the VM, do:::
+
+    $ ./scripts/console django ./manage.py shell_plus
+
+And from the django console, do::
+
+    # Delete all climate users
+    In [1]: ClimateUser.objects.all().delete()
+    Out[1]:
+    (38,
+     {'admin.LogEntry': 0,
+      'authtoken.Token': 12,
+      'user_management.ClimateUser': 12,
+      'user_management.ClimateUser_groups': 0,
+      'user_management.ClimateUser_user_permissions': 0,
+      'user_management.UserProfile': 8,
+      'user_projects.Project': 6})
+
+    # Delete all User sessions
+    In [2]: Session.objects.all().delete()
+    Out[2]: (36, {'sessions.Session': 36})
+
+    # Delete all cities whose names are not Philadelphia, Houston or Phoenix
+    In [3]: City.objects.exclude(name__in=['Philadelphia', 'Houston', 'Phoenix']).delete()
+    Out[3]: (14, {'climate_data.City': 7, 'climate_data.CityBoundary': 7})
+
+    # Delete all Climate data that isn't associated with one of the cities above
+    In [4]: ClimateDataCell.objects.exclude(id__in=City.objects.all().values_list("map_cell_id", flat=True)).delete()
+    Out[4]:
+    (9413650,
+     {'climate_data.ClimateData': 9411795,
+      'climate_data.ClimateDataBaseline': 20,
+      'climate_data.ClimateDataCell': 5,
+      'climate_data.HistoricAverageClimateData': 1830})
+
+Once the database has been pruned, run ``pg_dump`` from inside of the postgres container to make a database dump of the current state. Console into the ``postgres`` container::
+
+    $ docker-compose exec -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
+
+Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy the newest backup to S3.::
+
+    $ aws s3 mv s3://development-climate-backups-us-east-1/db/latest/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/archive/cc_dev_db_<DATE>.dump
+
+    $ aws s3 cp database_backup/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/latest/
+
+Where DATE is in the format mmddyyyy (i.e. cc_dev_db_05082017.dump)

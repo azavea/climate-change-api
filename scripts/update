@@ -1,6 +1,10 @@
 #!/bin/bash
 
-set -eu
+set -e
+
+if [[ -n "${CC_DEBUG}" ]]; then
+    set -x
+fi
 
 function usage() {
     echo -n \
@@ -8,15 +12,14 @@ function usage() {
 
 Pull and build container images using docker-compose
 
-Runs Django migrations.
-
-Loads initial Scenario, Climate Model, City, Boundary, and Region data.
+Loads database backup from S3
 
 See the Getting Data section of the README for importing additional data.
 
 "
 }
 DIR="$(dirname "$0")"
+CC_DB_BACKUP_BUCKET="${CC_DB_BACKUP_BUCKET:-development-climate-backups-us-east-1}"
 
 function check_database() {
     # Check if database is set up to continue
@@ -47,26 +50,6 @@ function check_database() {
     done
 }
 
-function run_database_migrations() {
-    docker-compose up -d postgres
-    check_database
-    docker-compose \
-        run --rm --entrypoint "./manage.py" django migrate --noinput
-    docker-compose stop postgres
-}
-
-function help_load_data() {
-    echo -n \
-"
-
-NOTE: Your development environment is ready, but has no climate data.
-
-Please see the 'Getting Data' section of the README to load additional necessary data.
-
-"
-}
-
-
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]
@@ -74,24 +57,29 @@ then
         usage
     else
         docker-compose build
-        run_database_migrations
 
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django loaddata scenarios
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django loaddata climate-models
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django import_cities azavea-climate-sandbox geonames_cities_top200_us.geojson
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django import_boundaries
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django import_regions --bucket azavea-climate-sandbox --key level2_ecoregions.geojson
-        help_load_data
+        aws s3 sync "s3://${CC_DB_BACKUP_BUCKET}/db/latest/" \
+          "${DIR}/../database_backup/"
+
+        docker-compose up -d postgres
+
+        check_database
+
+        set +e
+        docker-compose run --rm --entrypoint ./manage.py django check_development_database
+        LOAD_BACKUP=$?
+
+        if [[ $LOAD_BACKUP -eq 1 ]] || [ "${1:-}" = "--force" ]
+        then
+            echo "Loading database backup"
+            docker-compose exec -T postgres \
+                pg_restore -j 2 -v -c -d climate -U climate \
+                /opt/database_backup/cc_dev_db.dump
+        fi
+        set -e
+
+
+        docker-compose run --rm --entrypoint ./manage.py django migrate
     fi
     exit
 fi
