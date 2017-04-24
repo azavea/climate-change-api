@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: climate
     expose:
       - "5432"
+    volumes:
+      - ./database_backup:/opt/database_backup
 
   django:
     build:
