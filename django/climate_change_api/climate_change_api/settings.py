@@ -222,7 +222,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Django-Registration
 # https://django-registration.readthedocs.io/en/2.1/
 ACCOUNT_ACTIVATION_DAYS = 14
-REGISTRATION_OPEN = False if os.getenv('CC_REGISTRATION_OPEN', 'false') == 'false' else True
+REGISTRATION_OPEN = True
 
 
 # Internationalization
