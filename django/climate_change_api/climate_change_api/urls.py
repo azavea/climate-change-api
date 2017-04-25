@@ -17,7 +17,6 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import RedirectView
 
 from rest_framework import routers
@@ -26,6 +25,8 @@ from climate_data import views as climate_data_views
 from user_projects import views as user_projects_views
 from user_management.views import ClimateAPIObtainAuthToken
 
+if settings.DEBUG and settings.STATIC_URL_PATH:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 router = routers.DefaultRouter()
 router.include_root_view = False
@@ -61,5 +62,5 @@ urlpatterns = [
     url(r'^healthcheck/', include('watchman.urls'))
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and settings.STATIC_URL_PATH:
     urlpatterns += staticfiles_urlpatterns()
