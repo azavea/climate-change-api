@@ -1,16 +1,21 @@
 # Change Log
 
-## [1.0.0](https://github.com/azavea/climate-change-api/tree/1.0.0) (2017-04-19)
+## [1.0.1](https://github.com/azavea/climate-change-api/tree/1.0.1) (2017-04-19)
 **Merged pull requests:**
 
 - Feature/jf/docs copy edit [\#431](https://github.com/azavea/climate-change-api/pull/431)
 - Copy edit documentation [\#430](https://github.com/azavea/climate-change-api/pull/430)
+- Convert ClimateData to use bigint for id [\#422](https://github.com/azavea/climate-change-api/pull/422)
+
+
+## [1.0.0](https://github.com/azavea/climate-change-api/tree/1.0.0) (2017-04-19)
+**Merged pull requests:**
+
 - Remove localhost ref in SCSS url for climate logo [\#428](https://github.com/azavea/climate-change-api/pull/428)
 - Cleanup work toward a production deployment [\#427](https://github.com/azavea/climate-change-api/pull/427)
 - Add volume mount to `management` tasks. [\#426](https://github.com/azavea/climate-change-api/pull/426)
 - Require organization for registration [\#424](https://github.com/azavea/climate-change-api/pull/424)
 - Remove inconsitent historical year references and clarify Indicators docs copy [\#423](https://github.com/azavea/climate-change-api/pull/423)
-- Convert ClimateData to use bigint for id [\#422](https://github.com/azavea/climate-change-api/pull/422)
 - Add indicators descriptions 4/4 [\#417](https://github.com/azavea/climate-change-api/pull/417)
 - Account pages quality of life improvements [\#409](https://github.com/azavea/climate-change-api/pull/409)
 - Disable data health checks [\#406](https://github.com/azavea/climate-change-api/pull/406)
