@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.0.2](https://github.com/azavea/climate-change-api/tree/1.0.2) (2017-04-25)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.0...1.0.2)
+
+**Merged pull requests:**
+
+- Fix broken img reference in logout page [\#453](https://github.com/azavea/climate-change-api/pull/453)
+- Update to open registration in all cases [\#452](https://github.com/azavea/climate-change-api/pull/452)
+- Fix deployment of static assets [\#450](https://github.com/azavea/climate-change-api/pull/450)
+- Install pydocstyle version compatible with flake8-docstrings [\#448](https://github.com/azavea/climate-change-api/pull/448)
+- Quote passing of Git commit SHA to Terraform [\#445](https://github.com/azavea/climate-change-api/pull/445)
+- Move data health checks to API [\#443](https://github.com/azavea/climate-change-api/pull/443)
+- Bump terraform version to 0.9.3 [\#439](https://github.com/azavea/climate-change-api/pull/439)
+- Release 1.0.1, update Changelog [\#432](https://github.com/azavea/climate-change-api/pull/432)
+
+
 ## [1.0.1](https://github.com/azavea/climate-change-api/tree/1.0.1) (2017-04-19)
 **Merged pull requests:**
 
