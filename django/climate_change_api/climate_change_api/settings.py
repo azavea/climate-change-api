@@ -222,7 +222,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Django-Registration
 # https://django-registration.readthedocs.io/en/2.1/
 ACCOUNT_ACTIVATION_DAYS = 14
-REGISTRATION_OPEN = False if os.getenv('CC_REGISTRATION_OPEN', 'false') == 'false' else True
+REGISTRATION_OPEN = True
 
 
 # Internationalization
@@ -250,9 +250,13 @@ if os.getenv('COMMIT'):
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
     STATIC_PRECOMPILER_ROOT = '/media/static'
+    STATIC_PRECOMPILER_FINDER_LIST_FILES = True
+    STATIC_URL_PATH = False
 else:
+
     STATIC_ROOT = '/media/static/'
     STATIC_URL = '/static/'
+    STATIC_URL_PATH = True
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -263,7 +267,6 @@ STATICFILES_FINDERS = (
 
 # SCSS Static Compiler
 # http://django-static-precompiler.readthedocs.io/en/stable/#libsass
-
 STATIC_PRECOMPILER_COMPILERS = (
     ('static_precompiler.compilers.libsass.SCSS', {
         "precision": 8,
@@ -356,11 +359,6 @@ WATCHMAN_ERROR_CODE = 503
 WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
-    # TODO: re-enable health checks
-    # disabled due to use by ECS
-    # 'climate_data.healthchecks.city_cells',
-    # 'climate_data.healthchecks.import_completion',
-    # 'climate_data.healthchecks.data_sources_present'
 )
 
 # Boto setup

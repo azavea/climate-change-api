@@ -19,7 +19,7 @@
       <div class="container">
         <div class="navbar-left">
           <a href="{% if user.is_authenticated %}{% url 'edit_profile' %}{% else %}{% url 'auth_login' %}{% endif %}" class="brand">
-            <img src="/static/images/climate-logo.svg" alt="">
+            <img src="{% static "images/climate-logo.svg" %}" alt="">
           </a>
         </div>
         <div class="navbar-right">

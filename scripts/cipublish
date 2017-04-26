@@ -50,8 +50,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             docker-compose \
                 -f docker-compose.yml \
                 -f docker-compose.test.yml \
-                run --rm --no-deps --entrypoint "./manage.py" \
-                django collectstatic --noinput
+                run --rm --no-deps --entrypoint "/bin/bash -c" \
+                django "./manage.py compilestatic && ./manage.py collectstatic --noinput"
 
             echo "Upload complete!"
 
