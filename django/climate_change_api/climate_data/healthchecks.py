@@ -1,11 +1,9 @@
-"""Check for missing or incompletely imported data for watchman healthcheck endpoint."""
+"""Check for missing or incompletely imported data for check endpoint."""
 
 import itertools
 import logging
 
 from django.db.models import Count
-
-from watchman.decorators import check
 
 from climate_data.models import (City,
                                  ClimateDataSource,
@@ -16,17 +14,13 @@ from climate_data.models import (City,
 logger = logging.getLogger(__name__)
 
 
-@check
-def _check_city_cells():
+def check_city_cells():
     """Check for cities that have no associated map cell."""
     missing = City.objects.filter(map_cell=None).values('name', 'admin')
-    if not missing.count():
-        return {'ok': True}
-    return {'ok': False, 'error': 'MissingCityCells', 'stacktrace': list(missing)}
+    return {'missing_city_cells': list(missing)}
 
 
-@check
-def _check_incomplete_imports():
+def check_incomplete_imports():
     """
     Check for partially completed imports.
 
@@ -35,13 +29,10 @@ def _check_incomplete_imports():
     missing = ClimateDataSource.objects.filter(import_completed=False).values('year',
                                                                               'model',
                                                                               'scenario')
-    if not missing.count():
-        return {'ok': True}
-    return {'ok': False, 'error': 'IncompleteClimateDataSources', 'stacktrace': list(missing)}
+    return {'incomplete_imports': list(missing)}
 
 
-@check
-def _check_missing_data_sources():
+def check_missing_data_sources():
     """
     Check for missing data sources.
 
@@ -53,7 +44,7 @@ def _check_missing_data_sources():
                                                                  Count('model', distinct=True) *
                                                                  Count('scenario', distinct=True)))
     if ClimateDataSource.objects.all().count() == expect.get('expected_total'):
-        return {'ok': True}
+        return {'missing_data_sources': []}
 
     # If got this far, at least one expected data source is not present. Find them all.
     distinct_years = ClimateDataSource.objects.distinct('year').values_list('year', flat=True)
@@ -78,16 +69,11 @@ def _check_missing_data_sources():
         model = ClimateModel.objects.get(id=model)
         scenario = Scenario.objects.get(id=scenario)
         response.append({'year': year, 'scenario': scenario.name, 'model': model.name})
-    return {'ok': False, 'error': 'MissingClimateDataSources', 'stacktrace': response}
+    return {'missing_data_sources': response}
 
 
-def city_cells():
-    return {'city_cells': _check_city_cells()}
-
-
-def import_completion():
-    return {'data_sources_import_completion': _check_incomplete_imports()}
-
-
-def data_sources_present():
-    return {'data_sources_present': _check_missing_data_sources()}
+def check_data():
+    """Return the results of all data status checks in a single object."""
+    return {'status': [check_city_cells(),
+                       check_incomplete_imports(),
+                       check_missing_data_sources()]}
