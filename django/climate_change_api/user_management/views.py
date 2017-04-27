@@ -39,7 +39,7 @@ def _post_salesforce_lead(user):
         'oid': '00D30000000efK8',  # Azavea Salesforce ID
         'Campaign_ID': '701130000027aQw',  # Climate Beta Test campaign in Salesforce
         '00N1300000B4tSR': '1',  # Contact Outreach 'Climate Beta Test'
-        '': '1',
+        '00N30000004RyN1': '1',  # Disable Validation
         'lead_source': 'Web',
         'first_name': user.first_name,
         'last_name': user.last_name,
