@@ -4,6 +4,8 @@ A two-step (registration followed by activation) workflow, implemented by emaili
 timestamped activation token to the user on signup.
 """
 
+import requests
+import logging
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -22,6 +24,36 @@ from user_management.throttling import ObtainAuthTokenThrottle
 from user_management.serializers import AuthTokenSerializer
 
 
+logger = logging.getLogger(__name__)
+
+
+def _post_salesforce_lead(user):
+    """Register new external users to Salesforce."""
+    if user.email.endswith('@azavea.com'):
+        return
+
+    url = ('https://webto.salesforce.com'
+           '/servlet/servlet.WebToLead?encoding=UTF-8')
+    data = {
+        'oid': '00D30000000efK8',  # Azavea Salesforce ID
+        'Campaign_ID': '701130000027aQw',  # Climate Beta Test campaign in Salesforce
+        '00N1300000B4tSR': '1',  # Contact Outreach 'Climate Beta Test'
+        'lead_source': 'Web',
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'company': user.userprofile.organization,
+    }
+
+    response = requests.post(url, data=data)
+
+    # TODO: do something more active to handle an error
+    if response.status_code != 200:
+        logger.debug("Couldn't save newly registered user to Salesforce: " + response.status_code)
+
+    return
+
+
 class RegistrationView(BaseRegistrationView):
     """Extends default Django-registration HMAC view."""
 
@@ -29,12 +61,16 @@ class RegistrationView(BaseRegistrationView):
 
     def register(self, form):
         new_user = super(RegistrationView, self).register(form)
-        # create profile for new user
+        # create profile for new user and save in Django
         new_profile = UserProfile.create(user=new_user)
         new_profile.organization = form.cleaned_data.get('organization')
         new_user.userprofile = new_profile
         new_profile.save()
         new_user.save()
+
+        # Also save user info to Salesforce
+        _post_salesforce_lead(new_user)
+
         return new_user
 
 
