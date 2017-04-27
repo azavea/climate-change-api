@@ -8,6 +8,7 @@ import requests
 import logging
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
+from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -38,6 +39,7 @@ def _post_salesforce_lead(user):
         'oid': '00D30000000efK8',  # Azavea Salesforce ID
         'Campaign_ID': '701130000027aQw',  # Climate Beta Test campaign in Salesforce
         '00N1300000B4tSR': '1',  # Contact Outreach 'Climate Beta Test'
+        '': '1',
         'lead_source': 'Web',
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -47,9 +49,17 @@ def _post_salesforce_lead(user):
 
     response = requests.post(url, data=data)
 
-    # TODO: do something more active to handle an error
     if response.status_code != 200:
-        logger.debug("Couldn't save newly registered user to Salesforce: " + response.status_code)
+        logger.debug('Could not save newly registered user to Salesforce:' +
+                     '{}'.format(response.status_code))
+        send_mail(
+            'New user to Climate Beta Test failed to save to Salesforce',
+            'Failed with code: {}. Please manually enter user: {}'.format(response.status_code,
+                                                                          data),
+            'noreply@climate.azavea.com',
+            ['climate@azavea.com'],
+            fail_silently=False,
+        )
 
     return
 
