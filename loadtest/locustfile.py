@@ -8,6 +8,10 @@ from locust import HttpLocust, TaskSet, task
 CITY_ID = os.getenv('LOAD_TEST_CITY_ID') or 1
 SCENARIO = os.getenv('LOAD_TEST_SCENARIO') or 'RCP85'
 
+DEFAULT_PARAMS = {
+    'noCache': 'True'
+}
+
 DEFAULT_THRESHOLD_PARAMS = {
     'threshold': 100,
     'threshold_comparator': 'lte',
@@ -28,14 +32,11 @@ def general_indicator_query(locust_object, indicator, params):
 class UserBehavior(TaskSet):
 
     def get_api_url(self, url):
-        """ Helper for querying API with authorization header
-        """
+        """ Helper for querying API with authorization header"""
         self.client.get(url, headers=self.headers, params={'noCache': 'True'}, name=url)
 
     def build_indicator_queries(self):
-        """
-        Add a load test query for each indciator / time aggregation
-        """
+        """Add a load test query for each indciator / time aggregation"""
         indicators = self.client.get('/api/indicator/',
                                      headers=self.headers).json()
         for indicator in indicators:
@@ -44,20 +45,21 @@ class UserBehavior(TaskSet):
                 params = DEFAULT_THRESHOLD_PARAMS.copy()
                 if indicator_name.find('precipitation') > -1:
                     params['threshold_units'] = 'in'
-                self.tasks.append(partial(general_indicator_query,
-                                          indicator=indicator_name,
-                                          params=params))
             else:
-                # for non-threshold indicators, test all non-custom aggregation levels
-                for agg in indicator['valid_aggregations']:
-                    if agg != 'custom':
-                        self.tasks.append(partial(general_indicator_query,
-                                                  indicator=indicator_name,
-                                                  params={'time_aggregation': agg,
-                                                          'noCache': True}))
+                params = DEFAULT_PARAMS.copy()
+
+            # vary all the available aggregations
+            for agg in indicator['valid_aggregations']:
+                if agg != 'custom':
+                    agg_params = params.copy()
+                    agg_params['time_aggregation'] = agg
+
+                    self.tasks.append(partial(general_indicator_query,
+                                              indicator=indicator_name,
+                                              params=agg_params))
 
     def on_start(self):
-        """ on_start is called when a Locust start before any task is scheduled """
+        """Run tasks before any task is scheduled"""
         print('starting locust...')
         token = os.getenv('API_TOKEN')
         if not token:
