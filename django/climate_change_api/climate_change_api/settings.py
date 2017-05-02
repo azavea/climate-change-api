@@ -109,6 +109,7 @@ if DEBUG:
 else:
     EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'noreply@climate.azavea.com')
+DEFAULT_TO_EMAIL = os.getenv('CC_TO_EMAIL', 'climate@azavea.com')
 
 
 MIDDLEWARE_CLASSES = [
@@ -360,6 +361,15 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
+
+
+# Salesforce
+SALESFORCE_URL = 'https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8'
+SALESFORCE_OID = '00D30000000efK8'  # Azavea Salesforce ID
+SALESFORCE_CAMPAIGN_ID = '701130000027aQw'  # Climate Beta Test campaign in Salesforce
+SALESFORCE_CONTACT_OUTREACH = '00N1300000B4tSR'  # Contact Outreach 'Climate Beta Test'
+SALESFORCE_VALIDATION = '00N30000004RyN1'  # Toggle lead validation
+
 
 # Boto setup
 if DEBUG:
