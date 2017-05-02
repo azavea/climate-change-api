@@ -1,5 +1,9 @@
 
-The Scenario endpoints describe the Representative Concentration Pathways (RCPs) defined by the `fifth IPCC Assessment Report`_ that this API supports.
+The Scenario endpoints describe the Representative Concentration Pathways (RCPs) defined by the |IPCC report| that this API supports.
+
+.. |IPCC report| raw:: html
+
+   <a href="https://en.wikipedia.org/wiki/IPCC_Fifth_Assessment_Report" target="_blank">fifth IPCC Assessment Report</a>
 
 These RCPs define greenhouse gas concentrations over time based upon a few different future scenarios of anthropogenic (human-caused) greenhouse gas emissions.
 
@@ -69,5 +73,3 @@ Response:
       "label": "RCP 8.5",
       "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php"
     }
-
-.. _`fifth IPCC Assessment Report`: https://en.wikipedia.org/wiki/IPCC_Fifth_Assessment_Report
