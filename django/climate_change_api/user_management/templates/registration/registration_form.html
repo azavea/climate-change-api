@@ -8,12 +8,15 @@
 
 <body>
     {% block content %}
-    <form method="post" action=".">
+    <form method="post" action="." class="form-registration">
       {% csrf_token %}
-      {% bootstrap_form form %}
-      <div class="form-group">
-        <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
-        <a href="{% url 'auth_login' %}" class="btn">{% trans 'Cancel' %}</button>
+      <h3>Get started with an API account</h3>
+      <div>
+        {% bootstrap_form form %}
+        <div class="form-group">
+          <button class="btn btn-primary" type="submit">{% trans 'Submit' %}</button>
+          <a href="{% url 'auth_login' %}" class="btn">{% trans 'Cancel' %}</a>
+        </div>
       </div>
     </form>
     {% endblock %}
