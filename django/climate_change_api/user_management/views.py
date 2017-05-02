@@ -7,6 +7,7 @@ timestamped activation token to the user on signup.
 import requests
 import logging
 from django.shortcuts import render
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
@@ -33,13 +34,11 @@ def _post_salesforce_lead(user):
     if user.email.endswith('@azavea.com'):
         return
 
-    url = ('https://webto.salesforce.com'
-           '/servlet/servlet.WebToLead?encoding=UTF-8')
     data = {
-        'oid': '00D30000000efK8',  # Azavea Salesforce ID
-        'Campaign_ID': '701130000027aQw',  # Climate Beta Test campaign in Salesforce
-        '00N1300000B4tSR': '1',  # Contact Outreach 'Climate Beta Test'
-        '00N30000004RyN1': '1',  # Disable Validation
+        'oid': settings.SALESFORCE_OID,
+        'Campaign_ID': settings.SALESFORCE_CAMPAIGN_ID,
+        settings.SALESFORCE_CONTACT_OUTREACH: '1',
+        settings.SALESFORCE_VALIDATION: '1',  # Disable Validation
         'lead_source': 'Web',
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -47,7 +46,7 @@ def _post_salesforce_lead(user):
         'company': user.userprofile.organization,
     }
 
-    response = requests.post(url, data=data)
+    response = requests.post(settings.SALESFORCE_URL, data=data)
 
     if response.status_code != 200:
         logger.debug('Could not save newly registered user to Salesforce:' +
@@ -56,8 +55,8 @@ def _post_salesforce_lead(user):
             'New user to Climate Beta Test failed to save to Salesforce',
             'Failed with code: {}. Please manually enter user: {}'.format(response.status_code,
                                                                           data),
-            'noreply@climate.azavea.com',
-            ['climate@azavea.com'],
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.DEFAULT_TO_EMAIL],
             fail_silently=False,
         )
 
