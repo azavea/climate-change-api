@@ -9,7 +9,6 @@ import logging
 from django.shortcuts import render
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -31,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def _post_salesforce_lead(user):
     """Register new external users to Salesforce."""
-    if user.email.endswith('@azavea.com'):
+    if user.email.endswith(settings.COMPANY_DOMAIN):
         return
 
     data = {
@@ -49,17 +48,8 @@ def _post_salesforce_lead(user):
     response = requests.post(settings.SALESFORCE_URL, data=data)
 
     if response.status_code != 200:
-        logger.debug('Could not save newly registered user to Salesforce:' +
-                     '{}'.format(response.status_code))
-        send_mail(
-            'New user to Climate Beta Test failed to save to Salesforce',
-            'Failed with code: {}. Please manually enter user: {}'.format(response.status_code,
-                                                                          data),
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.DEFAULT_TO_EMAIL],
-            fail_silently=False,
-        )
-
+        logger.error("ERROR CODE %s. Could not save newly registered user to Salesforce:" +
+                     "%s", response.status_code, data)
     return
 
 
