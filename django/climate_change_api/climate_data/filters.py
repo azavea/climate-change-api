@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 class ClimateDataFilterSet(filters.FilterSet):
     """FilterSet for ClimateData, used by the ClimateData ListAPIView."""
 
-    models = django_filters.MethodFilter()
-    years = django_filters.MethodFilter()
+    models = django_filters.CharFilter(method='filter_models')
+    years = django_filters.CharFilter(method='filter_years')
 
     def __init__(self, *args, **kwargs):
         self.year_col = kwargs.pop('year_col', 'data_source__year')
         super(ClimateDataFilterSet, self).__init__(*args, **kwargs)
 
-    def filter_models(self, queryset, value):
+    def filter_models(self, queryset, name, value):
         """Filter models based on a comma separated list of names.
 
         Value should be a string of the form 'climate_model.name,...'
@@ -33,7 +33,7 @@ class ClimateDataFilterSet(filters.FilterSet):
             queryset = queryset.filter(data_source__model__id__in=models)
         return queryset
 
-    def filter_years(self, queryset, value):
+    def filter_years(self, queryset, name, value):
         """Filter years based on a list of ranges provided in the query param.
 
         Value should be a string of the form: 'start_year[:end_year],...'
