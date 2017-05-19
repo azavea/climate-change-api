@@ -1,19 +1,44 @@
 # Change Log
 
-## [1.0.2](https://github.com/azavea/climate-change-api/tree/1.0.2) (2017-04-25)
-[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.0...1.0.2)
+## [1.0.5](https://github.com/azavea/climate-change-api/tree/1.0.5) (2017-05-19)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.4...1.0.5)
+
+**Merged pull requests:**
+
+- Remove traces of custom BigAutoField [\#471](https://github.com/azavea/climate-change-api/pull/471)
+- Bump django extensions version [\#463](https://github.com/azavea/climate-change-api/pull/463)
+- Django 1.10 upgrade [\#461](https://github.com/azavea/climate-change-api/pull/461)
+- Feature/jdf/style registration form [\#459](https://github.com/azavea/climate-change-api/pull/459)
+- Feature/jf/hookup salesforce [\#458](https://github.com/azavea/climate-change-api/pull/458)
+- Style registration form [\#457](https://github.com/azavea/climate-change-api/pull/457)
+- Open all external links in docs in new tab [\#451](https://github.com/azavea/climate-change-api/pull/451)
+- Fix healthchecks to check for scenario data within correct time range [\#446](https://github.com/azavea/climate-change-api/pull/446)
+- Update load tests [\#402](https://github.com/azavea/climate-change-api/pull/402)
+
+## [1.0.4](https://github.com/azavea/climate-change-api/tree/1.0.4) (2017-04-26)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.3...1.0.4)
+
+**Merged pull requests:**
+
+- Merge branch 'release/1.0.3' [\#455](https://github.com/azavea/climate-change-api/pull/455)
+
+## [1.0.3](https://github.com/azavea/climate-change-api/tree/1.0.3) (2017-04-26)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.2...1.0.3)
+
+## [1.0.2](https://github.com/azavea/climate-change-api/tree/1.0.2) (2017-04-26)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.1...1.0.2)
 
 **Merged pull requests:**
 
 - Fix broken img reference in logout page [\#453](https://github.com/azavea/climate-change-api/pull/453)
 - Update to open registration in all cases [\#452](https://github.com/azavea/climate-change-api/pull/452)
 - Fix deployment of static assets [\#450](https://github.com/azavea/climate-change-api/pull/450)
+- Restore development DB from an S3 backup [\#449](https://github.com/azavea/climate-change-api/pull/449)
 - Install pydocstyle version compatible with flake8-docstrings [\#448](https://github.com/azavea/climate-change-api/pull/448)
 - Quote passing of Git commit SHA to Terraform [\#445](https://github.com/azavea/climate-change-api/pull/445)
 - Move data health checks to API [\#443](https://github.com/azavea/climate-change-api/pull/443)
 - Bump terraform version to 0.9.3 [\#439](https://github.com/azavea/climate-change-api/pull/439)
 - Release 1.0.1, update Changelog [\#432](https://github.com/azavea/climate-change-api/pull/432)
-
 
 ## [1.0.1](https://github.com/azavea/climate-change-api/tree/1.0.1) (2017-04-19)
 **Merged pull requests:**
