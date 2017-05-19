@@ -19,7 +19,6 @@ from . import docker_helper
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -109,7 +108,7 @@ if DEBUG:
 else:
     EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'noreply@climate.azavea.com')
-
+COMPANY_DOMAIN = '@azavea.com'
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -360,6 +359,15 @@ WATCHMAN_CHECKS = (
     'watchman.checks.caches',
     'watchman.checks.databases',
 )
+
+
+# Salesforce
+SALESFORCE_URL = 'https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8'
+SALESFORCE_OID = '00D30000000efK8'  # Azavea Salesforce ID
+SALESFORCE_CAMPAIGN_ID = '701130000027aQw'  # Climate Beta Test campaign in Salesforce
+SALESFORCE_CONTACT_OUTREACH = '00N1300000B4tSR'  # Contact Outreach 'Climate Beta Test'
+SALESFORCE_VALIDATION = '00N30000004RyN1'  # Toggle lead validation
+
 
 # Boto setup
 if DEBUG:

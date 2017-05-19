@@ -9,10 +9,17 @@ class UserForm(RegistrationFormUniqueEmail):
     Enforces 1 account per e-mail.
     """
 
-    email = forms.EmailField(help_text=None)
-    first_name = forms.CharField(max_length=30)
-    last_name = forms.CharField(max_length=30)
-    organization = forms.CharField(max_length=255)
+    email = forms.EmailField(help_text=None, widget=forms.TextInput(attrs={'placeholder': ''}))
+    first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'placeholder': ''}))
+    last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'placeholder': ''}))
+    organization = forms.CharField(max_length=255,
+                                   widget=forms.TextInput(attrs={'placeholder': ''}))
+    password1 = forms.CharField(help_text=None,
+                                label='Password',
+                                widget=forms.PasswordInput(attrs={'placeholder': ''}))
+    password2 = forms.CharField(help_text=None,
+                                label='Password confirmation',
+                                widget=forms.PasswordInput(attrs={'placeholder': ''}))
 
     class Meta:
         model = ClimateUser
