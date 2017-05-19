@@ -20,7 +20,7 @@ The global climate is changing. Seasons are shifting. Sea levels are rising. Ext
 
 Everyone has climate questions. For example, how will my area be affected? With what probability can these changes be expected? How will the growing season shift? Can I access and afford reliable climate projection data?
 
-The National Aeronautics and Space Administration of the United States (NASA) produces an abundance of quality global climate data available in NEX format. Recognizing that this more unique data format limits accessibility for many climate professionals, scientists, and even citizens who are actively preparing for climate change, the Climate API processes the NEX data according to the standards set by the Intergovernmental Panel on Climate Change (`IPCC`_) and serves it in the universal format, `JSON`_. `JSON`_ is a data structure accepted by virtually all modern programming languages.
+The National Aeronautics and Space Administration of the United States (NASA) produces an abundance of quality global climate data available in NEX format. Recognizing that this more unique data format limits accessibility for many climate professionals, scientists, and even citizens who are actively preparing for climate change, the Climate API processes the NEX data according to the standards set by the Intergovernmental Panel on Climate Change (|IPCC|) and serves it in the universal format, |JSON|. |JSON| is a data structure accepted by virtually all modern programming languages.
 
 Currently, the Climate API includes temperature and precipitation data for cities across the entire USA historically and under two popular carbon emission scenarios projected until the end of the century.
 
@@ -30,15 +30,15 @@ Accessible and standardized climate data through the Climate API will help answe
 Logging in
 ~~~~~~~~~~
 
-`Log in`_ or `sign up`_ for a new account with the Climate API.
+|Log in| or |sign up| for a new account with the Climate API.
 
 
 Getting a token
 ~~~~~~~~~~~~~~~
 
-`Logging in`_ directs you to the Climate API User Profile page, which contains your API token. A valid token is required to make requests to the API. Should you generate a new token, note that your old token will be expired and any instances of it must be updated to access the API.
+|Logging in| directs you to the Climate API User Profile page, which contains your API token. A valid token is required to make requests to the API. Should you generate a new token, note that your old token will be expired and any instances of it must be updated to access the API.
 
-From the command line, you may request your token by providing the Climate API `your account`_ information::
+From the command line, you may request your token by providing the Climate API |your account| information::
 
     curl -k -X POST https://app.climate.azavea.com/api-token-auth/ -d email=<your_email> -d password=<your_password>
 
@@ -54,9 +54,26 @@ Voila! You've just make your first Climate API request.
 
 .. URLS:
 
-.. _JSON: https://msdn.microsoft.com/en-us/library/bb299886.aspx
-.. _Log in: https://app.climate.azavea.com/accounts/login/
-.. _Logging in: https://app.climate.azavea.com/accounts/login/
-.. _sign up: https://app.climate.azavea.com/accounts/register/
-.. _IPCC: https://www.ipcc.ch/index.htm
-.. _your account: https://app.climate.azavea.com/accounts/profile/
+.. |JSON| raw:: html
+
+    <a href="https://msdn.microsoft.com/en-us/library/bb299886.aspx" target="_blank">JSON</a>
+
+.. |Log in| raw:: html
+
+    <a href="https://app.climate.azavea.com/accounts/login/" target="_blank">Log in</a>
+
+.. |Logging in| raw:: html
+
+    <a href="https://app.climate.azavea.com/accounts/login/" target="_blank">Logging in</a>
+
+.. |sign up| raw:: html
+
+    <a href="https://app.climate.azavea.com/accounts/register/" target="_blank">sign up</a>
+
+.. |IPCC| raw:: html
+
+    <a href="https://www.ipcc.ch/index.htm" target="_blank">IPCC</a>
+
+.. |your account| raw:: html
+
+    <a href="https://app.climate.azavea.com/accounts/profile/" target="_blank">your account</a>

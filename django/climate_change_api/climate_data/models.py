@@ -5,15 +5,6 @@ from django.db.models import CASCADE, SET_NULL
 from climate_data.geo_boundary import census
 
 
-# Back-port of the Django BigAutoField introduced in Django 1.10
-class BigAutoField(models.AutoField):
-    def db_type(self, connection):
-        return models.BigIntegerField().db_type(connection=connection)
-
-    def get_internal_type(self):
-        return "BigIntegerField"
-
-
 class TinyForeignKey(models.ForeignKey):
     def db_type(self, connection):
         return models.SmallIntegerField().db_type(connection=connection)
@@ -243,7 +234,7 @@ class ClimateData(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
 
-    id = BigAutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     map_cell = TinyForeignKey(ClimateDataCell)
     data_source = TinyForeignKey(ClimateDataSource)
     day_of_year = models.PositiveSmallIntegerField()
