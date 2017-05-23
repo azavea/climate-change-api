@@ -198,6 +198,14 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
         return {'map_cell__baseline__percentile': self.params.percentile.value}
 
 
+class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, Indicator):
+    label = 'Diurnal Temperature Range'
+    description = ('Average difference between daily max and daily min temperature')
+    variables = ('tasmax', 'tasmin',)
+    agg_function = Avg
+    expression = (F('tasmax') - F('tasmin'))
+
+
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature'
