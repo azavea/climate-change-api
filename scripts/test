@@ -87,7 +87,7 @@ then
         GIT_COMMIT="${GIT_COMMIT}" docker-compose \
             ${DOCKER_COMPOSE_OPTS} \
             run --rm --entrypoint "./manage.py" \
-            django test --noinput --settings climate_change_api.settings_test
+            django test --noinput
 
         # TODO: re-enable dredd tests once https://github.com/azavea/climate-change-api/issues/322
         # is resolved
