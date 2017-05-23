@@ -1,11 +1,14 @@
+"""Helpers for creating API test cases."""
 
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 
+from climate_change_api.tests import DummyCacheTestCase
 from user_management.tests.factories import UserProfileFactory
 
 
-class CCAPITestCase(APITestCase):
+class CCAPITestCase(DummyCacheTestCase):
+    """Base TestCase class used for all CC API tests."""
 
     def setUp(self):
         super(CCAPITestCase, self).setUp()
