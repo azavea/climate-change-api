@@ -22,7 +22,7 @@ from climate_change_api.throttling import (ClimateDataBurstRateThrottle,
 from climate_data.caching import (full_url_cache_key_func,
                                   OverridableCacheResponseMixin,
                                   overridable_cache_response)
-from climate_data.filters import ClimateDataFilterSet
+from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateData,
@@ -70,11 +70,9 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    filter_backends = (InBBoxFilter, filters.SearchFilter,
-                       filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('name', 'admin',)
-    search_fields = ('name', 'admin',)
-    ordering_fields = ('name',)
+    filter_backends = (InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_class = CityFilterSet
+    ordering_fields = ('name', 'admin', 'population', 'region',)
     pagination_class = GeoJsonPagination
     bbox_filter_field = 'geom'
     bbox_filter_include_overlapping = True
