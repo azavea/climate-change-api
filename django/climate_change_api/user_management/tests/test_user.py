@@ -1,9 +1,11 @@
-from django.test import Client, TestCase
+from django.test import Client
+
+from climate_change_api.tests import DummyCacheTestCase
 
 from rest_framework import status
 
 
-class UserTestCase(TestCase):
+class UserTestCase(DummyCacheTestCase):
 
     def test_login(self):
 

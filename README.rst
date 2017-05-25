@@ -50,7 +50,7 @@ Run Django linter with::
 
 Run Django tests with::
 
-    ./scripts/console django './manage.py test --settings climate_change_api.settings_test'
+    ./scripts/console django './manage.py test'
 
 
 Load Testing
