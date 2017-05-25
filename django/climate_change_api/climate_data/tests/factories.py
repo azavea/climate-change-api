@@ -1,13 +1,26 @@
 from datetime import datetime
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 
 from factory.django import DjangoModelFactory
 import factory
 
 from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
-                                 ClimateDataSource, Scenario, ClimateDataCell,
+                                 ClimateDataSource, Region, Scenario, ClimateDataCell,
                                  HistoricAverageClimateData)
+
+
+class RegionFactory(DjangoModelFactory):
+
+    level1 = 8
+    level2 = 5
+    level1_description = "EASTERN TEMPERATE FORESTS"
+    level2_description = "MISSISSIPPI ALLUVIAL AND SOUTHEAST USA COASTAL PLAINS"
+    geom = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+
+    class Meta:
+        model = Region
+        django_get_or_create = ('level1', 'level2',)
 
 
 class CityFactory(DjangoModelFactory):
