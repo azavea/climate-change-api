@@ -5,10 +5,24 @@ from django.db.models import Q
 import django_filters
 from rest_framework import filters
 
-from climate_data.models import ClimateData, ClimateModel
+from climate_data.models import City, ClimateData, ClimateModel
 from functools import reduce
 
 logger = logging.getLogger(__name__)
+
+
+class CityFilterSet(filters.FilterSet):
+    """FilterSet for City."""
+
+    admin = django_filters.CharFilter(lookup_expr='icontains')
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    population_lte = django_filters.NumberFilter(name='population', lookup_expr='lte')
+    population_gte = django_filters.NumberFilter(name='population', lookup_expr='gte')
+    region = django_filters.NumberFilter()
+
+    class Meta:
+        model = City
+        fields = ['admin', 'name', 'population_lte', 'population_gte', 'region']
 
 
 class ClimateDataFilterSet(filters.FilterSet):
