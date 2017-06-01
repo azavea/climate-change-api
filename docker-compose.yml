@@ -21,6 +21,7 @@ services:
     links:
       - memcached
       - postgres
+      - statsite
     environment:
       - CC_DEBUG=true
       - DEV_USER=$DEV_USER
@@ -37,6 +38,11 @@ services:
   memcached:
     image: memcached:1.4-alpine
     command: [memcached, -I, 8M, -m, '256']
+
+  statsite:
+    build:
+      context: ./statsite
+      dockerfile: Dockerfile
 
   docs:
     build:

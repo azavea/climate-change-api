@@ -352,6 +352,14 @@ REST_FRAMEWORK_EXTENSIONS = {
 }
 
 
+# Statsd
+# http://statsd.readthedocs.io/en/v3.2.1/
+STATSD_HOST = 'statsite'
+STATSD_PORT = 8125
+# TODO: Include environment in prefix
+STATSD_PREFIX = 'climate'
+
+
 # Watchman
 # http://django-watchman.readthedocs.io/en/latest/
 WATCHMAN_ERROR_CODE = 503
