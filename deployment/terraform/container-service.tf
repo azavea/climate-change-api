@@ -18,8 +18,10 @@ data "template_file" "container_instance_cloud_config" {
   template = "${file("cloud-config/ecs-user-data.yml")}"
 
   vars {
-    ecs_cluster_name = "${aws_ecs_cluster.container_instance.name}"
-    environment      = "${var.environment}"
+    ecs_cluster_name      = "${aws_ecs_cluster.container_instance.name}"
+    environment           = "${var.environment}"
+    librato_climate_email = "${var.librato_climate_email}"
+    librato_climate_token = "${var.librato_climate_token}"
   }
 }
 
