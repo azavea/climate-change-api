@@ -40,9 +40,7 @@ services:
     command: [memcached, -I, 8M, -m, '256']
 
   statsite:
-    build:
-      context: ./statsite
-      dockerfile: Dockerfile
+    image: quay.io/azavea/statsite:0.8-alpine
 
   docs:
     build:
