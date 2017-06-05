@@ -24,11 +24,33 @@
     }
   },
   {
+      "cpu": 10,
+      "essential": true,
+      "image": "quay.io/azavea/statsite:0.8-alpine",
+      "memory": 256,
+      "name": "statsite",
+      "mountPoints": [
+          {
+              "sourceVolume": "librato",
+              "containerPath": "/etc/statsite/librato.ini",
+              "readOnly": true
+          },
+          {
+              "sourceVolume": "statsite",
+              "containerPath": "/etc/statsite/statsite.cfg",
+              "readOnly": true
+          }
+      ]
+  },
+  {
     "cpu": 10,
     "essential": true,
     "memory": 1024,
     "name": "django",
     "image": "${api_server_django_url}",
+    "links": [
+      "statsite"
+    ],
     "portMappings": [],
     "environment": [
       {
@@ -79,11 +101,11 @@
         "name": "CC_ALLOWED_HOSTS",
         "value": "${django_allowed_hosts}"
       },
-      { 
+      {
         "name": "CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN",
         "value": "${rollbar_server_side_access_token}"
       },
-      { 
+      {
         "name": "CC_STACK_TYPE",
         "value": "${environment}"
       },
