@@ -30,6 +30,8 @@ DEBUG = os.getenv('CC_DEBUG', False)
 if DEBUG == 'False' or DEBUG == 'false':
     DEBUG = False
 
+ENVIRONMENT = os.getenv('CC_STACK_TYPE', 'Development')
+
 
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
     # prevent from running in production mode with default secret key
@@ -127,7 +129,7 @@ MIDDLEWARE_CLASSES = [
 if not DEBUG:
     ROLLBAR = {
         'access_token': os.getenv('CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN'),
-        'environment': os.getenv('CC_STACK_TYPE'),
+        'environment': ENVIRONMENT,
         'root': os.getcwd()
     }
 
@@ -350,6 +352,13 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': API_VIEW_DEFAULT_CACHE_TIMEOUT,
     'DEFAULT_USE_CACHE': 'api_views',
 }
+
+
+# Statsd
+# http://statsd.readthedocs.io/en/v3.2.1/
+STATSD_HOST = 'statsite'
+STATSD_PORT = 8125
+STATSD_PREFIX = '{}.climate'.format(ENVIRONMENT.lower())
 
 
 # Watchman

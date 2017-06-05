@@ -123,6 +123,10 @@ variable "sqs_max_message_size" {}
 variable "sqs_receive_wait_time_seconds" {}
 variable "sqs_visibility_timeout_seconds" {}
 
+## Librato
+variable "librato_climate_email" {}
+variable "librato_climate_token" {}
+
 # Static docs site
 variable "climate_docs_site_bucket" {}
 variable "climate_docs_logs_bucket" {}
