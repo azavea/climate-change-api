@@ -114,6 +114,14 @@ class ClimateDataCell(models.Model):
         return (self.lat, self.lon)
 
 
+class HistoricDateRange(models.Model):
+    """Helper table abstracting year ranges for historic data aggregations.
+
+        Applies to ClimateDataBaseline and HistoricaAverageClimateData."""
+
+    years = models.CharField(max_length=20, help_text='30 year historic period, e.g. 1961-1990')
+
+
 class ClimateDataBaseline(models.Model):
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
     percentile = models.IntegerField(null=False)

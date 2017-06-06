@@ -4,7 +4,7 @@ import numpy as np
 from django.core.management.base import BaseCommand
 
 from climate_data.models import (ClimateData, ClimateDataCell, HistoricAverageClimateData,
-                                 ClimateDataBaseline, ClimateModel)
+                                 HistoricDateRange, ClimateDataBaseline, ClimateModel)
 from django.db.models import Avg
 
 logger = logging.getLogger('climate_data')
@@ -15,6 +15,22 @@ RAWDATA_URL = 'https://{domain}/api/climate-data/{city}/historical/'
 VARIABLES = ['tasmin', 'tasmax', 'pr']
 PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
+
+
+def generate_year_ranges(queryset):
+    """Build index of historic 30 year ranges."""
+    historic_years_query = queryset.values('data_source__year').distinct()
+    historic_years = sorted([i['data_source__year'] for i in historic_years_query])
+    years_avail = True
+    start_idx = 1
+    while years_avail:
+        try:
+            start_year = historic_years[start_idx]
+            end_year = historic_years[start_idx + 30]
+            HistoricDateRange(years="{}-{}".format(start_year, end_year)).save()
+            start_idx += 10
+        except IndexError:
+            years_avail = False
 
 
 def generate_baselines(mapcells, queryset):
@@ -75,6 +91,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         historic_data = ClimateData.objects.filter(data_source__scenario__name='historical')
         map_cells = ClimateDataCell.objects.filter(id__in=historic_data.values('map_cell'))
+
+        logger.info("Create historic year ranges")
+        generate_year_ranges(historic_data)
 
         logger.info("Importing averages")
         averages = generate_averages(map_cells, historic_data)
