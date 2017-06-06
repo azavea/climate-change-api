@@ -124,14 +124,15 @@ class HistoricDateRange(models.Model):
 
 class ClimateDataBaseline(models.Model):
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
+    date_range = TinyForeignKey(HistoricDateRange, null=False)
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')  # NOQA: E501
+                               help_text='Historic greatest daily minimum temperature for this percentile for a 30 yr period')  # NOQA: E501
     tasmax = models.FloatField(null=True,
-                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')  # NOQA: E501
+                               help_text='Historic greatest daily maximum temperature for this percentile for a 30 yr period')  # NOQA: E501
     pr = models.FloatField(null=True,
-                           help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA: E501
+                           help_text='Historic greatest daily precipitation for this percentile for a 30 yr period')  # NOQA: E501
 
     def natural_key(self):
         return (self.map_cell, self.percentile)
