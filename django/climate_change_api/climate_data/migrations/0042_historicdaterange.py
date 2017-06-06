@@ -16,7 +16,12 @@ class Migration(migrations.Migration):
             name='HistoricDateRange',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('years', models.CharField(max_length=20, help_text='30 year historic period, e.g. 1961-1990')),
+                ('start_year', models.PositiveSmallIntegerField(help_text='Inclusive starting year of the period')),
+                ('end_year', models.PositiveSmallIntegerField(help_text='Exclusive ending year of the period')),
             ],
+        ),
+        migrations.AlterUniqueTogether(
+            name='historicdaterange',
+            unique_together=set([('start_year', 'end_year')]),
         ),
     ]

@@ -119,7 +119,11 @@ class HistoricDateRange(models.Model):
 
         Applies to ClimateDataBaseline and HistoricaAverageClimateData."""
 
-    years = models.CharField(max_length=20, help_text='30 year historic period, e.g. 1961-1990')
+    start_year = models.PositiveSmallIntegerField(help_text='Inclusive starting year of the period')
+    end_year = models.PositiveSmallIntegerField(help_text='Exclusive ending year of the period')
+
+    class Meta:
+        unique_together = ('start_year', 'end_year')
 
 
 class ClimateDataBaseline(models.Model):
@@ -138,7 +142,7 @@ class ClimateDataBaseline(models.Model):
         return (self.map_cell, self.percentile)
 
     class Meta:
-        unique_together = ('map_cell', 'percentile')
+        unique_together = ('map_cell', 'percentile', 'date_range')
 
 
 class CityBoundaryManager(models.Manager):

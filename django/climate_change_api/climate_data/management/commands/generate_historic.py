@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 
+from django.db import IntegrityError
 from django.core.management.base import BaseCommand
 
 from climate_data.models import (ClimateData, ClimateDataCell, HistoricAverageClimateData,
@@ -27,7 +28,10 @@ def generate_year_ranges(queryset):
         try:
             start_year = historic_years[start_idx]
             end_year = historic_years[start_idx + 30]
-            HistoricDateRange(years="{}-{}".format(start_year, end_year)).save()
+            HistoricDateRange(start_year=start_year, end_year=end_year).save()
+            start_idx += 10
+        # Ignore duplicates and continue
+        except IntegrityError:
             start_idx += 10
         except IndexError:
             years_avail = False
@@ -38,35 +42,40 @@ def generate_baselines(mapcells, queryset):
     for cell in mapcells.filter(baseline__isnull=True):
         logger.info("Importing baselines for cell (%f,%f)", cell.lat, cell.lon)
         data = queryset.filter(map_cell=cell)
+        time_periods = HistoricDateRange.objects.all()
 
-        model_values = [data.filter(data_source__model=model).values(*VARIABLES)
-                        for model in MODELS]
-
-        variable_values = {var: [[mv[var] for mv in values] for values in model_values]
-                           for var in VARIABLES}
-
-        # For precipitation we only want records for days that had rainfall
-        variable_values['pr'] = [[x for x in vals if x > 0] for vals in variable_values['pr']]
-
-        for percentile in PERCENTILES:
-            try:
-                # Collect the percentiles by model and average them together per variable
-                insert_vals = {var: np.mean([np.percentile(vals, percentile)
-                                            for vals in variable_values[var]])
+        for period in time_periods:
+            period_model_values = [data.filter(data_source__model=model,
+                                               data_source__year__gte=period.start_year,
+                                               data_source__year__lt=period.end_year)
+                                   .values(*VARIABLES)
+                                   for model in MODELS]
+            variable_values = {var: [[mv[var] for mv in values] for values in period_model_values]
                                for var in VARIABLES}
-            except TypeError:
-                # numpy throws a TypeError if you try to calculate the mean of a set that has
-                # non-numeric values like None. That only happens if one or more of the models
-                # is missing data, which means we shouldn't try to calculate the mean.
-                logger.error("Missing model data for cell (%f,%f)! Skipping", cell.lat, cell.lon)
-                continue
 
-            insert_vals.update({
-                'map_cell': cell,
-                'percentile': percentile
-            })
+            # For precipitation we only want records for days that had rainfall
+            variable_values['pr'] = [[x for x in vals if x > 0] for vals in variable_values['pr']]
 
-            yield ClimateDataBaseline(**insert_vals)
+            for percentile in PERCENTILES:
+                try:
+                    # Collect the percentiles by model and average them together per variable
+                    insert_vals = {var: np.mean([np.percentile(vals, percentile)
+                                                for vals in variable_values[var]])
+                                   for var in VARIABLES}
+                except TypeError:
+                    # numpy throws a TypeError if you try to calculate the mean of a set that has
+                    # non-numeric values like None. That only happens if one or more of the models
+                    # is missing data, which means we shouldn't try to calculate the mean.
+                    logger.error("Missing model data for cell (%f,%f)! Skipping", cell.lat, cell.lon)
+                    continue
+
+                insert_vals.update({
+                    'map_cell': cell,
+                    'percentile': percentile,
+                    'date_range': period,
+                })
+
+                yield ClimateDataBaseline(**insert_vals)
 
 
 def generate_averages(mapcells, queryset):

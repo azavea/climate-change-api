@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import climate_data.models
-from django.db import migrations
+from django.db import migrations, models
 import django.db.models.deletion
 
 
@@ -19,5 +19,24 @@ class Migration(migrations.Migration):
             name='date_range',
             field=climate_data.models.TinyForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.HistoricDateRange'),
             preserve_default=False,
+        ),
+        migrations.AlterField(
+            model_name='climatedatabaseline',
+            name='pr',
+            field=models.FloatField(help_text='Historic greatest daily precipitation for this percentile for a 30 yr period', null=True),
+        ),
+        migrations.AlterField(
+            model_name='climatedatabaseline',
+            name='tasmax',
+            field=models.FloatField(help_text='Historic greatest daily maximum temperature for this percentile for a 30 yr period', null=True),
+        ),
+        migrations.AlterField(
+            model_name='climatedatabaseline',
+            name='tasmin',
+            field=models.FloatField(help_text='Historic greatest daily minimum temperature for this percentile for a 30 yr period', null=True),
+        ),
+        migrations.AlterUniqueTogether(
+            name='climatedatabaseline',
+            unique_together=set([('map_cell', 'percentile', 'date_range')]),
         ),
     ]
