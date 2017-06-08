@@ -72,7 +72,7 @@ def generate_baselines(mapcells, queryset):
                 insert_vals.update({
                     'map_cell': cell,
                     'percentile': percentile,
-                    'date_range': period,
+                    'historical_range': period,
                 })
 
                 yield ClimateDataBaseline(**insert_vals)
@@ -81,17 +81,24 @@ def generate_baselines(mapcells, queryset):
 def generate_averages(mapcells, queryset):
     for cell in mapcells.filter(historic_average=None):
         logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
-        existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell)
-        averages = (queryset
-                    .filter(map_cell=cell)
-                    .values('day_of_year')
-                    .exclude(day_of_year__in=existing_averages.values('day_of_year'))
-                    .annotate(**{var: Avg(var) for var in VARIABLES}))
-        for row in averages:
-            # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add map_cell
-            # then it's a complete image of what we want in HistoricAverageClimateData
-            row['map_cell'] = cell
-            yield HistoricAverageClimateData(**row)
+        time_periods = HistoricDateRange.objects.all()
+        for period in time_periods:
+            existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell,
+                                                                          historical_range=period)
+            averages = (queryset
+                        .filter(map_cell=cell,
+                                data_source__year__gte=period.start_year,
+                                data_source__year__lt=period.end_year)
+                        .values('day_of_year')
+                        .exclude(day_of_year__in=existing_averages.values('day_of_year'))
+                        .annotate(**{var: Avg(var) for var in VARIABLES}))
+            for row in averages:
+                # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add
+                # map_cell and historical_range then it's a complete image of what we want in
+                # HistoricAverageClimateData
+                row['map_cell'] = cell
+                row['historical_range'] = period
+                yield HistoricAverageClimateData(**row)
 
 
 class Command(BaseCommand):
