@@ -117,7 +117,8 @@ class ClimateDataCell(models.Model):
 class HistoricDateRange(models.Model):
     """Helper table abstracting year ranges for historic data aggregations.
 
-        Applies to ClimateDataBaseline and HistoricaAverageClimateData."""
+    Applies to ClimateDataBaseline and HistoricaAverageClimateData.
+    """
 
     start_year = models.PositiveSmallIntegerField(help_text='Inclusive starting year of the period')
     end_year = models.PositiveSmallIntegerField(help_text='Exclusive ending year of the period')
@@ -128,7 +129,7 @@ class HistoricDateRange(models.Model):
 
 class ClimateDataBaseline(models.Model):
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
-    date_range = TinyForeignKey(HistoricDateRange, null=False)
+    historical_range = TinyForeignKey(HistoricDateRange, null=False)
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
@@ -142,7 +143,7 @@ class ClimateDataBaseline(models.Model):
         return (self.map_cell, self.percentile)
 
     class Meta:
-        unique_together = ('map_cell', 'percentile', 'date_range')
+        unique_together = ('map_cell', 'percentile', 'historical_range')
 
 
 class CityBoundaryManager(models.Manager):
@@ -280,6 +281,7 @@ class HistoricAverageClimateData(models.Model):
 
     map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average')
     day_of_year = models.PositiveSmallIntegerField()
+    historical_range = TinyForeignKey(HistoricDateRange, null=False)
 
     tasmin = models.FloatField(null=True,
                                help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
@@ -289,8 +291,8 @@ class HistoricAverageClimateData(models.Model):
                            help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA: E501
 
     class Meta:
-        unique_together = ('map_cell', 'day_of_year')
-        index_together = ('map_cell', 'day_of_year')
+        unique_together = ('map_cell', 'day_of_year', 'historical_range')
+        index_together = ('map_cell', 'day_of_year', 'historical_range')
 
     def natural_key(self):
         return (self.city, self.month_day)
