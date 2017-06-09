@@ -10,22 +10,22 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('climate_data', '0043_climatedatabaseline_historical_range'),
+        ('climate_data', '0043_climatedatabaseline_historic_range'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='historicaverageclimatedata',
-            name='historical_range',
-            field=climate_data.models.TinyForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.HistoricDateRange'),
+            name='historic_range',
+            field=climate_data.models.TinyForeignKey(on_delete=django.db.models.deletion.CASCADE, to='climate_data.HistoricDateRange', null=True),
             preserve_default=False,
         ),
         migrations.AlterUniqueTogether(
             name='historicaverageclimatedata',
-            unique_together=set([('map_cell', 'day_of_year', 'historical_range')]),
+            unique_together=set([('map_cell', 'day_of_year', 'historic_range')]),
         ),
         migrations.AlterIndexTogether(
             name='historicaverageclimatedata',
-            index_together=set([('map_cell', 'day_of_year', 'historical_range')]),
+            index_together=set([('map_cell', 'day_of_year', 'historic_range')]),
         ),
     ]

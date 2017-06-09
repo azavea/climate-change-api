@@ -19,11 +19,18 @@ MODELS = ClimateModel.objects.all()
 
 
 def generate_year_ranges(queryset):
-    """Build index of historic 30 year ranges."""
+    """Build index of historic 30 year ranges starting at a decade+1 mark, i.e. 1971."""
     historic_years_query = queryset.values('data_source__year').distinct()
     historic_years = sorted([i['data_source__year'] for i in historic_years_query])
     years_avail = True
-    start_idx = 1
+    start_idx = 0
+
+    # Capture the correct start year
+    for year in historic_years:
+        start_idx += 1
+        if year % 10 == 0:
+            break
+
     while years_avail:
         try:
             start_year = historic_years[start_idx]
@@ -66,13 +73,14 @@ def generate_baselines(mapcells, queryset):
                     # numpy throws a TypeError if you try to calculate the mean of a set that has
                     # non-numeric values like None. That only happens if one or more of the models
                     # is missing data, which means we shouldn't try to calculate the mean.
-                    logger.error("Missing model data for cell (%f,%f)! Skipping", cell.lat, cell.lon)
+                    logger.error("Missing model data for cell (%f,%f)! Skipping",
+                                 cell.lat, cell.lon)
                     continue
 
                 insert_vals.update({
                     'map_cell': cell,
                     'percentile': percentile,
-                    'historical_range': period,
+                    'historic_range': period,
                 })
 
                 yield ClimateDataBaseline(**insert_vals)
@@ -84,7 +92,7 @@ def generate_averages(mapcells, queryset):
         time_periods = HistoricDateRange.objects.all()
         for period in time_periods:
             existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell,
-                                                                          historical_range=period)
+                                                                          historic_range=period)
             averages = (queryset
                         .filter(map_cell=cell,
                                 data_source__year__gte=period.start_year,
@@ -94,10 +102,10 @@ def generate_averages(mapcells, queryset):
                         .annotate(**{var: Avg(var) for var in VARIABLES}))
             for row in averages:
                 # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add
-                # map_cell and historical_range then it's a complete image of what we want in
+                # map_cell and historic_range then it's a complete image of what we want in
                 # HistoricAverageClimateData
                 row['map_cell'] = cell
-                row['historical_range'] = period
+                row['historic_range'] = period
                 yield HistoricAverageClimateData(**row)
 
 

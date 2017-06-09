@@ -16,8 +16,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='climatedatabaseline',
-            name='historical_range',
-            field=climate_data.models.TinyForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.HistoricDateRange'),
+            name='historic_range',
+            field=climate_data.models.TinyForeignKey(on_delete=django.db.models.deletion.CASCADE, to='climate_data.HistoricDateRange', null=True),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -37,6 +37,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='climatedatabaseline',
-            unique_together=set([('map_cell', 'percentile', 'historical_range')]),
+            unique_together=set([('map_cell', 'percentile', 'historic_range')]),
         ),
     ]
