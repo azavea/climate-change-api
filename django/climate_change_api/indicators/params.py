@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.core.exceptions import ValidationError
+from climate_data.models import HistoricDateRange
 
 from .unit_converters import TemperatureConverter
 from .validators import ChoicesValidator, float_validator, percentile_range_validator
@@ -41,6 +42,11 @@ CUSTOM_TIME_AGG_PARAM_DOCSTRING = ("Used in conjunction with the 'custom' time_a
 PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to determine the appropriate "
                               "comparative level of an event or measurement. Must be an integer in "
                               "the range [0,100]. Defaults to %d")
+
+HISTORIC_RANGE_PARAM_DOCSTRING = ("The 30 year range of past years used to define the historic "
+                                  "norm. Get the available options by querying the "
+                                  "historic ranges endpoint. Defaults to the most recent "
+                                  "period in the historical dataset.")
 
 BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily difference for degree"
                             " days summations. Defaults to 65. See the 'basetemp_units' for a "
@@ -199,6 +205,36 @@ class PercentileIndicatorParams(IndicatorParams):
                                          validators=[percentile_range_validator])
 
         super(PercentileIndicatorParams, self).__init__(*args, **kwargs)
+
+
+class HistoricIndicatorParams(object):
+    """Validate and set historic range, defaulting to most recent period.
+
+    Stringify inputs and options for validator.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # TODO: Cache/save request restults elsewhere to eliminate API calls per indicator call
+        # Due to migrations issues, wwe can't set these as file globals
+        default_pk = HistoricDateRange.objects.latest('end_year').pk  # Most recent
+        avail_pks = [str(i['pk']) for i in HistoricDateRange.objects.all().values('pk')]
+        historic_range_validator = ChoicesValidator(avail_pks)
+
+        self.historic_range = IndicatorParam('historic_range',
+                                             description=HISTORIC_RANGE_PARAM_DOCSTRING,
+                                             required=False,
+                                             default=str(default_pk),
+                                             validators=[historic_range_validator])
+
+        super(HistoricIndicatorParams, self).__init__(*args, **kwargs)
+
+
+class ExtremeIndicatorParams(HistoricIndicatorParams, PercentileIndicatorParams):
+    pass
+
+
+class HeatWaveIndicatorParams(HistoricIndicatorParams, IndicatorParams):
+    pass
 
 
 class DegreeDayIndicatorParams(IndicatorParams):
