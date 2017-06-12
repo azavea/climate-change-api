@@ -216,6 +216,18 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
 
+    def test_filtering_search(self):
+        """Should allow search filtering."""
+        url = reverse('city-list')
+
+        response = self.client.get(url, {'search': 'us'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        response = self.client.get(url, {'search': 'lond'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
     def test_list_ordering(self):
         """Ensure this endpoint can be sorted."""
         url = reverse('city-list')
