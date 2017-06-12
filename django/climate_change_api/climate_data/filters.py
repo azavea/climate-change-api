@@ -19,10 +19,16 @@ class CityFilterSet(filters.FilterSet):
     population_lte = django_filters.NumberFilter(name='population', lookup_expr='lte')
     population_gte = django_filters.NumberFilter(name='population', lookup_expr='gte')
     region = django_filters.NumberFilter()
+    search = django_filters.CharFilter(method='filter_search')
+
+    def filter_search(self, queryset, name, value):
+        """Custom search param filters on name and admin."""
+        return queryset.filter(Q(name__icontains=value) |
+                               Q(admin__icontains=value))
 
     class Meta:
         model = City
-        fields = ['admin', 'name', 'population_lte', 'population_gte', 'region']
+        fields = ['admin', 'name', 'population_lte', 'population_gte', 'region', 'search']
 
 
 class ClimateDataFilterSet(filters.FilterSet):
