@@ -123,7 +123,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+    'climate_change_api.middleware.ClimateRequestLoggingMiddleware',
 ]
 
 if not DEBUG:
