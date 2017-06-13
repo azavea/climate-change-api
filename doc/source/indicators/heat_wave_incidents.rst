@@ -6,6 +6,6 @@ Heat Wave Incidents counts the days the daily high temperature exceeds 5˚C abov
 
 .. |impact assessment| raw:: html
 
-   <a href="http://journals.ametsoc.org/doi/pdf/10.1175/JAMC-D-13-0130.1" target="_blank">mpact assessment</a>
+   <a href="http://journals.ametsoc.org/doi/pdf/10.1175/JAMC-D-13-0130.1" target="_blank">Impact assessment</a>
 
 .. _heat wave duration index: indicators.html#heat-wave-duration-index
