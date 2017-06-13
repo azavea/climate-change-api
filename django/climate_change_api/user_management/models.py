@@ -1,4 +1,4 @@
-
+import base64
 
 from django.core.mail import send_mail
 
@@ -59,6 +59,11 @@ class ClimateUserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    def from_encoded_email(self, encoded_email):
+        """Get a ClimateUser from a base64 bytestring encoded via ClimateUser.encode_email()."""
+        email = base64.urlsafe_b64decode(encoded_email).decode('UTF-8')
+        return self.get(email=email)
+
 
 class ClimateUser(AbstractBaseUser, PermissionsMixin):
     objects = ClimateUserManager()
@@ -109,6 +114,10 @@ class ClimateUser(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         """Return the short name for the user."""
         return self.first_name
+
+    def encode_email(self):
+        """Return UTF-8 email string as a urlsafe base64 bytestring."""
+        return base64.urlsafe_b64encode(self.email.encode('UTF-8'))
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this User."""
