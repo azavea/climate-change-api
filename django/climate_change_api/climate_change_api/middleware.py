@@ -42,7 +42,8 @@ class ClimateRequestLoggingMiddleware(object):
             # Send view timing metric
             self._record_time(request._start_time, tag)
             # Send view size metric
-            statsd.timing('{}.size'.format(tag), len(response.content))
+            if hasattr(response, 'content'):
+                statsd.timing('{}.size'.format(tag), len(response.content))
 
         return response
 
