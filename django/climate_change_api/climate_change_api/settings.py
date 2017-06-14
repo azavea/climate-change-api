@@ -110,6 +110,7 @@ if DEBUG:
 else:
     EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'noreply@climate.azavea.com')
+DEFAULT_TO_EMAIL = os.getenv('CC_TO_EMAIL', 'climate@azavea.com')
 COMPANY_DOMAIN = '@azavea.com'
 
 MIDDLEWARE_CLASSES = [
