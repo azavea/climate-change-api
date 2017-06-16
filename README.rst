@@ -200,18 +200,6 @@ To load pre-computed historic aggregated values from the fixture::
 
     ./scripts/console django './manage.py loaddata historic_averages historic_baselines'
 
-Loading From Remote Instance
-''''''''''''''''''''''''''''
-If the fixture is missing data for the cities you need or needs to be regenerated and you happen to have a previously
-deployed Climate Change API instance with the necessary data, you can use the `import_historic` management command to
-pull the data into your environment.
-
-Once you have the cities and models needed configured, run this command to pull the data down from the remote
-instance. Note that if you already have historic aggregated data you will need to delete it using the administrative
-tools first::
-
-    ./scripts/console django './manage.py import_historic staging.somewhere.com API_KEY'
-
 
 Loading From Historic Readings
 ''''''''''''''''''''''''''''''
