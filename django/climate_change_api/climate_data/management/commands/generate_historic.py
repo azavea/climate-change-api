@@ -17,11 +17,14 @@ VARIABLES = ['tasmin', 'tasmax', 'pr']
 PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
 
+HISTORIC_PERIOD_LENGTH = 30
+
 
 def generate_year_ranges(queryset):
     """Build index of historic 30 year ranges starting at a decade+1 mark, i.e. 1971."""
-    historic_years_query = queryset.values('data_source__year').distinct()
-    historic_years = sorted([i['data_source__year'] for i in historic_years_query])
+    historic_years = (queryset.values_list('data_source__year', flat=True)
+                              .order_by('data_source__year')
+                              .distinct())
     years_avail = True
     start_idx = 0
 
@@ -34,7 +37,7 @@ def generate_year_ranges(queryset):
     while years_avail:
         try:
             start_year = historic_years[start_idx]
-            end_year = historic_years[start_idx + 30]
+            end_year = historic_years[start_idx + HISTORIC_PERIOD_LENGTH]
             HistoricDateRange(start_year=start_year, end_year=end_year).save()
             start_idx += 10
         # Ignore duplicates and continue
@@ -48,13 +51,13 @@ def generate_baselines(mapcells, queryset):
     """Build baselines for cells represented by the queryset but have no baselines of their own."""
     for cell in mapcells.filter(baseline__isnull=True):
         logger.info("Importing baselines for cell (%f,%f)", cell.lat, cell.lon)
-        data = queryset.filter(map_cell=cell)
         time_periods = HistoricDateRange.objects.all()
 
         for period in time_periods:
-            period_model_values = [data.filter(data_source__model=model,
-                                               data_source__year__gte=period.start_year,
-                                               data_source__year__lt=period.end_year)
+            period_model_values = [queryset.filter(map_cell=cell,
+                                                   data_source__model=model,
+                                                   data_source__year__gte=period.start_year,
+                                                   data_source__year__lt=period.end_year)
                                    .values(*VARIABLES)
                                    for model in MODELS]
             variable_values = {var: [[mv[var] for mv in values] for values in period_model_values]
