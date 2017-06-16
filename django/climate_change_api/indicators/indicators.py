@@ -166,7 +166,7 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
 
     @property
     def filters(self):
-        return {'map_cell__baseline__historic_range_id': int(self.params.historic_range.value),
+        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
                 'map_cell__baseline__percentile': self.params.percentile.value}
 
 
@@ -182,7 +182,7 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
 
     @property
     def filters(self):
-        return {'map_cell__baseline__historic_range_id': int(self.params.historic_range.value),
+        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
                 'map_cell__baseline__percentile': self.params.percentile.value}
 
 
@@ -198,7 +198,7 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
 
     @property
     def filters(self):
-        return {'map_cell__baseline__historic_range_id': int(self.params.historic_range.value),
+        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
                 'map_cell__baseline__percentile': self.params.percentile.value}
 
 
@@ -285,7 +285,8 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     @property
     def filters(self):
         return {'day_of_year': F('map_cell__historic_average__day_of_year'),
-                'map_cell__baseline__historic_range_id': int(self.params.historic_range.value)}
+                'map_cell__historic_average__historic_range__pk':
+                    int(self.params.historic_range.value)}
 
     def aggregate(self):
         self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
@@ -297,9 +298,14 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
     description = ('Number of times daily high temperature exceeds 5C above historic norm for at '
                    'least 5 consecutive days')
     variables = ('tasmax',)
-    filters = {'day_of_year': F('map_cell__historic_average__day_of_year')}
     raw_condition = 'tasmax > avg_tasmax + 5'
     params_class = HeatWaveIndicatorParams
+
+    @property
+    def filters(self):
+        return {'day_of_year': F('map_cell__historic_average__day_of_year'),
+                'map_cell__historic_average__historic_range__pk':
+                    int(self.params.historic_range.value)}
 
     def aggregate(self):
         """Call get_streaks to get all sequences of abnormally hot days.
