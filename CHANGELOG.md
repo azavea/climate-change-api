@@ -1,5 +1,24 @@
 # Change Log
 
+## [1.0.6](https://github.com/azavea/climate-change-api/tree/1.0.6) (2017-06-19)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.5...1.0.6)
+
+**Merged pull requests:**
+
+- Add favicons to API and docs [\#514](https://github.com/azavea/climate-change-api/pull/514)
+- Add feedback section to profile [\#513](https://github.com/azavea/climate-change-api/pull/513)
+- Only send metrics for content length if response.content exists [\#512](https://github.com/azavea/climate-change-api/pull/512)
+- Fix docs typo [\#508](https://github.com/azavea/climate-change-api/pull/508)
+- Add search filter param to City list [\#501](https://github.com/azavea/climate-change-api/pull/501)
+- Fix broken docs search [\#500](https://github.com/azavea/climate-change-api/pull/500)
+- Feature/awf/django api requests middleware [\#486](https://github.com/azavea/climate-change-api/pull/486)
+- Feature/awf/statsite container [\#485](https://github.com/azavea/climate-change-api/pull/485)
+- Add ADR0007: API Request Logging [\#475](https://github.com/azavea/climate-change-api/pull/475)
+- Formalize, standardize and document CityList filter options [\#474](https://github.com/azavea/climate-change-api/pull/474)
+- Feature/jf/dtr indicator [\#472](https://github.com/azavea/climate-change-api/pull/472)
+- Django dependencies upgrade [\#467](https://github.com/azavea/climate-change-api/pull/467)
+- Ensure django.conf.settings aren't evaluated until after running command [\#466](https://github.com/azavea/climate-change-api/pull/466)
+
 ## [1.0.5](https://github.com/azavea/climate-change-api/tree/1.0.5) (2017-05-19)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.4...1.0.5)
 
