@@ -1,5 +1,10 @@
 Heat Wave Incidents counts the days the daily high temperature exceeds 5˚C above historic average high temperature norms for at least 5 consecutive days. This indicator is closely paired with `heat wave duration index`_ and, similarly, provides a concrete and palpable metric to the impacts of global warming. Frequency, duration, and intensity predictions of heat waves are very important for |health| and emergency services planning. See California's comprehensive |impact assessment|.
 
+- historic_range
+
+    Optionally set the years used to define "historic" to an available consecutive period of 30 years, i.e. 1961-1990. Defaults to the most current time period in the historical data.
+
+
 .. |health| raw:: html
 
    <a href="https://www.scientificamerican.com/article/heat-wave-health/" target="_blank">health</a>

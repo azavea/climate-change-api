@@ -1,5 +1,9 @@
 The Heat Wave Duration Index |(HWDI)| measures the maximum period of at least 5 consecutive days with daily high temperature greater than 5˚C above historic average high temperature norms. If the historic norm was 85˚F, a period of 6 consecutive days with maximum daily temperatures above 94˚F (5˚C = 9˚F) would register at 1 on the HWDI. This indicator provides a more specific and nuanced look at the extent and intensity of warming than `average high temperature`_ or even `extreme heat events`_. It is closely related to `heat wave incidents`_.
 
+- historic_range
+
+    Optionally set the years used to define "historic" to an available consecutive period of 30 years, i.e. 1961-1990. Defaults to the most current time period in the historical data.
+
 
 .. |(HWDI)| raw:: html
 
