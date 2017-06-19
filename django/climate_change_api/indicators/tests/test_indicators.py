@@ -385,6 +385,24 @@ class YearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
                                  2003: {'avg': 58.5, 'min': 58.5, 'max': 58.5}}
 
 
+class YearlyDiurnalTemperatureRangeTestCase(IndicatorTests, TestCase):
+    indicator_class = indicators.DiurnalTemperatureRange
+    indicator_name = 'diurnal_temperature_range'
+    time_aggregation = 'yearly'
+    units = 'K'
+    test_indicator_rcp85_equals = {2000: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_indicator_rcp45_equals = {2000: {'max': 0.0, 'avg': 0.0, 'min': 0.0},
+                                   2001: {'max': 0.0, 'avg': 0.0, 'min': 0.0},
+                                   2002: {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                   2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_years_filter_equals = {2001: {'max': 0.0, 'avg': 0.0, 'min': 0.0},
+                                2002: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+    test_models_filter_equals = {2000: {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 2001: {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 2002: {'avg': 0.0, 'max': 0.0, 'min': 0.0},
+                                 2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
+
+
 class CrossYearlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.HeatingDegreeDays
     indicator_name = 'heating_degree_days'

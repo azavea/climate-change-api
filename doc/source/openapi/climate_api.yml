@@ -63,6 +63,58 @@ paths:
           required: false
           description: |
             The maximum number of returned cities per page
+        - name: ordering
+          in: query
+          type: string
+          required: false
+          description: |
+            Sort results by the requested field(s). Can be any combination of name|admin|population|region separated by commas. Prefix a field name with '-' to reverse sort. For example, 'admin,-population' would sort by admin, then by population descending.
+        - name: admin
+          in: query
+          type: string
+          required: false
+          description: |
+            Filter results to cities where admin contains the provided value
+        - name: name
+          in: query
+          type: string
+          required: false
+          description: |
+            Filter results to cities where name contains the provided value
+        - name: search
+          in: query
+          type: string
+          required: false
+          description: |
+            Filter results to cities matching the string search query
+        - name: population_gte
+          in: query
+          type: integer
+          format: int32
+          required: false
+          description: |
+            Filter results to cities with population greater than or equal to the provided value
+        - name: population_lte
+          in: query
+          type: integer
+          format: int32
+          required: false
+          description: |
+            Filter results to cities with population less than or equal to the provided value
+        - name: region
+          in: query
+          type: integer
+          format: int32
+          required: false
+          description: |
+            Filter results to the provided region ID
+        - name: in_bbox
+          in: query
+          type: string
+          format: minlat,minlon,maxlat,maxlon
+          required: false
+          description: |
+            Filter results to the provided bounding box using the format 'minlon,minlat,maxlon,maxlat'
       responses:
         "200":
           description: |

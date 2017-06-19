@@ -152,21 +152,97 @@ class ScenarioViewSetTestCase(CCAPITestCase):
 
 class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
 
-    def test_filtering(self):
-        """Should allow equality filtering on text properties."""
+    def check_city_list(self, geojson, city_ids):
+        """Helper to compare geojson response against a particular response order."""
+        for feature, city_id in zip(geojson['features'], city_ids):
+            self.assertEqual(feature['id'], city_id)
+
+    def test_filtering_name(self):
+        """Should allow icontains filtering on name."""
         url = reverse('city-list')
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 3)
 
-        response = self.client.get(url, {'name': 'Philadelphia'})
+        response = self.client.get(url, {'name': 'phila'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
+
+    def test_filtering_admin(self):
+        """Should allow icontains filtering on admin."""
+        url = reverse('city-list')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
 
         response = self.client.get(url, {'admin': 'us'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
+
+    def test_filtering_population(self):
+        """Should allow range filtering on population."""
+        url = reverse('city-list')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+
+        # Tests inclusive bounds
+        response = self.client.get(url, {'population_gte': 20})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        # Tests inclusive bounds
+        response = self.client.get(url, {'population_lte': 10})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
+        # Test population exact doesn't work
+        response = self.client.get(url, {'population': 7})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+
+    def test_filtering_region(self):
+        """Should allow filtering on region."""
+        url = reverse('city-list')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+
+        response = self.client.get(url, {'region': self.region.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_filtering_search(self):
+        """Should allow search filtering."""
+        url = reverse('city-list')
+
+        response = self.client.get(url, {'search': 'us'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        response = self.client.get(url, {'search': 'lond'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_list_ordering(self):
+        """Ensure this endpoint can be sorted."""
+        url = reverse('city-list')
+
+        response = self.client.get(url, {'ordering': '-population'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_city_list(response.data, [self.city3.id, self.city2.id, self.city1.id])
+
+        response = self.client.get(url, {'ordering': 'admin,name'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_city_list(response.data, [self.city3.id, self.city1.id, self.city2.id])
+
+        response = self.client.get(url, {'ordering': 'region,-name'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.check_city_list(response.data, [self.city2.id, self.city1.id, self.city3.id])
 
     def test_list_is_geojson(self):
         """Ensure this endpoint is geojson-like."""
