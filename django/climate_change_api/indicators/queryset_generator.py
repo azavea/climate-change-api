@@ -62,8 +62,8 @@ class QuerysetGenerator(object):
     @classmethod
     def apply_filters(cls, queryset, years, models):
         filterset = ClimateDataFilterSet(**cls.filterset_kwargs)
-        queryset = filterset.filter_years(queryset, years)
-        queryset = filterset.filter_models(queryset, models)
+        queryset = filterset.filter_years(queryset, 'years', years)
+        queryset = filterset.filter_models(queryset, 'models', models)
         return queryset
 
     @classmethod
