@@ -21,30 +21,29 @@ HISTORIC_PERIOD_LENGTH = 30
 
 
 def generate_year_ranges(queryset):
-    """Build index of historic 30 year ranges starting at a decade+1 mark, i.e. 1971."""
+    """Build index of historic 30 year ranges starting at a decade+1 mark, i.e. 1971-2000."""
     historic_years = (queryset.values_list('data_source__year', flat=True)
                               .order_by('data_source__year')
                               .distinct())
-    years_avail = True
-    start_idx = 0
 
     # Capture the correct start year
-    for year in historic_years:
-        start_idx += 1
-        if year % 10 == 0:
+    start_idx = 0
+    for idx, year in enumerate(historic_years):
+        if (year - 1) % 10 == 0:
+            start_idx = idx
             break
 
-    while years_avail:
+    # Create HistoricDateRanges from historic data
+    first_end_year = historic_years[start_idx + HISTORIC_PERIOD_LENGTH - 1]
+    last_possible_end_year = historic_years[len(historic_years) - 1]
+    end_years = range(first_end_year, last_possible_end_year, 10)
+    for end_year in end_years:
+        start_year = end_year - HISTORIC_PERIOD_LENGTH + 1
         try:
-            start_year = historic_years[start_idx]
-            end_year = historic_years[start_idx + HISTORIC_PERIOD_LENGTH]
             HistoricDateRange(start_year=start_year, end_year=end_year).save()
-            start_idx += 10
-        # Ignore duplicates and continue
+        # ignore duplicate HistoricDateRanges
         except IntegrityError:
-            start_idx += 10
-        except IndexError:
-            years_avail = False
+            continue
 
 
 def generate_baselines(mapcells, queryset):
@@ -57,7 +56,7 @@ def generate_baselines(mapcells, queryset):
             period_model_values = [queryset.filter(map_cell=cell,
                                                    data_source__model=model,
                                                    data_source__year__gte=period.start_year,
-                                                   data_source__year__lt=period.end_year)
+                                                   data_source__year__lte=period.end_year)
                                    .values(*VARIABLES)
                                    for model in MODELS]
             variable_values = {var: [[mv[var] for mv in values] for values in period_model_values]
@@ -99,7 +98,7 @@ def generate_averages(mapcells, queryset):
             averages = (queryset
                         .filter(map_cell=cell,
                                 data_source__year__gte=period.start_year,
-                                data_source__year__lt=period.end_year)
+                                data_source__year__lte=period.end_year)
                         .values('day_of_year')
                         .exclude(day_of_year__in=existing_averages.values('day_of_year'))
                         .annotate(**{var: Avg(var) for var in VARIABLES}))

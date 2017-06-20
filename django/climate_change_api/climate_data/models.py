@@ -121,7 +121,7 @@ class HistoricDateRange(models.Model):
     """
 
     start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period')
-    end_year = models.PositiveSmallIntegerField(help_text='Exclusive ending year of the period')
+    end_year = models.PositiveSmallIntegerField(help_text='Inclusive ending year of the period')
 
     class Meta:
         unique_together = ('start_year', 'end_year')

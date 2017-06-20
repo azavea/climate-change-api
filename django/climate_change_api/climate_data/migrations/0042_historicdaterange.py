@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('start_year', models.PositiveSmallIntegerField(help_text='Inclusive start year of the period')),
-                ('end_year', models.PositiveSmallIntegerField(help_text='Exclusive ending year of the period')),
+                ('end_year', models.PositiveSmallIntegerField(help_text='Inclusive ending year of the period')),
             ],
         ),
         migrations.AlterUniqueTogether(
