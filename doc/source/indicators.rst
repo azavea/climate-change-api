@@ -37,6 +37,12 @@ Cooling Degree Days
 .. include::  indicators/cooling_degree_days.rst
 
 
+Diurnal Temperature Range
+-------------------------
+
+.. include:: indicators/diurnal_temperature_range.rst
+
+
 Extreme Cold Events
 -------------------
 

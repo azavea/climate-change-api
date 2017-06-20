@@ -157,6 +157,16 @@ data "template_file" "cc_api_https_ecs_task" {
 resource "aws_ecs_task_definition" "cc_api_https" {
   family                = "${var.environment}HTTPSAPIServer"
   container_definitions = "${data.template_file.cc_api_https_ecs_task.rendered}"
+
+  volume {
+    name      = "librato"
+    host_path = "/etc/statsite/librato.ini"
+  }
+
+  volume {
+    name      = "statsite"
+    host_path = "/etc/statsite/statsite.cfg"
+  }
 }
 
 resource "aws_ecs_service" "cc_api_https" {

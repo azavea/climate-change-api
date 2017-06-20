@@ -5,23 +5,43 @@ from django.db.models import Q
 import django_filters
 from rest_framework import filters
 
-from climate_data.models import ClimateData, ClimateModel
+from climate_data.models import City, ClimateData, ClimateModel
 from functools import reduce
 
 logger = logging.getLogger(__name__)
 
 
+class CityFilterSet(filters.FilterSet):
+    """FilterSet for City."""
+
+    admin = django_filters.CharFilter(lookup_expr='icontains')
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    population_lte = django_filters.NumberFilter(name='population', lookup_expr='lte')
+    population_gte = django_filters.NumberFilter(name='population', lookup_expr='gte')
+    region = django_filters.NumberFilter()
+    search = django_filters.CharFilter(method='filter_search')
+
+    def filter_search(self, queryset, name, value):
+        """Custom search param filters on name and admin."""
+        return queryset.filter(Q(name__icontains=value) |
+                               Q(admin__icontains=value))
+
+    class Meta:
+        model = City
+        fields = ['admin', 'name', 'population_lte', 'population_gte', 'region', 'search']
+
+
 class ClimateDataFilterSet(filters.FilterSet):
     """FilterSet for ClimateData, used by the ClimateData ListAPIView."""
 
-    models = django_filters.MethodFilter()
-    years = django_filters.MethodFilter()
+    models = django_filters.CharFilter(method='filter_models')
+    years = django_filters.CharFilter(method='filter_years')
 
     def __init__(self, *args, **kwargs):
         self.year_col = kwargs.pop('year_col', 'data_source__year')
         super(ClimateDataFilterSet, self).__init__(*args, **kwargs)
 
-    def filter_models(self, queryset, value):
+    def filter_models(self, queryset, name, value):
         """Filter models based on a comma separated list of names.
 
         Value should be a string of the form 'climate_model.name,...'
@@ -33,7 +53,7 @@ class ClimateDataFilterSet(filters.FilterSet):
             queryset = queryset.filter(data_source__model__id__in=models)
         return queryset
 
-    def filter_years(self, queryset, value):
+    def filter_years(self, queryset, name, value):
         """Filter years based on a list of ranges provided in the query param.
 
         Value should be a string of the form: 'start_year[:end_year],...'

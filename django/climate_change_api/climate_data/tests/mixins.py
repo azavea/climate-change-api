@@ -2,6 +2,7 @@ from django.contrib.gis.geos import Point
 
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
+                                          RegionFactory,
                                           ScenarioFactory,
                                           ClimateDataFactory,
                                           ClimateDataSourceFactory,
@@ -16,9 +17,14 @@ class CityDataSetupMixin(object):
     def setUp(self):
         super(CityDataSetupMixin, self).setUp()
 
-        self.city1 = CityFactory(name='Philadelphia', admin='us', geom=Point(10, 10))
-        self.city2 = CityFactory(name='Washington DC', admin='us', geom=Point(20, 20))
-        self.city3 = CityFactory(name='London', admin='uk', geom=Point(30, 30))
+        self.region = RegionFactory()
+
+        self.city1 = CityFactory(name='Philadelphia', admin='us', region=self.region,
+                                 population=10, geom=Point(10, 10))
+        self.city2 = CityFactory(name='Washington DC', admin='us', region=self.region,
+                                 population=20, geom=Point(20, 20))
+        self.city3 = CityFactory(name='London', admin='uk',
+                                 population=30, geom=Point(30, 30))
 
 
 class ClimateDataSetupMixin(object):
