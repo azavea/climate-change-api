@@ -280,6 +280,7 @@ class YearlyHeatWaveDurationIndexTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.HeatWaveDurationIndex
     indicator_name = 'heat_wave_duration_index'
     time_aggregation = 'yearly'
+    extra_params = {'historic_range': '1961'}
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 1, 'min': 1, 'max': 1},
                                    2001: {'avg': 1, 'min': 1, 'max': 1},
@@ -297,6 +298,7 @@ class YearlyHeatWaveIncidentsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.HeatWaveIncidents
     indicator_name = 'heat_wave_incidents'
     time_aggregation = 'yearly'
+    extra_params = {'historic_range': '1961'}
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
                                    2001: {'avg': 0, 'min': 0, 'max': 0},
@@ -313,7 +315,7 @@ class YearlyHeatWaveIncidentsTestCase(IndicatorTests, TestCase):
 class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremePrecipitationEvents
     indicator_name = 'extreme_precipitation_events'
-    extra_params = {'percentile': '99'}
+    extra_params = {'percentile': '99', 'historic_range': '1961'}
     time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
@@ -331,7 +333,7 @@ class YearlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
 class YearlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremeHeatEvents
     indicator_name = 'extreme_heat_events'
-    extra_params = {'percentile': '99'}
+    extra_params = {'percentile': '99', 'historic_range': '1961'}
     time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 1, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
@@ -349,7 +351,7 @@ class YearlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
 class YearlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremeColdEvents
     indicator_name = 'extreme_cold_events'
-    extra_params = {'percentile': '1'}
+    extra_params = {'percentile': '1', 'historic_range': '1961'}
     time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0.5, 'min': 0, 'max': 1},
@@ -597,7 +599,7 @@ class MonthlyFrostDaysTestCase(IndicatorTests, TestCase):
 class MonthlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremePrecipitationEvents
     indicator_name = 'extreme_precipitation_events'
-    extra_params = {'percentile': '99'}
+    extra_params = {'percentile': '99', 'historic_range': '1961'}
     time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
@@ -615,7 +617,7 @@ class MonthlyExtremePrecipitationEventsTestCase(IndicatorTests, TestCase):
 class MonthlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremeHeatEvents
     indicator_name = 'extreme_heat_events'
-    extra_params = {'percentile': '99'}
+    extra_params = {'percentile': '99', 'historic_range': '1961'}
     time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 1.0, 'min': 1, 'max': 1}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0},
@@ -633,7 +635,7 @@ class MonthlyExtremeHeatEventsTestCase(IndicatorTests, TestCase):
 class MonthlyExtremeColdEventsTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.ExtremeColdEvents
     indicator_name = 'extreme_cold_events'
-    extra_params = {'percentile': '1'}
+    extra_params = {'percentile': '1', 'historic_range': '1961'}
     time_aggregation = 'monthly'
     test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {'2000-01': {'avg': 0.5, 'min': 0, 'max': 1},
