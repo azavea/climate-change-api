@@ -7,7 +7,7 @@ import factory
 
 from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
                                  ClimateDataSource, Region, Scenario, ClimateDataCell,
-                                 HistoricAverageClimateData)
+                                 HistoricAverageClimateData, HistoricDateRange)
 
 
 class RegionFactory(DjangoModelFactory):
@@ -99,6 +99,16 @@ class ClimateDataFactory(DjangoModelFactory):
         django_get_or_create = ('map_cell', 'data_source', 'day_of_year',)
 
 
+class HistoricDateRangeFactory(DjangoModelFactory):
+
+    start_year = 0
+    end_year = 0
+
+    class Meta:
+        model = HistoricDateRange
+        django_get_or_create = ('start_year', 'end_year')
+
+
 class ClimateDataBaselineFactory(DjangoModelFactory):
 
     map_cell = ClimateDataCellFactory()
@@ -106,10 +116,11 @@ class ClimateDataBaselineFactory(DjangoModelFactory):
     tasmin = 272
     tasmax = 292
     pr = 0.00005
+    historic_range = HistoricDateRangeFactory()
 
     class Meta:
         model = ClimateDataBaseline
-        django_get_or_create = ('map_cell', 'percentile',)
+        django_get_or_create = ('map_cell', 'percentile', 'historic_range')
 
 
 class HistoricAverageClimateDataFactory(DjangoModelFactory):
@@ -119,7 +130,8 @@ class HistoricAverageClimateDataFactory(DjangoModelFactory):
     tasmin = 0
     tasmax = 0
     pr = 0
+    historic_range = HistoricDateRangeFactory()
 
     class Meta:
         model = HistoricAverageClimateData
-        django_get_or_create = ('map_cell', 'day_of_year',)
+        django_get_or_create = ('map_cell', 'day_of_year', 'historic_range')
