@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from climate_data.tests.mixins import ClimateDataSetupMixin
-from climate_data.models import HistoricDateRange
 from climate_data.tests.factories import HistoricDateRangeFactory
 from indicators import indicators
 from indicators.params import (IndicatorParam, IndicatorParams, PercentileIndicatorParams,
