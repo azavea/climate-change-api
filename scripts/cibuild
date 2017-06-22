@@ -25,6 +25,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [ "${1:-}" = "--help" ]; then
         usage
     else
+        echo "Copy template statsite librato.ini so build succeeds"
+        cp "${DIR}/../statsite/etc/statsite/librato.ini.example" "${DIR}/../statsite/etc/statsite/librato.ini"
         echo "Updating services"
         docker-compose build
 
