@@ -123,13 +123,16 @@ class ClimateDataSetupMixin(object):
                            tasmax=40, tasmin=40, pr=40)
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=99,
-                                   tasmax=20, tasmin=20, pr=20, historic_range=self.historic_range_1)
+                                   tasmax=20, tasmin=20, pr=20,
+                                   historic_range=self.historic_range_1)
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=1,
-                                   tasmax=10, tasmin=15, pr=15, historic_range=self.historic_range_1)
+                                   tasmax=10, tasmin=15, pr=15,
+                                   historic_range=self.historic_range_1)
 
         HistoricAverageClimateDataFactory(map_cell=self.mapcell, day_of_year=1,
-                                          tasmax=0, tasmin=0, pr=0, historic_range=self.historic_range_1)
+                                          tasmax=0, tasmin=0, pr=0,
+                                          historic_range=self.historic_range_1)
 
         self.city1 = CityFactory(name='city1', admin='city1', map_cell=self.mapcell)
         self.city2 = CityFactory(name='city2', admin='city2')

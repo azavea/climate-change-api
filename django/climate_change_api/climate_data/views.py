@@ -28,14 +28,16 @@ from climate_data.models import (City,
                                  ClimateData,
                                  ClimateModel,
                                  Region,
-                                 Scenario)
+                                 Scenario,
+                                 HistoricDateRange)
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
                                       RegionListSerializer,
-                                      ScenarioSerializer)
+                                      ScenarioSerializer,
+                                      HistoricDateRangeSerializer)
 from indicators import indicator_factory, list_available_indicators
 from .renderers import GeobufRenderer
 
@@ -278,6 +280,15 @@ class IndicatorDataView(APIView):
             ('units', indicator_class.params.units.value),
             ('data', data),
         ]))
+
+
+class HistoricDateRangeView(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
+    """Simple view to see available historic date ranges."""
+
+    queryset = HistoricDateRange.objects.all()
+    serializer_class = HistoricDateRangeSerializer
+    pagination_class = None
+    ordering_fields = ('start_year',)
 
 
 class RegionListView(OverridableCacheResponseMixin, ListAPIView):
