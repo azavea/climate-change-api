@@ -101,8 +101,8 @@ class ClimateDataFactory(DjangoModelFactory):
 
 class HistoricDateRangeFactory(DjangoModelFactory):
 
-    start_year = 0
-    end_year = 0
+    start_year = 1951
+    end_year = 1980
 
     class Meta:
         model = HistoricDateRange
