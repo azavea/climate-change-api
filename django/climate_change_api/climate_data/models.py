@@ -120,11 +120,9 @@ class HistoricDateRange(models.Model):
     Applies to ClimateDataBaseline and HistoricaAverageClimateData.
     """
 
-    start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period')
+    start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period',
+                                                  primary_key=True, unique=True)
     end_year = models.PositiveSmallIntegerField(help_text='Inclusive ending year of the period')
-
-    class Meta:
-        unique_together = ('start_year', 'end_year')
 
 
 class ClimateDataBaseline(models.Model):

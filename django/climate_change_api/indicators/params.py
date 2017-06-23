@@ -214,7 +214,7 @@ class HistoricIndicatorParams(object):
     """
 
     def __init__(self, *args, **kwargs):
-        # TODO: Cache/save request restults elsewhere to eliminate API calls per indicator call
+        # TODO: Cache/save request results elsewhere to eliminate API calls per indicator call
         # Due to migrations issues, wwe can't set these as file globals
         default_pk = HistoricDateRange.objects.latest('end_year').pk  # Most recent
         avail_pks = [str(i['pk']) for i in HistoricDateRange.objects.all().values('pk')]
