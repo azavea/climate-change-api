@@ -28,6 +28,7 @@ from user_management.views import ClimateAPIObtainAuthToken
 if settings.DEBUG and settings.STATIC_URL_PATH:
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+
 router = routers.DefaultRouter()
 router.include_root_view = False
 router.register(r'city', climate_data_views.CityViewSet)
@@ -64,3 +65,7 @@ urlpatterns = [
 
 if settings.DEBUG and settings.STATIC_URL_PATH:
     urlpatterns += staticfiles_urlpatterns()
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls))]
