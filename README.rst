@@ -79,6 +79,11 @@ Then start the Docker container with::
 Naviagate to http://localhost:8089 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
 
 
+Request Debugging
+-----------------
+The project has the `Django Debug Toolbar`_ installed to help provide insight into the steps behind producing an HTML response. It is available on a development environment when accessed directly from the host computer and can be seen in the User Profile pages as well as in API requests when using the HTML-based BrowsableAPI. To use the BrowsableAPI log into the User Profile page in a browser and then in the browser navigate to the URL of the desired API request.
+
+
 Bypassing Cache
 ---------------
 
@@ -242,8 +247,6 @@ is based off of the ``geonames_cities_top200_us.geojson`` list of cities, so ple
 cities installed before updating the fixtures.
 
 
-.. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
-
 Updating The Development Database Dump
 --------------------------------------
 
@@ -313,3 +316,6 @@ Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy
     $ aws s3 cp database_backup/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/latest/
 
 Where DATE is in the format mmddyyyy (i.e. cc_dev_db_05082017.dump)
+
+.. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
+.. _Django Debug Toolbar: https://django-debug-toolbar.readthedocs.io
