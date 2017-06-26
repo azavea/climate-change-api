@@ -40,10 +40,10 @@ class ClimateRequestLoggingMiddleware(object):
 
             self.statsd_client.incr(tag)
             # Send view timing metric
-            self._record_time(request._start_time, tag)
+            self._record_time(request._start_time, '{}.response.time'.format(tag))
             # Send view size metric
             if hasattr(response, 'content'):
-                statsd.timing('{}.size'.format(tag), len(response.content))
+                statsd.timing('{}.response.size'.format(tag), len(response.content))
 
         return response
 
@@ -57,7 +57,7 @@ class ClimateRequestLoggingMiddleware(object):
 
             self.statsd_client.incr(tag)
             # Send view timing metric
-            self._record_time(request._start_time, tag)
+            self._record_time(request._start_time, '{}.response.time'.format(tag))
 
     def _record_time(self, start_time, tag):
         """Extract metadata and timing data attached to response object and submit to statsd.
