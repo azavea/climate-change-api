@@ -37,9 +37,12 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
                    "${CC_AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
             docker tag "cc-api:${GIT_COMMIT}" \
                    "${CC_AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+            docker tag "cc-statsite:${GIT_COMMIT}" \
+                   "${CC_AWS_ECR_ENDPOINT}/cc-statsite:${GIT_COMMIT}"
 
             docker push "${CC_AWS_ECR_ENDPOINT}/cc-nginx:${GIT_COMMIT}"
             docker push "${CC_AWS_ECR_ENDPOINT}/cc-api:${GIT_COMMIT}"
+            docker push "${CC_AWS_ECR_ENDPOINT}/cc-statsite:${GIT_COMMIT}"
 
             echo "Uploading docs and static files to S3..."
             aws s3 sync --delete \

@@ -7,6 +7,9 @@
 /nginx/srv/dist/*
 *.DS_Store
 
+# Statsite
+statsite/etc/statsite/librato.ini
+
 # Terraform
 *.tfvars
 *.tfstate

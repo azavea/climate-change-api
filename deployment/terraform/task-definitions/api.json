@@ -26,7 +26,7 @@
   {
       "cpu": 10,
       "essential": true,
-      "image": "quay.io/azavea/statsite:0.8-alpine",
+      "image": "${api_server_statsite_url}",
       "memory": 256,
       "name": "statsite",
       "mountPoints": [

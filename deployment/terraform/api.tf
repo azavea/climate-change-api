@@ -136,6 +136,7 @@ data "template_file" "cc_api_https_ecs_task" {
   vars = {
     api_server_nginx_url             = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
     api_server_django_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
+    api_server_statsite_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsite:${var.git_commit}"
     django_secret_key                = "${var.django_secret_key}"
     rds_host                         = "${module.database.hostname}"
     rds_password                     = "${var.rds_password}"
