@@ -88,13 +88,3 @@ write_files:
       set_eps = 0.02
       stream_cmd = python /usr/libexec/statsite/librato.py /etc/statsite/librato.ini
       daemonize = 0
-      [histogram_api]
-      prefix=api
-      min=0
-      max=100
-      width=5
-      [histogram_default]
-      prefix=
-      min=0
-      max=200
-      width=20
