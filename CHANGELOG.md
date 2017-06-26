@@ -1,6 +1,14 @@
 # Change Log
 
-## [1.0.6](https://github.com/azavea/climate-change-api/tree/1.0.6) (2017-06-19)
+## [1.0.7](https://github.com/azavea/climate-change-api/tree/1.0.7) (2017-06-26)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.6...1.0.7)
+
+**Merged pull requests:**
+
+- Feature/jf/custom historical ranges tests [\#521](https://github.com/azavea/climate-change-api/pull/521)
+- Fixup librato sink to work with new Librato Tags API [\#518](https://github.com/azavea/climate-change-api/pull/518)
+
+## [1.0.6](https://github.com/azavea/climate-change-api/tree/1.0.6) (2017-06-20)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.5...1.0.6)
 
 **Merged pull requests:**
