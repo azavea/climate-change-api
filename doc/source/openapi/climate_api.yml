@@ -465,6 +465,17 @@ paths:
             $ref: "#/definitions/RegionGeoJSON"
         "404":
           description: Returned when requested region cannot be found
+  /api/historic-range/:
+    get:
+      description: |
+        List all available historic date ranges
+      responses:
+        "200":
+          description: A list of the HistoricDateRange objects
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/HistoricDateRange"
 definitions:
   Boundary:
     type: object
@@ -708,3 +719,10 @@ definitions:
             type: number
           level2_description:
             type: string
+  HistoricDateRange:
+    type: object
+    properties:
+      start_year:
+        type: number
+      end_year:
+        type: number
