@@ -2,7 +2,7 @@ The Heat Wave Duration Index |(HWDI)| measures the maximum period of at least 5 
 
 - `historic_range`_
 
-    Optionally set the years used to define "historic" to an available consecutive period of 30 years, i.e. 1961-1990. Defaults to the most current time period in the historical data.
+    Optionally set the years used to define "historic" to an available consecutive period of 30 years, i.e. 1961-1990. Specify a time period by its start_year, *historic_range=1951*. Defaults to the most current time period available.
 
 
 .. |(HWDI)| raw:: html
