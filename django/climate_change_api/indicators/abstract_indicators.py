@@ -6,7 +6,8 @@ from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
 
-from climate_data.models import ClimateData
+from climate_data.models import ClimateData, ClimateDataYear
+from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
@@ -320,3 +321,68 @@ class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
 
 class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
     params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
+
+
+class ArrayIndicator(Indicator):
+    valid_aggregations = ('yearly')
+
+    agg_function = None
+
+    def get_queryset(self):
+        """Get the initial indicator queryset.
+
+        ClimateData initially filtered by city/scenario and optionally years/models as passed
+        by the constructor.
+        """
+        queryset = ClimateDataYear.objects.filter(
+            map_cell=self.city.map_cell,
+            data_source__scenario=self.scenario
+        )
+
+        filterset = ClimateDataFilterSet()
+        queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
+        queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+
+        return queryset
+
+    def align_buckets(self):
+        """Group raw data into buckets corresponding to the time aggregation
+        By default data is accumulated in buckets that align with calendar years. For monthly,
+        quarterly, and other aggregations, we'll want to re-align the buckets to match the output
+        """
+        if self.params.time_aggregation.value != 'yearly':
+            raise NotImplementedError()
+
+        if self.params.custom_time_agg.value is not None:
+            raise NotImplementedError()
+
+        return self.queryset.values(*self.variables).annotate(agg_key=F('data_source__year'))
+
+    def calculate_value(self, data):
+        """Calculate the value for the indicator for a given bucket.
+        """
+        for bucket in data:
+            yield {
+                'agg_key': bucket['agg_key'],
+                'value': self.aggregate(bucket)
+            }
+
+    def aggregate(self, bucket):
+        """ Aggregate an bucket of values, assuming the aggregation uses a single variable's value
+        """
+        variable = self.variables[0]
+        values = bucket[variable]
+        return self.agg_function(values)
+
+    def calculate(self):
+        # Parse yearly-aggregated data into other aggregations as needed
+        data = self.align_buckets()
+        # Process raw variable data into indicator values
+        data = self.calculate_value(data)
+        # Convert indicator values into the requested units
+        data = self.convert_units(data)
+        # Collect results with a common key into a dictionary of keyed groups
+        results = self.collate_results(data)
+        # Serialize the keyed groups using the requested sub-aggregations
+        return self.serializer.to_representation(results,
+                                                 aggregations=self.params.agg.value.split(','))
