@@ -1,11 +1,12 @@
 import inspect
 import sys
 from itertools import groupby
+import numpy as np
 
-from django.db.models import F, Sum, Avg, Max, Min
+from django.db.models import F, Sum, Avg
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator,
+from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   BasetempIndicatorMixin,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
@@ -41,36 +42,36 @@ class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixi
     variables = ('pr',)
 
 
-class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
+class AverageHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
-    agg_function = Avg
+    agg_function = staticmethod(np.mean)
 
 
-class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
+class AverageLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
-    agg_function = Avg
+    agg_function = staticmethod(np.mean)
 
 
-class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
+class MaxHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
-    agg_function = Max
+    agg_function = max
 
 
-class MinLowTemperature(TemperatureUnitsMixin, Indicator):
+class MinLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
-    agg_function = Min
+    agg_function = min
 
 
 class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
