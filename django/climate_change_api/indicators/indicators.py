@@ -7,7 +7,7 @@ from django.db.models import F, Sum, Avg
 from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
-                                  BasetempIndicatorMixin,
+                                  BasetempIndicatorMixin, ArrayStreakIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
@@ -136,23 +136,14 @@ class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     raw_condition = 'pr = 0'
 
 
-class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
+class YearlyDrySpells(CountUnitsMixin, ArrayStreakIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
-    raw_condition = 'pr = 0'
 
-    def aggregate(self):
-        """Call get_streaks to get all sequences of zero or non-zero precip.
-
-        Then counts the zero-precip ones that are at least 5 days long.
-        """
-        sequences = self.get_streaks()
-        for key_vals, streaks in groupby(sequences, self.row_group_key):
-            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
-
-            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
+    predicate = staticmethod(lambda pr: pr == 0)
+    min_streak = 5
 
 
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
