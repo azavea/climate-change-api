@@ -1,10 +1,13 @@
 from django.contrib.gis.geos import Point
 
+from climate_data.models import ClimateDataYear
+
 from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           RegionFactory,
                                           ScenarioFactory,
                                           ClimateDataFactory,
+                                          ClimateDataYearFactory,
                                           ClimateDataSourceFactory,
                                           ClimateDataCellFactory,
                                           ClimateDataBaselineFactory,
@@ -98,29 +101,38 @@ class ClimateDataSetupMixin(object):
         self.ds_s2_m2_2000 = ClimateDataSourceFactory(scenario=self.rcp85, model=self.model2,
                                                       year=2000)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2000, day_of_year=1,
-                           tasmax=10, tasmin=10, pr=10)
+        def add_climate_data(**kwargs):
+            ClimateDataFactory(**kwargs)
+            # ClimateDataYear doesn't have a day_of_year attribute
+            kwargs.pop('day_of_year')
+            for var in ClimateDataYear.VARIABLE_CHOICES:
+                # Convert variable data into arrays
+                kwargs[var] = [kwargs[var]]
+            ClimateDataYearFactory(**kwargs)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m2_2000, day_of_year=1,
-                           tasmax=20, tasmin=20, pr=20)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2000, day_of_year=1,
+                         tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2001, day_of_year=1,
-                           tasmax=10, tasmin=10, pr=10)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2000, day_of_year=1,
+                         tasmax=20, tasmin=20, pr=20)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m2_2001, day_of_year=1,
-                           tasmax=20, tasmin=20, pr=20)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2001, day_of_year=1,
+                         tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2002, day_of_year=1,
-                           tasmax=10, tasmin=10, pr=10)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2001, day_of_year=1,
+                         tasmax=20, tasmin=20, pr=20)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s1_m1_2003, day_of_year=1,
-                           tasmax=10, tasmin=10, pr=0)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2002, day_of_year=1,
+                         tasmax=10, tasmin=10, pr=10)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s2_m1_2000, day_of_year=1,
-                           tasmax=30, tasmin=30, pr=30)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2003, day_of_year=1,
+                         tasmax=10, tasmin=10, pr=0)
 
-        ClimateDataFactory(map_cell=self.mapcell, data_source=self.ds_s2_m2_2000, day_of_year=1,
-                           tasmax=40, tasmin=40, pr=40)
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m1_2000, day_of_year=1,
+                         tasmax=30, tasmin=30, pr=30)
+
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m2_2000, day_of_year=1,
+                         tasmax=40, tasmin=40, pr=40)
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=99,
                                    tasmax=20, tasmin=20, pr=20,
