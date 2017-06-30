@@ -47,6 +47,8 @@ urlpatterns = [
         climate_data_views.IndicatorDataView.as_view(), name='climateindicator-get'),
     url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/$',
         climate_data_views.ClimateDataView.as_view(), name='climatedata-list'),
+    url(r'^api/historic-range/$',
+        climate_data_views.HistoricDateRangeView.as_view({'get': 'list'}), name='historic-list'),
     url(r'^api/region/$',
         climate_data_views.RegionListView.as_view(), name='region-list'),
     url(r'^api/region/(?P<region>[0-9]+)/$',
