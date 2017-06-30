@@ -386,3 +386,21 @@ class ArrayIndicator(Indicator):
         # Serialize the keyed groups using the requested sub-aggregations
         return self.serializer.to_representation(results,
                                                  aggregations=self.params.agg.value.split(','))
+
+
+class ArrayStreakIndicator(ArrayIndicator):
+    predicate = None
+    min_streak = 1
+
+    def __init__(self, *args, **kwargs):
+        super(ArrayStreakIndicator, self).__init__(*args, **kwargs)
+
+        # The agg_function needs to be static but also have access to predicate and min_streak,
+        # so it's defined in __init__ to enable it access to those.
+        def count_streaks(bucket):
+            count = 0
+            for match, group in groupby(bucket, self.predicate):
+                if match and sum(1 for v in group) > self.min_streak:
+                    count += 1
+            return count
+        self.agg_function = count_streaks
