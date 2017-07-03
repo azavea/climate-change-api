@@ -47,6 +47,8 @@ class AverageHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
+    # Use the staticmethod decorated to prevent the function from being bound and  `self` from
+    # being added as the first argument
     agg_function = staticmethod(np.mean)
 
 
