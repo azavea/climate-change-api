@@ -70,7 +70,7 @@ def climate_data_cache_control(func):
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     """Returns a paginated GeoJSON object of the available cities."""
 
-    queryset = City.objects.all()
+    queryset = City.objects.all().select_related('map_cell')
     serializer_class = CitySerializer
     filter_backends = (InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = CityFilterSet
