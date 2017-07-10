@@ -9,11 +9,7 @@ sign into your user in the azavea-climate AWS account and create a set of access
 
 Then, run ``aws configure --profile climate`` and follow the prompts.
 
-Once your AWS profile is setup, you need to configure the Librato statsite container.
-
-Follow the instructions in the [Statsite README](statsite/README.md).
-
-With AWS and Librato ready, run the following to configure the VM and load the most recent database backup:
+With AWS ready, run the following to configure the VM and load the most recent database backup:
 
 .. code-block:: bash
 
