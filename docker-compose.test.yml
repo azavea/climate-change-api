@@ -9,5 +9,5 @@ services:
   nginx:
     image: "cc-nginx:${GIT_COMMIT:-latest}"
 
-  statsite:
-    image: "cc-statsite:${GIT_COMMIT:-latest}"
+  statsd:
+    image: "cc-statsd:${GIT_COMMIT:-latest}"
