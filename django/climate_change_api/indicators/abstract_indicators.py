@@ -11,7 +11,8 @@ from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-from .partitioners import YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner
+from .partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
+                           OffsetYearlyPartitioner)
 from . import queryset_generator
 
 
@@ -338,7 +339,7 @@ class ArrayIndicator(Indicator):
     This serves as the fundamental piece that indicators use to achieve their specific goals.
     """
 
-    valid_aggregations = ('yearly', 'quarterly', 'monthly')
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly')
 
     # Function to use to calculate the value for a bucket
     # Takes a sequence of values as parameter. In some cases (like numpy methods) the staticmethod
@@ -357,7 +358,13 @@ class ArrayIndicator(Indicator):
             data_source__scenario=self.scenario
         )
 
-        filterset = ClimateDataFilterSet()
+        filter_params = {}
+        if self.params.time_aggregation.value == 'offset_yearly':
+            # The offset_yearly aggregation needs an extra year before each requested year, so tell
+            # the filter to offset each points starting year
+            filter_params['offset_start'] = True
+
+        filterset = ClimateDataFilterSet(**filter_params)
         queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
         queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
 
@@ -371,11 +378,14 @@ class ArrayIndicator(Indicator):
         """
         raw_data = self.queryset.values(*self.variables)
 
-        partitioner = {
+        partitioner_class = {
             'yearly': YearlyPartitioner,
             'monthly': MonthlyPartitioner,
-            'quarterly': QuarterlyPartitioner
+            'quarterly': QuarterlyPartitioner,
+            'offset_yearly': OffsetYearlyPartitioner
         }[self.params.time_aggregation.value]
+
+        partitioner = partitioner_class()
 
         return partitioner.parse(raw_data)
 
