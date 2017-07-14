@@ -66,25 +66,18 @@ write_files:
           chkconfig awslogs on
       end script
 
-  - path: /etc/statsite/librato.ini
+  - path: /var/lib/statsd/config.js
     permissions: 0644
     owner: root:root
     content: |
-      [librato]
-      email = ${librato_climate_email}
-      token = ${librato_climate_token}
-      floor_time_secs = 60
-
-  - path: /etc/statsite/statsite.cfg
-    permissions: 0644
-    owner: root:root
-    content: |
-      [statsite]
-      port = 8125
-      udp_port = 8125
-      log_level = INFO
-      flush_interval = 60
-      timer_eps = 0.01
-      set_eps = 0.02
-      stream_cmd = python /usr/libexec/statsite/librato.py /etc/statsite/librato.ini
-      daemonize = 0
+      {
+        port: 8125,
+        backends: ["statsd-librato-backend"],
+        deleteIdleStats: true,
+        flushInterval: 60000,
+        keyNameSanitize: false,
+        librato: {
+          email: "${librato_climate_email}",
+          token: "${librato_climate_token}"
+        }
+      }

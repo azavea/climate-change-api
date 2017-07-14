@@ -26,18 +26,13 @@
   {
       "cpu": 10,
       "essential": true,
-      "image": "${api_server_statsite_url}",
+      "image": "${api_server_statsd_url}",
       "memory": 256,
-      "name": "statsite",
+      "name": "statsd",
       "mountPoints": [
           {
-              "sourceVolume": "librato",
-              "containerPath": "/etc/statsite/librato.ini",
-              "readOnly": true
-          },
-          {
-              "sourceVolume": "statsite",
-              "containerPath": "/etc/statsite/statsite.cfg",
+              "sourceVolume": "statsd",
+              "containerPath": "/var/lib/statsd/config.js",
               "readOnly": true
           }
       ]
@@ -49,7 +44,7 @@
     "name": "django",
     "image": "${api_server_django_url}",
     "links": [
-      "statsite"
+      "statsd"
     ],
     "portMappings": [],
     "environment": [
