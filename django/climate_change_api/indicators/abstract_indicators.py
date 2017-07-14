@@ -435,6 +435,6 @@ class ArrayStreakIndicator(ArrayIndicator):
         # Use groupby to automatically divide the bucket into matches or non-matches
         for match, group in groupby(bucket, cls.predicate):
             # groupby groups don't have a len, but we can use sum to count how many items it has
-            if match and sum(1 for v in group) > cls.min_streak:
+            if match and sum(1 for v in group) >= cls.min_streak:
                 count += 1
         return count
