@@ -38,8 +38,8 @@ class ClimateRequestLoggingMiddleware(object):
         except AttributeError:
             pass
 
-        # If avail, send indicator data request vars
-        if request._view_name == 'IndicatorDataView':
+        # If avail, send data request vars
+        if request._view_name == 'IndicatorDataView' or request._view_name == 'ClimateDataView':
             path = urls.resolve(request.path)
             request._tags.update(**path.kwargs)
 
