@@ -363,9 +363,9 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 # Statsd
 # http://statsd.readthedocs.io/en/v3.2.1/
-STATSD_HOST = 'statsite'
+STATSD_HOST = 'statsd'
 STATSD_PORT = 8125
-STATSD_PREFIX = '{}.climate'.format(ENVIRONMENT.lower())
+STATSD_PREFIX = 'climate'
 
 
 # Watchman

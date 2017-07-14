@@ -24,3 +24,9 @@ class UserTestCase(DummyCacheTestCase):
     def test_encode_email(self):
         encoded_email = self.user.encode_email()
         self.assertEqual(ClimateUser.objects.from_encoded_email(encoded_email), self.user)
+
+    def test_stripped_encoded_email(self):
+        encoded_email = self.user.encode_email()
+        self.assertTrue(encoded_email.endswith(b'='))
+        encoded_email = encoded_email.strip(b'=')
+        self.assertEqual(ClimateUser.objects.from_encoded_email(encoded_email), self.user)
