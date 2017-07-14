@@ -150,6 +150,7 @@ data "template_file" "cc_api_https_ecs_task" {
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"
+    feature_flag_array_data          = "${feature_flag_array_data}"
     cc_api_papertrail_endpoint       = "${var.papertrail_host}:${var.papertrail_port}"
     aws_region                       = "${var.aws_region}"
   }
@@ -204,6 +205,7 @@ data "template_file" "cc_api_management_ecs_task" {
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"
+    feature_flag_array_data          = "${feature_flag_array_data}"
     cc_api_papertrail_endpoint       = "${var.papertrail_host}:${var.papertrail_port}"
     aws_region                       = "${var.aws_region}"
   }

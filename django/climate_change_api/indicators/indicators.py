@@ -364,4 +364,7 @@ def indicator_factory(indicator_name):
     """
     this_module = sys.modules[__name__]
     class_name = ''.join([s.capitalize() for s in indicator_name.split('_')])
+    if settings.FEATURE_FLAGS['array_data'] and hasattr(this_module, '{}Array'.format(class_name)):
+        # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
+        class_name = '{}Array'.format(class_name)
     return getattr(this_module, class_name, None)
