@@ -1,5 +1,5 @@
 import time
-import re
+from django import urls
 
 from django.conf import settings
 
@@ -30,7 +30,7 @@ class ClimateRequestLoggingMiddleware(object):
             request._metric = 'views'
 
             request._tags = {
-                'environment': settings.ENVIRONMENT.lower(),
+                'environment': settings.ENVIRONMENT,
                 'module': request._module_name,
                 'view': request._view_name,
                 'method': request.method,
@@ -38,10 +38,10 @@ class ClimateRequestLoggingMiddleware(object):
         except AttributeError:
             pass
 
-        # If avail, send indicator name as tag
-        if request._view_name is 'IndicatorDataView':
-            regex = r'(\w+)(\/)$'
-            request._tags.update({'indicator': re.search(regex, request.path).group(1).lower()})
+        # If avail, send indicator data request vars
+        if request._view_name == 'IndicatorDataView':
+            path = urls.resolve(request.path)
+            request._tags.update(**path.kwargs)
 
     def process_response(self, request, response):
         """Send timing and count info to statsd on successful responses."""
@@ -66,7 +66,7 @@ class ClimateRequestLoggingMiddleware(object):
     def _add_metric_tags(self, request):
         if request.user.is_authenticated:
             request._tags['user'] = request.user.id
-            request._tags['organization'] = request.user.userprofile.organization.lower()
+            request._tags['organization'] = request.user.userprofile.organization
 
     def _construct_librato_metric(self, metric, tags=None):
         if tags is not None:
