@@ -3,7 +3,8 @@ import sys
 from itertools import groupby
 import numpy as np
 
-from django.db.models import F, Sum, Avg
+from django.db.models import F, Sum, Avg, Max, Min
+from django.conf import settings
 from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
@@ -42,37 +43,55 @@ class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixi
     variables = ('pr',)
 
 
-class AverageHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
+class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
+    agg_function = Avg
+
+
+class AverageHighTemperatureArray(ArrayIndicator, AverageHighTemperature):
     # Use the staticmethod decorated to prevent the function from being bound and  `self` from
     # being added as the first argument
     agg_function = staticmethod(np.mean)
 
 
-class AverageLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
+class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
+    agg_function = Avg
+
+
+class AverageLowTemperatureArray(ArrayIndicator, AverageLowTemperature):
+    # Use the staticmethod decorated to prevent the function from being bound and  `self` from
+    # being added as the first argument
     agg_function = staticmethod(np.mean)
 
 
-class MaxHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
+class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
+    agg_function = Max
+
+
+class MaxHighTemperatureArray(ArrayIndicator, MaxHighTemperature):
     agg_function = max
 
 
-class MinLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
+class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
+    agg_function = Min
+
+
+class MinLowTemperatureArray(ArrayIndicator, MinLowTemperature):
     agg_function = min
 
 
@@ -138,12 +157,26 @@ class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     raw_condition = 'pr = 0'
 
 
-class YearlyDrySpells(CountUnitsMixin, ArrayStreakIndicator):
+class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
+    raw_condition = 'pr = 0'
 
+    def aggregate(self):
+        """Call get_streaks to get all sequences of zero or non-zero precip.
+
+        Then counts the zero-precip ones that are at least 5 days long.
+        """
+        sequences = self.get_streaks()
+        for key_vals, streaks in groupby(sequences, self.row_group_key):
+            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
+
+            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
+
+
+class YearlyDrySpellsArray(ArrayStreakIndicator, YearlyDrySpells):
     predicate = staticmethod(lambda pr: pr == 0)
     min_streak = 5
 
@@ -317,7 +350,8 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
 def list_available_indicators():
     """List the defined class members of this module as the available indicators."""
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-    indicators = [member[1] for member in class_members if member[1].__module__ == __name__]
+    indicators = [member[1] for member in class_members if member[1].__module__ == __name__ and
+                  not member[1].__name__.endswith('Array')]
     return [i.to_dict() for i in indicators]
 
 
