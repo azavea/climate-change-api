@@ -1,7 +1,7 @@
 [
   {
     "cpu": 0,
-    "memory": 2048, 
+    "memory": 2048,
     "entryPoint": [
       "./manage.py"
     ],
@@ -10,75 +10,79 @@
         "sourceVolume": "tmp",
         "containerPath": "/tmp"
       }
-    ], 
+    ],
     "name": "management",
     "image": "${management_url}",
     "environment": [
       {
-        "name": "CC_SECRET_KEY", 
+        "name": "CC_SECRET_KEY",
         "value": "${django_secret_key}"
-      }, 
+      },
       {
-        "name": "CC_DB_HOST", 
+        "name": "CC_DB_HOST",
         "value": "${rds_host}"
-      }, 
+      },
       {
-        "name": "CC_DB_PORT", 
+        "name": "CC_DB_PORT",
         "value": "5432"
-      }, 
+      },
       {
-        "name": "CC_DB_PASSWORD", 
+        "name": "CC_DB_PASSWORD",
         "value": "${rds_password}"
-      }, 
+      },
       {
-        "name": "CC_DB_USER", 
+        "name": "CC_DB_USER",
         "value": "${rds_username}"
-      }, 
+      },
       {
-        "name": "CC_DB_DATABASE", 
+        "name": "CC_DB_DATABASE",
         "value": "${rds_database_name}"
-      }, 
+      },
       {
-        "name": "CC_CACHE_HOST", 
+        "name": "CC_CACHE_HOST",
         "value": "${ec_memcached_host}"
-      }, 
+      },
       {
-        "name": "CC_CACHE_PORT", 
+        "name": "CC_CACHE_PORT",
         "value": "${ec_memcached_port}"
-      }, 
+      },
       {
-        "name": "CC_SQS_QUEUE_NAME", 
+        "name": "CC_SQS_QUEUE_NAME",
         "value": "${sqs_queue_name}"
-      }, 
+      },
       {
-        "name": "AWS_DEFAULT_REGION", 
+        "name": "AWS_DEFAULT_REGION",
         "value": "${aws_region}"
-      }, 
+      },
       {
-        "name": "CC_S3STORAGE_BUCKET", 
+        "name": "CC_S3STORAGE_BUCKET",
         "value": "${s3_storage_bucket}"
-      }, 
+      },
       {
-        "name": "CC_ALLOWED_HOSTS", 
+        "name": "CC_ALLOWED_HOSTS",
         "value": "${django_allowed_hosts}"
       },
-      { 
+      {
         "name": "CC_ROLLBAR_SERVER_SIDE_ACCESS_TOKEN",
         "value": "${rollbar_server_side_access_token}"
       },
-      { 
+      {
         "name": "CC_STACK_TYPE",
         "value": "${environment}"
-      }, 
+      },
       {
-        "name": "COMMIT", 
+        "name": "CC_FF_ARRAY_DATA",
+        "value": "${feature_flag_array_data}"
+      },
+      {
+        "name": "COMMIT",
         "value": "${git_commit}"
-      }, 
+      },
       {
-        "name": "DJANGO_LOG_LEVEL", 
+        "name": "DJANGO_LOG_LEVEL",
         "value": "INFO"
       }
-    ], 
+    ],
     "logConfiguration": {
         "logDriver": "syslog",
         "options": {
