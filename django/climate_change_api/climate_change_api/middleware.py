@@ -1,4 +1,5 @@
 import time
+import re
 
 from django.conf import settings
 
@@ -36,6 +37,11 @@ class ClimateRequestLoggingMiddleware(object):
             }
         except AttributeError:
             pass
+
+        # If avail, send indicator name as tag
+        if request._view_name is 'IndicatorDataView':
+            regex = r'(\w+)(\/)$'
+            request._tags.update({'indicator': re.search(regex, request.path).group(1).lower()})
 
     def process_response(self, request, response):
         """Send timing and count info to statsd on successful responses."""
