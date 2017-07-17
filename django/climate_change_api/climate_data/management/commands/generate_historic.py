@@ -21,6 +21,10 @@ HISTORIC_PERIOD_LENGTH = 30
 BATCH_SIZE = 100
 
 
+def chunk_list(l):
+    return [l[i:i + BATCH_SIZE] for i in range(0, len(l), BATCH_SIZE)]
+
+
 def generate_year_ranges(queryset):
     """Build index of historic 30 year ranges starting at a decade+1 mark, i.e. 1971-2000."""
     historic_years = (queryset.values_list('data_source__year', flat=True)
@@ -123,21 +127,15 @@ class Command(BaseCommand):
         generate_year_ranges(historic_data)
 
         logger.info("Importing averages")
-        # Process bulk creation in batches because of memory constraints and for fail safety
         no_historic_cells = map_cells.filter(historic_average=None)
-        no_historic_cells_chunked = [no_historic_cells[i:i + BATCH_SIZE] for i in
-                                     range(0, len(no_historic_cells), BATCH_SIZE)]
-
-        for cells in no_historic_cells_chunked:
+        # Process bulk creation in batches because of memory constraints and for fail safety
+        for cells in chunk_list(no_historic_cells):
             averages = generate_averages(cells, historic_data)
             HistoricAverageClimateData.objects.bulk_create(averages)
 
         logger.info("Importing percentile baselines")
-        # Process bulk creation in batches because of memory constraints and for fail safety
         no_baselines_cells = map_cells.filter(baseline__isnull=True)
-        no_baselines_cells_chunked = [no_baselines_cells[i:i + BATCH_SIZE] for i in
-                                      range(0, len(no_baselines_cells), BATCH_SIZE)]
-
-        for cells in no_baselines_cells_chunked:
+        # Process bulk creation in batches because of memory constraints and for fail safety
+        for cells in chunk_list(no_baselines_cells):
             baselines = generate_baselines(cells, historic_data)
             ClimateDataBaseline.objects.bulk_create(baselines)
