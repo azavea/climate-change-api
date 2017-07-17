@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.0.8](https://github.com/azavea/climate-change-api/tree/1.0.8) (2017-07-17)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.7...1.0.8)
+
+**Merged pull requests:**
+
+- Send indicator name as tag to Librato [\#563](https://github.com/azavea/climate-change-api/pull/563)
+- Librato tagged metrics [\#539](https://github.com/azavea/climate-change-api/pull/539)
+- Remove individual foreign key requests for city view [\#538](https://github.com/azavea/climate-change-api/pull/538)
+- Add Django Debug Toolbar [\#522](https://github.com/azavea/climate-change-api/pull/522)
+- Add historic\_range param to docs [\#519](https://github.com/azavea/climate-change-api/pull/519)
+- Feature/jf/custom historical ranges [\#506](https://github.com/azavea/climate-change-api/pull/506)
+
 ## [1.0.7](https://github.com/azavea/climate-change-api/tree/1.0.7) (2017-06-26)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.6...1.0.7)
 
