@@ -3,6 +3,7 @@ from itertools import groupby
 
 from climate_data.models import ClimateData, ClimateDataYear
 
+from django.db import IntegrityError
 from django.core.management.base import BaseCommand
 
 logger = logging.getLogger(__name__)
@@ -32,4 +33,7 @@ class Command(BaseCommand):
         climate_data_years = self.calculate_yearly_sets(queryset)
 
         for climate_data_year in climate_data_years:
-            climate_data_year.save()
+            try:
+                climate_data_year.save()
+            except IntegrityError:
+                pass
