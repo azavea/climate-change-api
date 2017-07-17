@@ -114,22 +114,34 @@ class ClimateDataCell(models.Model):
         return (self.lat, self.lon)
 
 
+class HistoricDateRange(models.Model):
+    """Helper table abstracting year ranges for historic data aggregations.
+
+    Applies to ClimateDataBaseline and HistoricaAverageClimateData.
+    """
+
+    start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period',
+                                                  primary_key=True, unique=True)
+    end_year = models.PositiveSmallIntegerField(help_text='Inclusive ending year of the period')
+
+
 class ClimateDataBaseline(models.Model):
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
+    historic_range = TinyForeignKey(HistoricDateRange, null=True)
     percentile = models.IntegerField(null=False)
 
     tasmin = models.FloatField(null=True,
-                               help_text='Historic greatest daily minimum temperature for this percentile from 1961-1990')  # NOQA: E501
+                               help_text='Historic greatest daily minimum temperature for this percentile for a 30 yr period')  # NOQA: E501
     tasmax = models.FloatField(null=True,
-                               help_text='Historic greatest daily maximum temperature for this percentile from 1961-1990')  # NOQA: E501
+                               help_text='Historic greatest daily maximum temperature for this percentile for a 30 yr period')  # NOQA: E501
     pr = models.FloatField(null=True,
-                           help_text='Historic greatest daily precipitation for this percentile from 1961-1990')  # NOQA: E501
+                           help_text='Historic greatest daily precipitation for this percentile for a 30 yr period')  # NOQA: E501
 
     def natural_key(self):
         return (self.map_cell, self.percentile)
 
     class Meta:
-        unique_together = ('map_cell', 'percentile')
+        unique_together = ('map_cell', 'percentile', 'historic_range')
 
 
 class CityBoundaryManager(models.Manager):
@@ -267,6 +279,7 @@ class HistoricAverageClimateData(models.Model):
 
     map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average')
     day_of_year = models.PositiveSmallIntegerField()
+    historic_range = TinyForeignKey(HistoricDateRange, null=True)
 
     tasmin = models.FloatField(null=True,
                                help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
@@ -276,8 +289,8 @@ class HistoricAverageClimateData(models.Model):
                            help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA: E501
 
     class Meta:
-        unique_together = ('map_cell', 'day_of_year')
-        index_together = ('map_cell', 'day_of_year')
+        unique_together = ('map_cell', 'day_of_year', 'historic_range')
+        index_together = ('map_cell', 'day_of_year', 'historic_range')
 
     def natural_key(self):
         return (self.city, self.month_day)

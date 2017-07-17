@@ -77,6 +77,7 @@ INSTALLED_APPS = [
 
     # 3rd-party
     'storages',
+    'debug_toolbar',
     'django_filters',
     'rest_framework',
     'rest_framework_extensions',
@@ -102,6 +103,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = ('GET', 'PUT', 'PATCH', 'DELETE', 'POST', 'OPTIONS')
 CORS_REPLACE_HTTPS_REFERER = True
 
+if DEBUG:
+    # IP addresses that we want to allow access to the Django Debug Toolbar
+    INTERNAL_IPS = ['10.0.2.2', '0.0.0.0', '127.0.0.1', 'localhost']
 
 # Email
 # https://docs.djangoproject.com/en/1.9/topics/email/
@@ -114,6 +118,7 @@ DEFAULT_TO_EMAIL = os.getenv('CC_TO_EMAIL', 'climate@azavea.com')
 COMPANY_DOMAIN = '@azavea.com'
 
 MIDDLEWARE_CLASSES = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -358,9 +363,9 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 # Statsd
 # http://statsd.readthedocs.io/en/v3.2.1/
-STATSD_HOST = 'statsite'
+STATSD_HOST = 'statsd'
 STATSD_PORT = 8125
-STATSD_PREFIX = '{}.climate'.format(ENVIRONMENT.lower())
+STATSD_PREFIX = 'climate'
 
 
 # Watchman

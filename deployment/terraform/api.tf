@@ -136,7 +136,7 @@ data "template_file" "cc_api_https_ecs_task" {
   vars = {
     api_server_nginx_url             = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
     api_server_django_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
-    api_server_statsite_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsite:${var.git_commit}"
+    api_server_statsd_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
     django_secret_key                = "${var.django_secret_key}"
     rds_host                         = "${module.database.hostname}"
     rds_password                     = "${var.rds_password}"
@@ -160,13 +160,8 @@ resource "aws_ecs_task_definition" "cc_api_https" {
   container_definitions = "${data.template_file.cc_api_https_ecs_task.rendered}"
 
   volume {
-    name      = "librato"
-    host_path = "/etc/statsite/librato.ini"
-  }
-
-  volume {
-    name      = "statsite"
-    host_path = "/etc/statsite/statsite.cfg"
+    name      = "statsd"
+    host_path = "/var/lib/statsd/config.js"
   }
 }
 

@@ -61,6 +61,8 @@ class ClimateUserManager(BaseUserManager):
 
     def from_encoded_email(self, encoded_email):
         """Get a ClimateUser from a base64 bytestring encoded via ClimateUser.encode_email()."""
+        padding = len(encoded_email) % 4
+        encoded_email = encoded_email + b'=' * padding
         email = base64.urlsafe_b64decode(encoded_email).decode('UTF-8')
         return self.get(email=email)
 

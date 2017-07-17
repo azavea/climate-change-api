@@ -15,9 +15,17 @@ from climate_data.models import (City,
                                  ClimateDataSource,
                                  ClimateModel,
                                  Region,
-                                 Scenario)
+                                 Scenario,
+                                 HistoricDateRange)
 
 logger = logging.getLogger(__name__)
+
+
+class HistoricDateRangeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HistoricDateRange
+        fields = '__all__'
 
 
 class ClimateDataCellSerializer(serializers.ModelSerializer):

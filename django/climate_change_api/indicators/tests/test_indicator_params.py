@@ -2,8 +2,10 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from climate_data.tests.mixins import ClimateDataSetupMixin
+from climate_data.tests.factories import HistoricDateRangeFactory
 from indicators import indicators
-from indicators.params import IndicatorParam, IndicatorParams, PercentileIndicatorParams
+from indicators.params import (IndicatorParam, IndicatorParams, PercentileIndicatorParams,
+                               HeatWaveIndicatorParams)
 from indicators.utils import merge_dicts
 from indicators.validators import ChoicesValidator
 
@@ -152,3 +154,22 @@ class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
         indicator_params = self._get_params_class()
         with self.assertRaises(ValidationError):
             indicator_params.validate(parameters)
+
+
+class HeatWaveIndicatorParamsTestCase(IndicatorParamsTestCase):
+
+        def setUp(self):
+            super(HeatWaveIndicatorParamsTestCase, self).setUp()
+            self.range1 = HistoricDateRangeFactory(start_year=1951, end_year=1980)
+            self.range2 = HistoricDateRangeFactory(start_year=1961, end_year=1990)
+            self.params_class = HeatWaveIndicatorParams
+
+        def test_default_to_most_recent_historic_range(self):
+            indicator_params = self._get_params_class()
+            self.assertEqual(indicator_params.historic_range.default, str(self.range2.pk))
+
+        def test_validate_range_outside_of_choices(self):
+            parameters = merge_dicts(self.default_parameters, {'historic_range': '2010'})
+            indicator_params = self._get_params_class()
+            with self.assertRaises(ValidationError):
+                indicator_params.validate(parameters)
