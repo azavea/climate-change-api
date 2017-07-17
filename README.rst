@@ -9,11 +9,7 @@ sign into your user in the azavea-climate AWS account and create a set of access
 
 Then, run ``aws configure --profile climate`` and follow the prompts.
 
-Once your AWS profile is setup, you need to configure the Librato statsite container.
-
-Follow the instructions in the [Statsite README](statsite/README.md).
-
-With AWS and Librato ready, run the following to configure the VM and load the most recent database backup:
+With AWS ready, run the following to configure the VM and load the most recent database backup:
 
 .. code-block:: bash
 
@@ -77,6 +73,11 @@ Then start the Docker container with::
     docker-compose up loadtest
 
 Naviagate to http://localhost:8089 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
+
+
+Request Debugging
+-----------------
+The project has the `Django Debug Toolbar`_ installed to help provide insight into the steps behind producing an HTML response. It is available on a development environment when accessed directly from the host computer and can be seen in the User Profile pages as well as in API requests when using the HTML-based BrowsableAPI. To use the BrowsableAPI log into the User Profile page in a browser and then in the browser navigate to the URL of the desired API request.
 
 
 Bypassing Cache
@@ -204,18 +205,6 @@ To load pre-computed historic aggregated values from the fixture::
 
     ./scripts/console django './manage.py loaddata historic_averages historic_baselines'
 
-Loading From Remote Instance
-''''''''''''''''''''''''''''
-If the fixture is missing data for the cities you need or needs to be regenerated and you happen to have a previously
-deployed Climate Change API instance with the necessary data, you can use the `import_historic` management command to
-pull the data into your environment.
-
-Once you have the cities and models needed configured, run this command to pull the data down from the remote
-instance. Note that if you already have historic aggregated data you will need to delete it using the administrative
-tools first::
-
-    ./scripts/console django './manage.py import_historic staging.somewhere.com API_KEY'
-
 
 Loading From Historic Readings
 ''''''''''''''''''''''''''''''
@@ -241,8 +230,6 @@ Note that this will export all historic summary data you have for all cities and
 is based off of the ``geonames_cities_top200_us.geojson`` list of cities, so please make sure you have the correct
 cities installed before updating the fixtures.
 
-
-.. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
 
 Updating The Development Database Dump
 --------------------------------------
@@ -313,3 +300,6 @@ Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy
     $ aws s3 cp database_backup/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/latest/
 
 Where DATE is in the format mmddyyyy (i.e. cc_dev_db_05082017.dump)
+
+.. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
+.. _Django Debug Toolbar: https://django-debug-toolbar.readthedocs.io

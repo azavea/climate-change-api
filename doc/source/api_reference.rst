@@ -35,9 +35,15 @@ Indicator
 
 
 Region
----------
+------
 
 .. include:: api_reference/region.rst
+
+
+Historic Range
+--------------
+
+.. include:: api_reference/historic_range.rst
 
 
 Auth

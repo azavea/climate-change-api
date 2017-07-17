@@ -1,4 +1,0 @@
-[librato]
-email = <email_address>
-token = <token>
-floor_time_secs = 60
