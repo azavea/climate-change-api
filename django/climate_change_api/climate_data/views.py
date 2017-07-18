@@ -26,6 +26,7 @@ from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateData,
+                                 ClimateDataYear,
                                  ClimateModel,
                                  Region,
                                  Scenario,
@@ -159,11 +160,11 @@ class ClimateDataView(APIView):
         """Retrieve all of the climate data for a given city and scenario."""
         def filter_variables_list(variables):
             if variables:
-                valid_variables = set(ClimateData.VARIABLE_CHOICES)
+                valid_variables = set(ClimateDataYear.VARIABLE_CHOICES)
                 params_variables = set(variables.split(','))
                 return valid_variables.intersection(params_variables)
             else:
-                return set(ClimateData.VARIABLE_CHOICES)
+                return set(ClimateDataYear.VARIABLE_CHOICES)
 
         try:
             city = City.objects.get(id=kwargs['city'])
@@ -175,8 +176,10 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-        queryset = ClimateData.objects.filter(map_cell=city.map_cell,
-                                              data_source__scenario=scenario)
+        queryset = ClimateDataYear.objects.filter(
+            map_cell=city.map_cell,
+            data_source__scenario=scenario
+        )
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
