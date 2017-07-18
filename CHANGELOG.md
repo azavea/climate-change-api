@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.9](https://github.com/azavea/climate-change-api/tree/1.0.9) (2017-07-18)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.8...1.0.9)
+
+**Merged pull requests:**
+
+- Avoid memory issues, batch process generate\_historic.py data in chunks [\#566](https://github.com/azavea/climate-change-api/pull/566)
+- Introduce feature flag for ClimateDataYear indicators [\#565](https://github.com/azavea/climate-change-api/pull/565)
+
 ## [1.0.8](https://github.com/azavea/climate-change-api/tree/1.0.8) (2017-07-17)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.7...1.0.8)
 
