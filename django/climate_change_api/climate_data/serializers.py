@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 import django.db.models
 import logging
+from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db import connection
 
@@ -17,6 +18,8 @@ from climate_data.models import (City,
                                  Region,
                                  Scenario,
                                  HistoricDateRange)
+
+from indicators.serializers import float_avg
 
 logger = logging.getLogger(__name__)
 
@@ -77,45 +80,44 @@ class ClimateDataSerializer(serializers.ModelSerializer):
 class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     """Read-only custom serializer to generate the data object for the ClimateDataList view.
 
-    Since we will be combining multiple ClimateData model instances into a single unified
-    output, this serializer takes a ClimateData queryset and does not use the many=True argument,
+    Since we will be combining multiple ClimateData model instances into a single unified output,
+    this serializer takes a ClimateDataYear queryset and does not use the many=True argument,
     but does require the serializer `context` kwarg with a key 'variables'.
 
-    :param instance Queryset A ClimateData Queryset
+    :param instance Queryset A ClimateDataYear Queryset
         It should already be filtered on City and Scenario before being passed to the serializer
     :param context Dict
-        Provide key 'variables' with an iterable subset of ClimateData.VARIABLE_CHOICES to filter
-        the output.
+        Provide key 'variables' with an iterable subset of ClimateDataYear.VARIABLE_CHOICES to
+        filter the output.
         Provide key 'aggregation' with one of ('min', 'max', 'avg') to aggregate the data values
         across models. Default is 'avg'.
     """
 
+    _AGGREGATION_MAP = {
+        'avg': float_avg,
+        'min': min,
+        'max': max
+    }
+
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
-            self._context['variables'] = ClimateData.VARIABLE_CHOICES
+            self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
         if self._context.get('aggregation', None) is None:
             self._context['aggregation'] = 'avg'
 
     def to_representation(self, queryset):
-        """Serialize queryset to the expected python object format.
-
-        The DB query should be roughly equivalent to:
-            SELECT year, day_of_year, avg(tasmin) as tasmin, avg(tasmax) as tasmax, avg(pr) as pr
-            FROM climate_data_climatedata
-            WHERE scenario_id = 1 and city_id = 1
-            GROUP BY year, day_of_year
-            ORDER BY year, day_of_year;
-        """
+        """Serialize queryset to the expected python object format."""
         assert isinstance(queryset, QuerySet), (
             'ClimateCityScenarioDataSerializer must be given a queryset')
 
         aggregation = self._context['aggregation']
-        aggregation_function = getattr(django.db.models, aggregation.capitalize())
 
-        aggregations = {variable: aggregation_function(variable)
-                        for variable in self._context['variables']}
-        queryset = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
+        # default to averaging
+        aggregation_func = self._AGGREGATION_MAP.get(aggregation, float_avg)
+
+        queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
+        queryset = queryset.order_by('year')
 
         query = str(queryset.query)
         cursor = connection.cursor()
@@ -123,17 +125,36 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         output = {}
         columns = [col[0] for col in cursor.description]
+        year = None
+        # results from all models for a year
+        year_results = {var: [] for var in self._context['variables']}
         for row in cursor.fetchall():
             result = dict(zip(columns, row))
 
+            last_year = year
             year = result['year']
-            if year not in output:
-                output[year] = {var: [None] * 366 for var in self._context['variables']}
+
+            if year != last_year and last_year:
+                output[last_year] = {var: [None] * 366 for var in self._context['variables']}
+                year_data = output[last_year]
+                for variable in self._context['variables']:
+                    for i in range(365):
+                        var_day = [model[i] for model in year_results[variable]]
+                        year_data[variable][i] = aggregation_func(var_day)
+                year_results = {var: [] for var in self._context['variables']}
+
+            for variable in self._context['variables']:
+                year_results[variable].append(result[variable])
+
+        # get the last year
+        if year:
+            output[year] = {var: [None] * 366 for var in self._context['variables']}
             year_data = output[year]
             for variable in self._context['variables']:
-                # Day of year starts at 1, so subtract 1 to get the array index
-                day_index = result['day_of_year'] - 1
-                year_data[variable][day_index] = result[variable]
+                for i in range(365):
+                    var_day = [model[i] for model in year_results[variable]]
+                    year_data[variable][i] = aggregation_func(var_day)
+
         return output
 
     def to_internal_value(self, data):
