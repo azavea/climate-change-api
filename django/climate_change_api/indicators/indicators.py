@@ -1,12 +1,14 @@
 import inspect
 import sys
 from itertools import groupby
+import numpy as np
 
 from django.db.models import F, Sum, Avg, Max, Min
+from django.conf import settings
 from postgres_stats.aggregates import Percentile
 
-from .abstract_indicators import (Indicator, CountIndicator,
-                                  BasetempIndicatorMixin,
+from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
+                                  BasetempIndicatorMixin, ArrayStreakIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
@@ -49,12 +51,24 @@ class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Avg
 
 
+class AverageHighTemperatureArray(ArrayIndicator, AverageHighTemperature):
+    # Use the staticmethod decorated to prevent the function from being bound and  `self` from
+    # being added as the first argument
+    agg_function = staticmethod(np.mean)
+
+
 class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
     agg_function = Avg
+
+
+class AverageLowTemperatureArray(ArrayIndicator, AverageLowTemperature):
+    # Use the staticmethod decorated to prevent the function from being bound and  `self` from
+    # being added as the first argument
+    agg_function = staticmethod(np.mean)
 
 
 class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
@@ -65,12 +79,20 @@ class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
     agg_function = Max
 
 
+class MaxHighTemperatureArray(ArrayIndicator, MaxHighTemperature):
+    agg_function = max
+
+
 class MinLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
     agg_function = Min
+
+
+class MinLowTemperatureArray(ArrayIndicator, MinLowTemperature):
+    agg_function = min
 
 
 class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
@@ -152,6 +174,11 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
 
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
+
+
+class YearlyDrySpellsArray(ArrayStreakIndicator, YearlyDrySpells):
+    predicate = staticmethod(lambda pr: pr == 0)
+    min_streak = 5
 
 
 class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
@@ -323,7 +350,8 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
 def list_available_indicators():
     """List the defined class members of this module as the available indicators."""
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-    indicators = [member[1] for member in class_members if member[1].__module__ == __name__]
+    indicators = [member[1] for member in class_members if member[1].__module__ == __name__ and
+                  not member[1].__name__.endswith('Array')]
     return [i.to_dict() for i in indicators]
 
 
@@ -336,4 +364,7 @@ def indicator_factory(indicator_name):
     """
     this_module = sys.modules[__name__]
     class_name = ''.join([s.capitalize() for s in indicator_name.split('_')])
+    if settings.FEATURE_FLAGS['array_data'] and hasattr(this_module, '{}Array'.format(class_name)):
+        # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
+        class_name = '{}Array'.format(class_name)
     return getattr(this_module, class_name, None)

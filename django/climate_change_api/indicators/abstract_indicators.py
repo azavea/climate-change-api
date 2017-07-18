@@ -6,10 +6,12 @@ from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
 
-from climate_data.models import ClimateData
+from climate_data.models import ClimateData, ClimateDataYear
+from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
+from .partitioners import YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner
 from . import queryset_generator
 
 
@@ -320,3 +322,119 @@ class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
 
 class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
     params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
+
+
+class ArrayIndicator(Indicator):
+    """Dynamically calculate specific values for a location across time.
+
+    Indicators can be simple metrics such as hottest high temperature or average precipitation, or
+    more complicated concepts like Accumulated Freezing Degree Days which approximates the amount
+    of freezing an area would experience.
+
+    These are calculated for an area across a timespan, using a custom aggregation level such as
+    one data point per year, per quarter, or for every month ('yearly', 'monthly', and 'quarterly'
+    aggregation respectively)
+
+    This serves as the fundamental piece that indicators use to achieve their specific goals.
+    """
+
+    valid_aggregations = ('yearly', 'quarterly', 'monthly')
+
+    # Function to use to calculate the value for a bucket
+    # Takes a sequence of values as parameter. In some cases (like numpy methods) the staticmethod
+    # decorator may be needed to prevent the function from being bound and `self` being added as the
+    # first argument
+    agg_function = None
+
+    def get_queryset(self):
+        """Get the initial indicator queryset.
+
+        ClimateData initially filtered by city/scenario and optionally years/models as passed
+        by the constructor.
+        """
+        queryset = ClimateDataYear.objects.filter(
+            map_cell=self.city.map_cell,
+            data_source__scenario=self.scenario
+        )
+
+        filterset = ClimateDataFilterSet()
+        queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
+        queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+
+        return queryset
+
+    def align_buckets(self):
+        """Group raw data into buckets corresponding to the time aggregation.
+
+        By default data is accumulated in buckets that align with calendar years. For monthly,
+        quarterly, and other aggregations, we'll want to re-align the buckets to match the output
+        """
+        raw_data = self.queryset.values(*self.variables)
+
+        partitioner = {
+            'yearly': YearlyPartitioner,
+            'monthly': MonthlyPartitioner,
+            'quarterly': QuarterlyPartitioner
+        }[self.params.time_aggregation.value]
+
+        return partitioner.parse(raw_data)
+
+    def calculate_value(self, data):
+        """Calculate the value for the indicator for a given bucket."""
+        for bucket in data:
+            yield {
+                'agg_key': bucket['agg_key'],
+                'value': self.aggregate(bucket)
+            }
+
+    def aggregate(self, bucket):
+        """Process an aggregation-aligned bucket of raw data into a single value.
+
+        For most indicators this can be done simply by taking the relevant variable's data and
+        passing it to a mathematical function like max or np.percentile, but for more complicated
+        indictors it may be necessary to overload this function to define how to handle interactions
+        between variables
+        """
+        variable = self.variables[0]
+        values = bucket[variable]
+        return self.agg_function(values)
+
+    def calculate(self):
+        # Parse yearly-aggregated data into other aggregations as needed
+        data = self.align_buckets()
+        # Process raw variable data into indicator values
+        data = self.calculate_value(data)
+        # Convert indicator values into the requested units
+        data = self.convert_units(data)
+        # Collect results with a common key into a dictionary of keyed groups
+        results = self.collate_results(data)
+        # Serialize the keyed groups using the requested sub-aggregations
+        return self.serializer.to_representation(results,
+                                                 aggregations=self.params.agg.value.split(','))
+
+
+class ArrayStreakIndicator(ArrayIndicator):
+    """Calculate the number of times a criteria is met in a number of consecutive days.
+
+    Streaks can be configured both in what the criteria to be met is, as well as the number of
+    consecutive days needed to be considered a streak.
+    """
+
+    @classmethod
+    def predicate(cls, value):
+        """Return true if the value matches the condition of a streak."""
+        raise NotImplementedError()
+
+    # How many consecutive days should the criteria be met to count as a streak
+    min_streak = 1
+
+    @classmethod
+    def agg_function(cls, bucket):
+        """Return number of times the predicate is met for at least min_streak consecutive days."""
+        count = 0
+        # Use groupby to automatically divide the bucket into matches or non-matches
+        for match, group in groupby(bucket, cls.predicate):
+            # groupby groups don't have a len, but we can use sum to count how many items it has
+            if match and sum(1 for v in group) >= cls.min_streak:
+                count += 1
+        return count
