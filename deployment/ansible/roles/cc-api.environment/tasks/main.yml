@@ -7,4 +7,4 @@
   lineinfile: dest=/etc/environment regexp=^DEV_USER line="DEV_USER={{dev_user}}"
 
 - name: Set Environment variable for Array Data feature flag
-  lineinfile: dest=/etc/environment regexp=^CC_FF_ARRAY_DATA line="CC_FF_ARRAY_DATA={{dev_user}}"
+  lineinfile: dest=/etc/environment regexp=^CC_FF_ARRAY_DATA line="CC_FF_ARRAY_DATA={{feature_flag_array_data}}"
