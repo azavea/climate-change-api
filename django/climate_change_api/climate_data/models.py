@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields.array import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import CASCADE, SET_NULL
 
@@ -260,6 +261,29 @@ class ClimateData(models.Model):
 
     class Meta:
         unique_together = ('map_cell', 'data_source', 'day_of_year')
+        index_together = ('map_cell', 'data_source')
+
+    def natural_key(self):
+        return (self.map_cell, self.data_source)
+
+
+class ClimateDataYear(models.Model):
+
+    VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
+
+    id = models.BigAutoField(primary_key=True)
+    map_cell = TinyForeignKey(ClimateDataCell)
+    data_source = TinyForeignKey(ClimateDataSource)
+
+    tasmin = ArrayField(models.FloatField(),
+                        help_text='Daily Minimum Near-Surface Air Temperature, Kelvin')
+    tasmax = ArrayField(models.FloatField(),
+                        help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
+    pr = ArrayField(models.FloatField(),
+                    help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')
+
+    class Meta:
+        unique_together = ('map_cell', 'data_source')
         index_together = ('map_cell', 'data_source')
 
     def natural_key(self):
