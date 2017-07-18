@@ -21,8 +21,9 @@ HISTORIC_PERIOD_LENGTH = 30
 BATCH_SIZE = 100
 
 
-def chunk_list(l):
-    return [l[i:i + BATCH_SIZE] for i in range(0, len(l), BATCH_SIZE)]
+def chunk_list(l, len_l):
+    for i in range(0, len_l, BATCH_SIZE):
+        yield l[i:i + BATCH_SIZE]
 
 
 def generate_year_ranges(queryset):
@@ -129,13 +130,13 @@ class Command(BaseCommand):
         logger.info("Importing averages")
         no_historic_cells = map_cells.filter(historic_average=None)
         # Process bulk creation in batches because of memory constraints and for fail safety
-        for cells in chunk_list(no_historic_cells):
+        for cells in chunk_list(no_historic_cells, len(no_historic_cells)):
             averages = generate_averages(cells, historic_data)
             HistoricAverageClimateData.objects.bulk_create(averages)
 
         logger.info("Importing percentile baselines")
         no_baselines_cells = map_cells.filter(baseline__isnull=True)
         # Process bulk creation in batches because of memory constraints and for fail safety
-        for cells in chunk_list(no_baselines_cells):
+        for cells in chunk_list(no_baselines_cells, len(no_baselines_cells)):
             baselines = generate_baselines(cells, historic_data)
             ClimateDataBaseline.objects.bulk_create(baselines)
