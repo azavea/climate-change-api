@@ -1,6 +1,3 @@
-import inspect
-import sys
-
 from django.test import TestCase
 
 from indicators import list_available_indicators
@@ -15,9 +12,6 @@ class AvailableIndicatorListTestCase(TestCase):
         super(AvailableIndicatorListTestCase, self).setUp()
         HistoricDateRangeFactory(start_year=1951, end_year=1980)
 
-    def test_indicator_list_ignores_classes_not_defined_in_module(self):
+    def test_indicator_detection_count(self):
         indicators = list_available_indicators()
-        class_members = inspect.getmembers(sys.modules['indicators.indicators'], inspect.isclass)
-        indicators_via_introspection = [m[1] for m in class_members
-                                        if m[1].__module__ == 'indicators.indicators']
-        self.assertEqual(len(indicators), len(indicators_via_introspection))
+        self.assertEqual(len(indicators), 23)
