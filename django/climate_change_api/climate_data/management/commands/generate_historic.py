@@ -18,6 +18,12 @@ PERCENTILES = [1, 5, 95, 99]
 MODELS = ClimateModel.objects.all()
 
 HISTORIC_PERIOD_LENGTH = 30
+BATCH_SIZE = 100
+
+
+def chunk_list(l, len_l):
+    for i in range(0, len_l, BATCH_SIZE):
+        yield l[i:i + BATCH_SIZE]
 
 
 def generate_year_ranges(queryset):
@@ -48,7 +54,7 @@ def generate_year_ranges(queryset):
 
 def generate_baselines(mapcells, queryset):
     """Build baselines for cells represented by the queryset but have no baselines of their own."""
-    for cell in mapcells.filter(baseline__isnull=True):
+    for cell in mapcells:
         logger.info("Importing baselines for cell (%f,%f)", cell.lat, cell.lon)
         time_periods = HistoricDateRange.objects.all()
 
@@ -89,7 +95,7 @@ def generate_baselines(mapcells, queryset):
 
 
 def generate_averages(mapcells, queryset):
-    for cell in mapcells.filter(historic_average=None):
+    for cell in mapcells:
         logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
         time_periods = HistoricDateRange.objects.all()
         for period in time_periods:
@@ -122,9 +128,15 @@ class Command(BaseCommand):
         generate_year_ranges(historic_data)
 
         logger.info("Importing averages")
-        averages = generate_averages(map_cells, historic_data)
-        HistoricAverageClimateData.objects.bulk_create(averages)
+        no_historic_cells = map_cells.filter(historic_average=None)
+        # Process bulk creation in batches because of memory constraints and for fail safety
+        for cells in chunk_list(no_historic_cells, len(no_historic_cells)):
+            averages = generate_averages(cells, historic_data)
+            HistoricAverageClimateData.objects.bulk_create(averages)
 
         logger.info("Importing percentile baselines")
-        baselines = generate_baselines(map_cells, historic_data)
-        ClimateDataBaseline.objects.bulk_create(baselines)
+        no_baselines_cells = map_cells.filter(baseline__isnull=True)
+        # Process bulk creation in batches because of memory constraints and for fail safety
+        for cells in chunk_list(no_baselines_cells, len(no_baselines_cells)):
+            baselines = generate_baselines(cells, historic_data)
+            ClimateDataBaseline.objects.bulk_create(baselines)
