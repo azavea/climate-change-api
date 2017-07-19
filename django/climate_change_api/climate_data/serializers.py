@@ -124,6 +124,17 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         cursor.execute(query)
 
         output = {}
+
+        def add_year_to_output(year, year_results):
+            """Add results for one year to the output object"""
+            output[year] = {var: [None] * 366 for var in self._context['variables']}
+            for variable in self._context['variables']:
+                if len(year_results[variable]):
+                    for i in range(len(year_results[variable][0])):
+                        var_day = [model[i] for model in year_results[variable]
+                                   if model[i] is not None]
+                        output[year][variable][i] = aggregation_func(var_day)
+
         columns = [col[0] for col in cursor.description]
         year = None
         # results from all models for a year
@@ -135,12 +146,8 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             year = result['year']
 
             if year != last_year and last_year:
-                output[last_year] = {var: [None] * 366 for var in self._context['variables']}
-                year_data = output[last_year]
-                for variable in self._context['variables']:
-                    for i in range(365):
-                        var_day = [model[i] for model in year_results[variable]]
-                        year_data[variable][i] = aggregation_func(var_day)
+                add_year_to_output(year, year_results)
+                # reset for the next year
                 year_results = {var: [] for var in self._context['variables']}
 
             for variable in self._context['variables']:
@@ -148,12 +155,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         # get the last year
         if year:
-            output[year] = {var: [None] * 366 for var in self._context['variables']}
-            year_data = output[year]
-            for variable in self._context['variables']:
-                for i in range(365):
-                    var_day = [model[i] for model in year_results[variable]]
-                    year_data[variable][i] = aggregation_func(var_day)
+            add_year_to_output(year, year_results)
 
         return output
 
