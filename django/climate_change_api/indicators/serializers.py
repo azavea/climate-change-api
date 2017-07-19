@@ -3,6 +3,8 @@ import numpy as np
 
 
 def float_avg(values):
+    if not len(values):
+        return None
     return float(sum(values)) / len(values)
 
 
