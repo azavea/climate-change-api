@@ -30,9 +30,10 @@ class Command(BaseCommand):
             pr = [None] * max_days
 
             for datum in data:
-                tasmin[datum['day_of_year']-1] = datum['tasmin']
-                tasmax[datum['day_of_year']-1] = datum['tasmax']
-                pr[datum['day_of_year']-1] = datum['pr']
+                day_of_year = datum['day_of_year'] - 1
+                tasmin[day_of_year] = datum['tasmin']
+                tasmax[day_of_year] = datum['tasmax']
+                pr[day_of_year] = datum['pr']
 
             yield ClimateDataYear(
                 map_cell_id=cell,
