@@ -1,6 +1,7 @@
+from django.conf import settings
 from django.test import TestCase
 
-from climate_data.models import ClimateData
+from climate_data.models import ClimateData, ClimateDataYear
 from climate_data.tests.mixins import ClimateDataSetupMixin
 from climate_data.serializers import ClimateCityScenarioDataSerializer
 
@@ -11,8 +12,15 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def setUp(self):
 
         super(ClimateCityScenarioDataSerializerTestCase, self).setUp()
-        self.queryset = (ClimateData.objects.filter(map_cell__city=self.city1)
-                                            .filter(data_source__scenario=self.rcp45))
+        if settings.FEATURE_FLAGS['array_data']:
+            self.VARIABLE_CHOICES = ClimateDataYear.VARIABLE_CHOICES
+            self.queryset = (ClimateDataYear.objects.filter(map_cell__city=self.city1)
+                                                    .filter(data_source__scenario=self.rcp45))
+        else:
+            # TODO: remove this block and feature flag test with task #567
+            self.VARIABLE_CHOICES = ClimateData.VARIABLE_CHOICES
+            self.queryset = (ClimateData.objects.filter(map_cell__city=self.city1)
+                                                .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):
         """Helper to test the serialized python object.
@@ -40,11 +48,11 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
         that avg is the default aggregation.
         """
         serializer = ClimateCityScenarioDataSerializer(self.queryset)
-        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 15.0)
+        self.assert_serializer_data_valid(serializer.data, self.VARIABLE_CHOICES, 15.0)
 
     def test_limit_output_variables(self):
         """Check output object only contains variables passed in via the context."""
-        variable_list = list(ClimateData.VARIABLE_CHOICES)
+        variable_list = list(self.VARIABLE_CHOICES)
         skip_var = variable_list.pop()
         context = {'variables': variable_list}
         serializer = ClimateCityScenarioDataSerializer(self.queryset, context=context)
@@ -55,19 +63,19 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def test_min_aggregation(self):
         context = {'aggregation': 'min'}
         serializer = ClimateCityScenarioDataSerializer(self.queryset, context=context)
-        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 10.0)
+        self.assert_serializer_data_valid(serializer.data, self.VARIABLE_CHOICES, 10.0)
 
     def test_max_aggregation(self):
         context = {'aggregation': 'max'}
         serializer = ClimateCityScenarioDataSerializer(self.queryset, context=context)
-        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 20.0)
+        self.assert_serializer_data_valid(serializer.data, self.VARIABLE_CHOICES, 20.0)
 
     def test_limit_models(self):
         """Check serializer computes the average using only the filtered models."""
         queryset = self.queryset.filter(data_source__model=self.model1)
         serializer = ClimateCityScenarioDataSerializer(queryset)
-        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 10.0)
+        self.assert_serializer_data_valid(serializer.data, self.VARIABLE_CHOICES, 10.0)
 
         queryset = self.queryset.filter(data_source__model=self.model2)
         serializer = ClimateCityScenarioDataSerializer(queryset)
-        self.assert_serializer_data_valid(serializer.data, ClimateData.VARIABLE_CHOICES, 20.0)
+        self.assert_serializer_data_valid(serializer.data, self.VARIABLE_CHOICES, 20.0)
