@@ -94,6 +94,25 @@ class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     test_units_fahrenheit_equals = {2000: {'avg': -396.67, 'max': -387.67, 'min': -405.67}}
 
 
+class CrossYearAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
+    indicator_class = indicators.AverageHighTemperatureArray
+    indicator_name = 'average_high_temperature_array'
+    time_aggregation = 'offset_yearly'
+    units = 'K'
+    test_indicator_rcp45_equals = {'2000-2001': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
+                                   '2001-2002': {'max': 10.0, 'avg': 10.0, 'min': 10.0},
+                                   '2002-2003': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    test_years_filter_equals = {'2001-2002': {'max': 10.0, 'avg': 10.0, 'min': 10.0},
+                                '2002-2003': {'max': 10.0, 'avg': 10.0, 'min': 10.0}}
+    test_models_filter_equals = {'2000-2001': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2001-2002': {'avg': 10.0, 'max': 10.0, 'min': 10.0},
+                                 '2002-2003': {'avg': 10.0, 'max': 10.0, 'min': 10.0}}
+    # offset_yearly aggregation reduces the number of data points from the fencepost effect, so
+    # since there was only one data point for these we get nothing back.
+    test_indicator_rcp85_equals = {}
+    test_units_fahrenheit_equals = {}
+
+
 class YearlyAverageLowTemperatureTestCase(TemperatureIndicatorTests, TestCase):
     indicator_class = indicators.AverageLowTemperature
     indicator_name = 'average_low_temperature'
