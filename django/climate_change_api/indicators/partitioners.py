@@ -13,28 +13,36 @@ logger = logging.getLogger(__name__)
 
 
 class Partitioner(object):
-    """Partition a sequence of ClimateDataYear data into the desired time aggregation.
+    """Partition a sequence of ClimateDataYear array data into the desired time aggregation.
 
-    Add a value for 'agg_key' to each bucket to indicate how it should be rendered in the final
-    result. It is possible for multiple results to have the same agg_key, which will be aggregated
-    by the indicator's serializer
+    parse() takes a queryset filtered for the desired map cell, scenario, models and years, and
+    returns a sequence of tuples of the form (aggregation_key, {var: [data], ...})
+
+    Each tuple represents a single "bucket" of data, though multiple buckets may share the same
+    aggregation key - these will be aggregated together by the indicator's serializer
     """
 
-    @classmethod
-    def parse(cls, queryset):
-        """Given a queryset of ClimateDataYear, return a sequence of dicts per time partition."""
+    variables = []
+
+    def __init__(self, variables):
+        self.variables = variables
+
+    def parse(self, queryset):
+        """Partition a queryset into a iterable of tuples representing desired time periods."""
+        queryset = queryset.values(*self.variables)
+        return self._parse(queryset)
+
+    def _parse(self, queryset):
         raise NotImplementedError()
 
 
 class YearlyPartitioner(Partitioner):
-    """Partition results by year.
+    """Partition results by year."""
 
-    Since the ClimateDataYear is already partitioned, this is effectively a noop
-    """
-
-    @classmethod
-    def parse(cls, queryset):
-        return queryset.annotate(agg_key=F('data_source__year'))
+    def _parse(self, queryset):
+        queryset = queryset.annotate(year=F('data_source__year'))
+        for row in queryset.iterator():
+            yield (row['year'], {var: row[var] for var in self.variables})
 
 
 class OffsetYearlyPartitioner(Partitioner):
@@ -45,7 +53,7 @@ class OffsetYearlyPartitioner(Partitioner):
     beginning half of the second. This will result in one fewer data point being returned than
     originated, as either the first or last will not half a partner to be combined with.
 
-    By default uses day 180, so "Year 1" constitutes Year 0 day 181 through Year 1 day 180
+    By default uses day 180, so "Year 0-1" constitutes Year 0 day 181 through Year 1 day 180
     """
 
     offset = None
@@ -55,8 +63,8 @@ class OffsetYearlyPartitioner(Partitioner):
 
         super(OffsetYearlyPartitioner, self).__init__(*args, **kwargs)
 
-    def parse(self, queryset):
-        """Given a queryset of ClimateDataYear, return a sequence of dicts per time partition."""
+    def _parse(self, queryset):
+        """Process a queryset of ClimateDataYear into a sequence of dicts per time partition."""
         def group_consecutive_years(results):
             """Group queryset results into chains of consecutive years of the same model."""
             def match_function(obj):
@@ -71,26 +79,21 @@ class OffsetYearlyPartitioner(Partitioner):
         # We need to know year and model so we can make sure we don't accidentally merge unrelated
         # years
         queryset = queryset.annotate(
-            year=F('data_source__year'), model=F('data_source__model_id')
+            year=F('data_source__year'),
+            model=F('data_source__model_id'),
+            scenario=F('data_source__scenario_id')
         ).order_by('data_source__model_id', 'data_source__year')
+        it = queryset.iterator()
 
         # Group models and sequential years together so we don't accidentally have our algorithm
         # compare years from different predictions or time periods.
-        for years_group in group_consecutive_years(queryset):
+        for years_group in group_consecutive_years(it):
             # Use a sliding window of width 2 so we have both years we need for each data point
             for prev, cur in sliding_window(years_group, n=2):
-                # Remove model and year so only the variables' keys are left in the cur dictionary
-                del cur['model']
-                year = cur.pop('year')
-                yield dict(
-                    {
-                        # Concatenate the trailing data of the previous year to the leading data
-                        # of the current year
-                        var: prev[var][self.offset + 1:] + cur[var][:self.offset]
-                        for var in cur.keys()
-                    },
-                    agg_key=year
-                )
+                agg_key = "{}-{}".format(cur['year'] - 1, cur['year'])
+                data = {var: prev[var][self.offset:] + cur[var][:self.offset]
+                        for var in self.variables}
+                yield (agg_key, data)
 
 
 class IntervalPartitioner(Partitioner):
@@ -117,14 +120,14 @@ class IntervalPartitioner(Partitioner):
         raise NotImplementedError()
 
     @classmethod
-    def parse(cls, queryset):
-        """Given a queryset of ClimateDataYear, return a sequence of dicts per time partition.
+    def _parse(cls, queryset):
+        """Given a queryset of ClimateDataYear, return a sequence of tuples per time partition.
 
         This assumes that intervals existing entirely within years, and iterates across the interval
-        sequence for each year in the result, producing a bucket for every iterval for every year.
+        sequence for each year in the result, producing a bucket for every interval for every year.
         """
         queryset = queryset.annotate(year=F('data_source__year'))
-        for bucket in queryset:
+        for bucket in queryset.iterator():
             year = bucket.pop('year')
             pos = 0
             for period, length in enumerate(cls.intervals(year), start=1):
@@ -136,13 +139,9 @@ class IntervalPartitioner(Partitioner):
                                     year, period, pos)
                     break
 
-                yield dict(
-                    {
-                        # use `pos` to move a window `length`-long along the variable's data
-                        var: value[pos:pos + length - 1] for var, value in bucket.items()
-                    },
-                    agg_key=cls.agg_key(year, period)
-                )
+                yield (cls.agg_key(year, period),
+                       # use `pos` to move a window `length`-long along the variable's data
+                       {var: value[pos:pos + length] for var, value in bucket.items()})
                 pos += length
 
 
