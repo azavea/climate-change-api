@@ -1,7 +1,8 @@
 from collections import OrderedDict
-
-import django.db.models
 import logging
+
+from django.conf import settings
+import django.db.models
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db import connection
@@ -14,6 +15,7 @@ from climate_data.models import (City,
                                  ClimateData,
                                  ClimateDataCell,
                                  ClimateDataSource,
+                                 ClimateDataYear,
                                  ClimateModel,
                                  Region,
                                  Scenario,
@@ -102,7 +104,11 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
-            self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
+            if settings.FEATURE_FLAGS['array_data']:
+                self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
+            else:
+                # TODO: remove this block and feature flag test with task #567
+                self._context['variables'] = ClimateData.VARIABLE_CHOICES
         if self._context.get('aggregation', None) is None:
             self._context['aggregation'] = 'avg'
 
@@ -113,49 +119,76 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         aggregation = self._context['aggregation']
 
-        # default to averaging
-        aggregation_func = self._AGGREGATION_MAP.get(aggregation, float_avg)
+        if settings.FEATURE_FLAGS['array_data']:
+            # default to averaging
+            aggregation_func = self._AGGREGATION_MAP.get(aggregation, float_avg)
 
-        queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
-        queryset = queryset.order_by('year')
+            queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
+            queryset = queryset.order_by('year')
 
-        query = str(queryset.query)
-        cursor = connection.cursor()
-        cursor.execute(query)
+            query = str(queryset.query)
+            cursor = connection.cursor()
+            cursor.execute(query)
 
-        output = {}
+            output = {}
 
-        def add_year_to_output(year, year_results):
-            """Add results for one year to the output object"""
-            output[year] = {var: [None] * 366 for var in self._context['variables']}
-            for variable in self._context['variables']:
-                if len(year_results[variable]):
-                    for i in range(len(year_results[variable][0])):
-                        var_day = [model[i] for model in year_results[variable]
-                                   if model[i] is not None]
-                        output[year][variable][i] = aggregation_func(var_day)
+            def add_year_to_output(year, year_results):
+                """Add results for one year to the output object."""
+                output[year] = {var: [None] * 366 for var in self._context['variables']}
+                for variable in self._context['variables']:
+                    if len(year_results[variable]):
+                        for i in range(len(year_results[variable][0])):
+                            var_day = [model[i] for model in year_results[variable]
+                                       if model[i] is not None]
+                            output[year][variable][i] = aggregation_func(var_day)
 
-        columns = [col[0] for col in cursor.description]
-        year = None
-        # results from all models for a year
-        year_results = {var: [] for var in self._context['variables']}
-        for row in cursor.fetchall():
-            result = dict(zip(columns, row))
+            columns = [col[0] for col in cursor.description]
+            year = None
+            # results from all models for a year
+            year_results = {var: [] for var in self._context['variables']}
+            for row in cursor.fetchall():
+                result = dict(zip(columns, row))
 
-            last_year = year
-            year = result['year']
+                last_year = year
+                year = result['year']
 
-            if year != last_year and last_year:
+                if year != last_year and last_year:
+                    add_year_to_output(last_year, year_results)
+                    # reset for the next year
+                    year_results = {var: [] for var in self._context['variables']}
+
+                for variable in self._context['variables']:
+                    year_results[variable].append(result[variable])
+
+            # get the last year
+            if year:
                 add_year_to_output(year, year_results)
-                # reset for the next year
-                year_results = {var: [] for var in self._context['variables']}
+        else:
+            # TODO: remove this block and feature flag test with task #567
+            aggregation = self._context['aggregation']
+            aggregation_function = getattr(django.db.models, aggregation.capitalize())
 
-            for variable in self._context['variables']:
-                year_results[variable].append(result[variable])
+            aggregations = {variable: aggregation_function(variable)
+                            for variable in self._context['variables']}
+            queryset = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
 
-        # get the last year
-        if year:
-            add_year_to_output(year, year_results)
+            query = str(queryset.query)
+            cursor = connection.cursor()
+            cursor.execute(query)
+
+            output = {}
+            columns = [col[0] for col in cursor.description]
+            for row in cursor.fetchall():
+                result = dict(zip(columns, row))
+
+                year = result['year']
+                if year not in output:
+                    output[year] = {var: [None] * 366 for var in self._context['variables']}
+                year_data = output[year]
+                for variable in self._context['variables']:
+                    # Day of year starts at 1, so subtract 1 to get the array index
+                    day_index = result['day_of_year'] - 1
+                    year_data[variable][day_index] = result[variable]
 
         return output
 
