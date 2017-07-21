@@ -428,6 +428,34 @@ class ArrayIndicator(Indicator):
                                                  aggregations=self.params.agg.value.split(','))
 
 
+class ArrayThresholdIndicator(ArrayIndicator):
+    @classmethod
+    def get_comparator(cls):
+        """Temporary method to maintain both indicator styles.
+
+        TODO: Replace valid threshold params with comparator symbols rather than text and
+        remove this method upon conversion. Also, update documentation.
+        """
+        options = {'lt': '<',
+                   'lte': '<=',
+                   'gt': '>',
+                   'gte': '>='}
+        return options[cls.params_class.threshold_comparator.value]
+
+    @classmethod
+    def agg_function(cls, bucket):
+        """Return number of days the threshold is met."""
+        count = 0
+        comparator = cls.get_comparator()
+        for value in bucket:
+            expression = "{}{}{}".format(str(value),
+                                         comparator,
+                                         cls.params_class.threshold.value)
+            if eval(expression):
+                count += 1
+        return count
+
+
 class ArrayStreakIndicator(ArrayIndicator):
     """Calculate the number of times a criteria is met in a number of consecutive days.
 

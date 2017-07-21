@@ -9,6 +9,7 @@ from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   BasetempIndicatorMixin, ArrayStreakIndicator,
+                                  ArrayThresholdIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
@@ -27,6 +28,11 @@ class MaxTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
     description = ('Number of days where high temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmax',)
+
+
+class MaxTemperatureThresholdArray(ArrayThresholdIndicator, MaxTemperatureThreshold):
+    label = 'Max Temperature Threshold'  # As a placeholder until conversion
+    # variables = ('tasmax',)
 
 
 class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
