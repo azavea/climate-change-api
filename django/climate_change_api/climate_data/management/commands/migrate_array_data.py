@@ -23,8 +23,6 @@ class Command(BaseCommand):
         all_data = queryset.values().order_by('map_cell', 'data_source', 'day_of_year')
         for (cell, source), data in groupby(all_data.iterator(),
                                             lambda r: (r['map_cell_id'], r['data_source_id'])):
-            data = list(data)
-
             tasmin = [None] * max_days
             tasmax = [None] * max_days
             pr = [None] * max_days
