@@ -3,9 +3,7 @@ import numpy as np
 
 
 def float_avg(values):
-    if not len(values):
-        return None
-    return float(sum(values)) / len(values)
+    return float(sum(values)) / len(values) if values else None
 
 
 class IndicatorSerializer(object):

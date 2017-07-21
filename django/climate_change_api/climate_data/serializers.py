@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from itertools import groupby
 import logging
 
 from django.conf import settings
@@ -131,38 +132,16 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             cursor.execute(query)
 
             output = {}
-
-            def add_year_to_output(year, year_results):
-                """Add results for one year to the output object."""
+            columns = [col[0] for col in cursor.description]
+            results = (dict(zip(columns, row)) for row in cursor.fetchall())
+            for year, year_collection in groupby(results, lambda r: r['year']):
+                year_collection = list(year_collection)
                 output[year] = {var: [None] * 366 for var in self._context['variables']}
                 for variable in self._context['variables']:
-                    if len(year_results[variable]):
-                        for i in range(len(year_results[variable][0])):
-                            var_day = [model[i] for model in year_results[variable]
-                                       if model[i] is not None]
-                            output[year][variable][i] = aggregation_func(var_day)
-
-            columns = [col[0] for col in cursor.description]
-            year = None
-            # results from all models for a year
-            year_results = {var: [] for var in self._context['variables']}
-            for row in cursor.fetchall():
-                result = dict(zip(columns, row))
-
-                last_year = year
-                year = result['year']
-
-                if year != last_year and last_year:
-                    add_year_to_output(last_year, year_results)
-                    # reset for the next year
-                    year_results = {var: [] for var in self._context['variables']}
-
-                for variable in self._context['variables']:
-                    year_results[variable].append(result[variable])
-
-            # get the last year
-            if year:
-                add_year_to_output(year, year_results)
+                    year_results = [r[variable] for r in year_collection]
+                    for day, var_day in enumerate(zip(*year_results)):
+                        values = [val for val in var_day if val is not None]
+                        output[year][variable][day] = aggregation_func(values)
         else:
             # TODO: remove this block and feature flag test with task #567
             aggregation = self._context['aggregation']
