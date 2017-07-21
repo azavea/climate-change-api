@@ -42,11 +42,21 @@ class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
     variables = ('tasmin',)
 
 
+class MinTemperatureThresholdArray(ArrayThresholdIndicator, MinTemperatureThreshold):
+    label = 'Min Temperature Threshold'  # As a placeholder until conversion
+    # variables = ('tasmin',)
+
+
 class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixin, CountIndicator):
     label = 'Precipitation Threshold'
     description = ('Number of days where precipitation, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('pr',)
+
+
+class PrecipitationThresholdArray(ArrayThresholdIndicator, PrecipitationThreshold):
+    label = 'Precipitation Threshold'  # As a placeholder until conversion
+    # variables = ('pr',)
 
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
