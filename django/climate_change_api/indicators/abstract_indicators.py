@@ -392,11 +392,14 @@ class ArrayIndicator(Indicator):
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
         for agg_key, variable_data in data:
+            # Compact out any Nones in the data that might have been added to keep partitions even
+            values = {var: [v for v in data if v is not None]
+                      for var, data in variable_data.items()}
             # Return a dictionary for compatability with existing Indicator logic
             # in convert_units() and collate_results()
             yield {
                 'agg_key': agg_key,
-                'value': self.aggregate(variable_data)
+                'value': self.aggregate(values)
             }
 
     def aggregate(self, bucket):
@@ -408,7 +411,7 @@ class ArrayIndicator(Indicator):
         between variables
         """
         variable = self.variables[0]
-        values = [v for v in bucket[variable] if v is not None]
+        values = bucket[variable]
         return self.agg_function(values)
 
     def calculate(self):
