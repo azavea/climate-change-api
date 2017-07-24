@@ -45,14 +45,14 @@ class PartitionTest(TestCase):
     def test_yearly_partitions(self):
         partitioner = YearlyPartitioner(variables=['pr'])
         data = ClimateDataYear.objects.all()
-        result = list(partitioner.parse(data))
+        result = list(partitioner(data))
         self.assertEqual(result, [(2051, {'pr': float_range(0, 364)}),
                                   (2052, {'pr': float_range(30000, 30365)})])
 
     def test_monthly_partitions(self):
         partitioner = MonthlyPartitioner(variables=['pr'])
         data = ClimateDataYear.objects.filter(data_source__year=2051)
-        result = list(partitioner.parse(data))
+        result = list(partitioner(data))
         self.assertEqual(result, [('2051-01', {'pr': float_range(0, 30)}),
                                   ('2051-02', {'pr': float_range(31, 58)}),
                                   ('2051-03', {'pr': float_range(59, 89)}),
@@ -69,7 +69,7 @@ class PartitionTest(TestCase):
     def test_quarterly_partitions(self):
         partitioner = QuarterlyPartitioner(variables=['pr'])
         data = ClimateDataYear.objects.filter(data_source__year=2051)
-        result = list(partitioner.parse(data))
+        result = list(partitioner(data))
         self.assertEqual(result, [('2051-Q1', {'pr': float_range(0, 89)}),
                                   ('2051-Q2', {'pr': float_range(90, 180)}),
                                   ('2051-Q3', {'pr': float_range(181, 272)}),
@@ -78,6 +78,6 @@ class PartitionTest(TestCase):
     def test_offset_yearly_partition(self):
         partitioner = OffsetYearlyPartitioner(variables=['pr'])
         data = ClimateDataYear.objects.all()
-        result = list(partitioner.parse(data))
+        result = list(partitioner(data))
         self.assertEqual(result, [('2051-2052',
                                   {'pr': float_range(180, 364) + float_range(30000, 30179)})])

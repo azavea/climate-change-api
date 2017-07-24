@@ -387,7 +387,7 @@ class ArrayIndicator(Indicator):
         # a sequence of tuples of the format (agg_key, {var: [data], ...}), one for each
         # relevant timespan within the queryset.
         partitioner = partitioner_class(self.variables)
-        return partitioner.parse(self.queryset)
+        return partitioner(self.queryset)
 
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
