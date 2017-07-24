@@ -11,7 +11,8 @@ from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
-from .partitioners import YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner
+from .partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
+                           OffsetYearlyPartitioner)
 from . import queryset_generator
 
 
@@ -338,7 +339,7 @@ class ArrayIndicator(Indicator):
     This serves as the fundamental piece that indicators use to achieve their specific goals.
     """
 
-    valid_aggregations = ('yearly', 'quarterly', 'monthly')
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly')
 
     # Function to use to calculate the value for a bucket
     # Takes a sequence of values as parameter. In some cases (like numpy methods) the staticmethod
@@ -357,7 +358,13 @@ class ArrayIndicator(Indicator):
             data_source__scenario=self.scenario
         )
 
-        filterset = ClimateDataFilterSet()
+        filter_params = {}
+        if self.params.time_aggregation.value == 'offset_yearly':
+            # The offset_yearly aggregation needs an extra year before each requested year, so tell
+            # the filter to offset each points starting year
+            filter_params['offset_end'] = True
+
+        filterset = ClimateDataFilterSet(**filter_params)
         queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
         queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
 
@@ -369,22 +376,27 @@ class ArrayIndicator(Indicator):
         By default data is accumulated in buckets that align with calendar years. For monthly,
         quarterly, and other aggregations, we'll want to re-align the buckets to match the output
         """
-        raw_data = self.queryset.values(*self.variables)
-
-        partitioner = {
+        partitioner_class = {
             'yearly': YearlyPartitioner,
             'monthly': MonthlyPartitioner,
-            'quarterly': QuarterlyPartitioner
+            'quarterly': QuarterlyPartitioner,
+            'offset_yearly': OffsetYearlyPartitioner
         }[self.params.time_aggregation.value]
 
-        return partitioner.parse(raw_data)
+        # The partitioner will take a filtered ClimateDataYear queryset and produce
+        # a sequence of tuples of the format (agg_key, {var: [data], ...}), one for each
+        # relevant timespan within the queryset.
+        partitioner = partitioner_class(self.variables)
+        return partitioner(self.queryset)
 
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
-        for bucket in data:
+        for agg_key, variable_data in data:
+            # Return a dictionary for compatability with existing Indicator logic
+            # in convert_units() and collate_results()
             yield {
-                'agg_key': bucket['agg_key'],
-                'value': self.aggregate(bucket)
+                'agg_key': agg_key,
+                'value': self.aggregate(variable_data)
             }
 
     def aggregate(self, bucket):
@@ -392,11 +404,11 @@ class ArrayIndicator(Indicator):
 
         For most indicators this can be done simply by taking the relevant variable's data and
         passing it to a mathematical function like max or np.percentile, but for more complicated
-        indictors it may be necessary to overload this function to define how to handle interactions
+        indicators it may be necessary to overload this to define how to handle interactions
         between variables
         """
         variable = self.variables[0]
-        values = bucket[variable]
+        values = [v for v in bucket[variable] if v is not None]
         return self.agg_function(values)
 
     def calculate(self):
