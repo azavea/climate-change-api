@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class Partitioner(object):
     """Partition a sequence of ClimateDataYear array data into the desired time aggregation.
 
-    parse() takes a queryset filtered for the desired map cell, scenario, models and years, and
-    returns a sequence of tuples of the form (aggregation_key, {var: [data], ...})
+    When invoked, takes a queryset filtered for the desired map cell, scenario, models and years,
+    and returns an iterable of tuples of the form (aggregation_key, {var: [data], ...})
 
     Each tuple represents a single "bucket" of data, though multiple buckets may share the same
     aggregation key - these will be aggregated together by the indicator's serializer
@@ -27,19 +27,19 @@ class Partitioner(object):
     def __init__(self, variables):
         self.variables = variables
 
-    def parse(self, queryset):
+    def __call__(self, queryset):
         """Partition a queryset into a iterable of tuples representing desired time periods."""
         queryset = queryset.values(*self.variables)
-        return self._parse(queryset)
+        return self.partition(queryset)
 
-    def _parse(self, queryset):
+    def partition(self, queryset):
         raise NotImplementedError()
 
 
 class YearlyPartitioner(Partitioner):
     """Partition results by year."""
 
-    def _parse(self, queryset):
+    def partition(self, queryset):
         queryset = queryset.annotate(year=F('data_source__year'))
         for row in queryset.iterator():
             yield (row['year'], {var: row[var] for var in self.variables})
@@ -63,7 +63,7 @@ class OffsetYearlyPartitioner(Partitioner):
 
         super(OffsetYearlyPartitioner, self).__init__(*args, **kwargs)
 
-    def _parse(self, queryset):
+    def partition(self, queryset):
         """Process a queryset of ClimateDataYear into a sequence of dicts per time partition."""
         def group_consecutive_years(results):
             """Group queryset results into chains of consecutive years of the same model."""
@@ -120,7 +120,7 @@ class IntervalPartitioner(Partitioner):
         raise NotImplementedError()
 
     @classmethod
-    def _parse(cls, queryset):
+    def partition(cls, queryset):
         """Given a queryset of ClimateDataYear, return a sequence of tuples per time partition.
 
         This assumes that intervals existing entirely within years, and iterates across the interval
