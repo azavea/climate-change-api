@@ -119,8 +119,7 @@ class IntervalPartitioner(Partitioner):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def partition(cls, queryset):
+    def partition(self, queryset):
         """Given a queryset of ClimateDataYear, return a sequence of tuples per time partition.
 
         This assumes that intervals existing entirely within years, and iterates across the interval
@@ -129,25 +128,33 @@ class IntervalPartitioner(Partitioner):
         queryset = queryset.annotate(year=F('data_source__year'))
         for bucket in queryset.iterator():
             year = bucket.pop('year')
-            pos = 0
-            for period, length in enumerate(cls.intervals(year), start=1):
+            for period, interval in enumerate(self.intervals(year), start=1):
+                start, stop = interval
                 # This should never happen in production, but in testing we don't use full years
                 #  which means there will be periods with 0 data points and can cause exceptions
-                if any(pos > len(bucket[var]) for var in bucket):
+                if any(start > len(bucket[var]) for var in bucket):
                     if not settings.DEBUG:
                         logger.warn("Variable in bucket (%d, %d) contained less than %d values",
-                                    year, period, pos)
+                                    year, period, start)
                     break
 
-                yield (cls.agg_key(year, period),
-                       # use `pos` to move a window `length`-long along the variable's data
-                       {var: value[pos:pos + length] for var, value in bucket.items()})
-                pos += length
+                yield (self.agg_key(year, period),
+                       # use start and stop to choose the interval to output
+                       {var: value[start:stop] for var, value in bucket.items()})
 
 
-class MonthlyPartitioner(IntervalPartitioner):
+class LengthPartitioner(IntervalPartitioner):
+    def intervals(self, year):
+        lengths = self.lengths(year)
+        pos = 0
+        for l in lengths:
+            yield (pos, pos + l)
+            pos += l
+
+
+class MonthlyPartitioner(LengthPartitioner):
     @classmethod
-    def intervals(cls, year):
+    def lengths(cls, year):
         """Return the length of the months in the year, depending if it's a leap year or not."""
         return {
             # Leap year month lengths
@@ -162,9 +169,9 @@ class MonthlyPartitioner(IntervalPartitioner):
         return '%04d-%02d' % (year, month)
 
 
-class QuarterlyPartitioner(IntervalPartitioner):
+class QuarterlyPartitioner(LengthPartitioner):
     @classmethod
-    def intervals(cls, year):
+    def lengths(cls, year):
         """Return the length of the quarters in the year, depending if it's a leap year or not."""
         return {
             # Leap year quarter lengths
@@ -177,3 +184,46 @@ class QuarterlyPartitioner(IntervalPartitioner):
     def agg_key(cls, year, quarter):
         """Key quarterly buckets by YYYY-Q[1-4]."""
         return '%04d-Q%d' % (year, quarter)
+
+
+class CustomPartitioner(IntervalPartitioner):
+    def __init__(self, *args, **kwargs):
+        self.spans = kwargs.pop('spans')
+        super(CustomPartitioner, self).__init__(*args, **kwargs)
+
+    def agg_key(self, year, period):
+        """Key monthly buckets by YYYY-MM."""
+        return '%04d-%02d' % (year, period)
+
+    def intervals(self, year):
+        for term in self.process_spans():
+            if len(term) == 1:
+                index = self.day_index(term[0], year)
+                yield (index, index + 1)
+            else:
+                start, stop = [self.day_index(date, year) for date in term]
+                assert start <= stop, "Start date must precede end date"
+                yield (start, stop + 1)
+
+    def day_index(self, date, year):
+        """Convert a string of the form MM-DD to an index (day-of-year minus one) for that year."""
+        month_start_offset = {
+            # Offset for the first day of the month for each day in a leap year
+            True: [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366],
+            # Offset for the first day of the month for each day in a conventional year
+            False: [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+        }.get(calendar.isleap(year))
+
+        month, dom = [int(part) for part in date.split('-', 1)]
+
+        # Offset calculations by a month and a day because weird human dates start with 1
+        doy = month_start_offset[month - 1] + dom - 1
+        # Make sure we have a non-zero DOM
+        assert (dom > 0), "Invalid date provided"
+        # Make sure this date exists in the month given
+        assert (doy <= month_start_offset[month]), "Invalid date provided"
+
+        return doy
+
+    def process_spans(self):
+        return (tuple(range.split(':', 1)) for range in self.spans.split(','))
