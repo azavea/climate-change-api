@@ -429,29 +429,24 @@ class ArrayIndicator(Indicator):
 
 
 class ArrayThresholdIndicator(ArrayIndicator):
+    """Calculate the number of days a variable criteria ("threshold") is met."""
+
     @classmethod
     def get_comparator(cls):
-        """Temporary method to maintain both indicator styles.
-
-        TODO: Replace valid threshold params with comparator symbols rather than text and
-        remove this method upon conversion. Also, update documentation.
-        """
-        options = {'lt': '<',
-                   'lte': '<=',
-                   'gt': '>',
-                   'gte': '>='}
+        """Helper method to translate an aliased string param to its mathematical operation."""
+        options = {'lt': lambda a, b: a < b,
+                   'lte': lambda a, b: a <= b,
+                   'gt': lambda a, b: a > b,
+                   'gte': lambda a, b: a >= b}
         return options[cls.params_class.threshold_comparator.value]
 
     @classmethod
     def agg_function(cls, bucket):
-        """Return number of days the threshold is met."""
+        """Count number of days the threshold is met."""
         count = 0
         comparator = cls.get_comparator()
         for value in bucket:
-            expression = "{}{}{}".format(str(value),
-                                         comparator,
-                                         cls.params_class.threshold.value)
-            if eval(expression):
+            if comparator(value, cls.params_class.threshold.value):
                 count += 1
         return count
 
