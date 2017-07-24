@@ -31,8 +31,8 @@ class MaxTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
 
 
 class MaxTemperatureThresholdArray(ArrayThresholdIndicator, MaxTemperatureThreshold):
-    label = 'Max Temperature Threshold'  # As a placeholder until conversion
-    # variables = ('tasmax',)
+    pass
+    # variables = ('tasmax',)  # Instantiate upon final array indicator conversion
 
 
 class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
@@ -43,8 +43,8 @@ class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
 
 
 class MinTemperatureThresholdArray(ArrayThresholdIndicator, MinTemperatureThreshold):
-    label = 'Min Temperature Threshold'  # As a placeholder until conversion
-    # variables = ('tasmin',)
+    pass
+    # variables = ('tasmin',)  # Instantiate upon final array indicator conversion
 
 
 class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixin, CountIndicator):
@@ -55,8 +55,8 @@ class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixi
 
 
 class PrecipitationThresholdArray(ArrayThresholdIndicator, PrecipitationThreshold):
-    label = 'Precipitation Threshold'  # As a placeholder until conversion
-    # variables = ('pr',)
+    pass
+    # variables = ('pr',)  # Instantiate upon final array indicator conversion
 
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
