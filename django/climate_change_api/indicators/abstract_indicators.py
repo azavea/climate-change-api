@@ -12,7 +12,7 @@ from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
-                           OffsetYearlyPartitioner)
+                           OffsetYearlyPartitioner, CustomPartitioner)
 from . import queryset_generator
 
 
@@ -339,7 +339,7 @@ class ArrayIndicator(Indicator):
     This serves as the fundamental piece that indicators use to achieve their specific goals.
     """
 
-    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly')
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly', 'custom')
 
     # Function to use to calculate the value for a bucket
     # Takes a sequence of values as parameter. In some cases (like numpy methods) the staticmethod
@@ -380,13 +380,20 @@ class ArrayIndicator(Indicator):
             'yearly': YearlyPartitioner,
             'monthly': MonthlyPartitioner,
             'quarterly': QuarterlyPartitioner,
-            'offset_yearly': OffsetYearlyPartitioner
+            'offset_yearly': OffsetYearlyPartitioner,
+            'custom': CustomPartitioner
         }[self.params.time_aggregation.value]
+
+        partitioner_params = {}
+
+        # The custom time aggregation allows a user-defined parameter to choose which dates to use
+        if self.params.custom_time_agg.value is not None:
+            partitioner_params['spans'] = self.params.custom_time_agg.value
 
         # The partitioner will take a filtered ClimateDataYear queryset and produce
         # a sequence of tuples of the format (agg_key, {var: [data], ...}), one for each
         # relevant timespan within the queryset.
-        partitioner = partitioner_class(self.variables)
+        partitioner = partitioner_class(self.variables, **partitioner_params)
         return partitioner(self.queryset)
 
     def calculate_value(self, data):

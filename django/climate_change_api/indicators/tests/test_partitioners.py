@@ -2,7 +2,7 @@ from django.test import TestCase
 from climate_data.models import (ClimateDataCell, ClimateModel, Scenario, ClimateDataSource,
                                  ClimateDataYear)
 from indicators.partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
-                                     OffsetYearlyPartitioner)
+                                     OffsetYearlyPartitioner, CustomPartitioner)
 
 
 def float_range(start, stop):
@@ -81,3 +81,53 @@ class PartitionTest(TestCase):
         result = list(partitioner(data))
         self.assertEqual(result, [('2051-2052',
                                   {'pr': float_range(180, 364) + float_range(30000, 30179)})])
+
+    def test_custom_partition_single_day(self):
+        partitioner = CustomPartitioner(variables=['pr'], spans="6-1")
+        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        result = list(partitioner(data))
+        # June 1, 2051 is the 152nd day, and since values start at 0 it should have the 151 value
+        self.assertEqual(result, [('2051-01', {'pr': [151.0]})])
+
+    def test_custom_partition_single_day_leap_year(self):
+        partitioner = CustomPartitioner(variables=['pr'], spans="6-1")
+        data = ClimateDataYear.objects.filter(data_source__year=2052)
+        result = list(partitioner(data))
+        # June 1, 2052 is the 153rd day because it is a leap year
+        # pr values for 2052 start with 30000 to differentiate them from other years in case of a
+        # obscure collission bug.
+        self.assertEqual(result, [('2052-01', {'pr': [30152.0]})])
+
+    def test_custom_partition_base(self):
+        partitioner = CustomPartitioner(variables=['pr'], spans="1-1:12-31")
+        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        result = list(partitioner(data))
+        self.assertEqual(result, [('2051-01', {'pr': float_range(0, 364)})])
+
+    def test_custom_partition_complex(self):
+        partitioner = CustomPartitioner(variables=['pr'], spans="3-14:3-20,6-5:9-30")
+        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        result = list(partitioner(data))
+        self.assertEqual(result,
+                         # March 14, 2051 is day 73, March 20 is day 79 - less one for the index
+                         [('2051-01', {'pr': float_range(72, 78)}),
+                          # June 5 and September 30, 2051 are the 156th and 273rd days respectively
+                          ('2051-02', {'pr': float_range(155, 272)})])
+
+    def test_custom_partition_invalid_date(self):
+        data = ClimateDataYear.objects.all()
+        with self.assertRaises(AssertionError):
+            partitioner = CustomPartitioner(variables=['pr'], spans="3-91")
+            list(partitioner(data))
+
+    def test_custom_partition_backwards_timespan(self):
+        data = ClimateDataYear.objects.all()
+        with self.assertRaises(AssertionError):
+            partitioner = CustomPartitioner(variables=['pr'], spans="3-15:2-17")
+            list(partitioner(data))
+
+    def test_custom_partition_zero_day_of_month(self):
+        data = ClimateDataYear.objects.all()
+        with self.assertRaises(AssertionError):
+            partitioner = CustomPartitioner(variables=['pr'], spans="3-0:3-2")
+            list(partitioner(data))
