@@ -208,14 +208,14 @@ class CustomQuerysetGenerator(QuerysetGenerator):
             yield (start, end - start + 1)
 
     @classmethod
-    def cases(cls, intervals):
+    def keys(cls, custom_time_agg):
         # Cases normally caches the range_config, but that's bad if the custom spans change
         # Check if that happened, and if it did clear the cached config
-        if cls.custom_spans != intervals:
+        if cls.custom_spans != custom_time_agg:
             cls.range_config = None
-            cls.custom_spans = intervals
+            cls.custom_spans = custom_time_agg
 
-        return super(CustomQuerysetGenerator, cls).cases()
+        return super(CustomQuerysetGenerator, cls).keys()
 
 
 class OffsetYearQuerysetGenerator(QuerysetGenerator):
