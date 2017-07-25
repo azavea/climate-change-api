@@ -11,6 +11,9 @@
                 "containerPath": "/tmp"
             }
         ],
+        "links": [
+            "statsd"
+        ],
         "name": "management",
         "image": "${management_url}",
         "environment": [
@@ -91,5 +94,19 @@
                 "tag": "management"
             }
         }
+    },
+    {
+        "cpu": 10,
+        "essential": true,
+        "image": "${management_statsd_url}",
+        "memory": 256,
+        "name": "statsd",
+        "mountPoints": [
+            {
+                "sourceVolume": "statsd",
+                "containerPath": "/var/lib/statsd/config.js",
+                "readOnly": true
+            }
+        ]
     }
 ]
