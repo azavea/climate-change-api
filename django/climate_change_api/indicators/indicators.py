@@ -157,6 +157,19 @@ class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     raw_condition = 'pr = 0'
 
 
+class YearlyMaxConsecutiveDryDaysArray(ArrayIndicator, YearlyMaxConsecutiveDryDays):
+    @staticmethod
+    def agg_function(precipitation):
+        # Combine all days into groups of consective days based on if there is rain that day or not
+        rain_groups = groupby(precipitation, lambda pr: pr > 0)
+        # Filter out any groups of consective days with rain
+        dry_periods = (days for has_rain, days in rain_groups if not has_rain)
+        # Calculate the number of days with rain in each group
+        dry_lengths = (sum(1 for pr in days) for days in dry_periods)
+        # Return the biggest one
+        return max(dry_lengths)
+
+
 class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
