@@ -13,14 +13,13 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
 
         super(ClimateCityScenarioDataSerializerTestCase, self).setUp()
         if settings.FEATURE_FLAGS['array_data']:
-            self.VARIABLE_CHOICES = ClimateDataYear.VARIABLE_CHOICES
-            self.queryset = (ClimateDataYear.objects.filter(map_cell__city=self.city1)
-                                                    .filter(data_source__scenario=self.rcp45))
+            # TODO: undo storing class in variable as part of task #567
+            self.ClimateDataClass = ClimateDataYear
         else:
-            # TODO: remove this block and feature flag test with task #567
-            self.VARIABLE_CHOICES = ClimateData.VARIABLE_CHOICES
-            self.queryset = (ClimateData.objects.filter(map_cell__city=self.city1)
-                                                .filter(data_source__scenario=self.rcp45))
+            self.ClimateDataClass = ClimateData
+        self.VARIABLE_CHOICES = self.ClimateDataClass.VARIABLE_CHOICES
+        self.queryset = (self.ClimateDataClass.objects.filter(map_cell__city=self.city1)
+                                                      .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):
         """Helper to test the serialized python object.

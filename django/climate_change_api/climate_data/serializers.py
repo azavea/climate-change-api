@@ -96,12 +96,6 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         across models. Default is 'avg'.
     """
 
-    _AGGREGATION_MAP = {
-        'avg': float_avg,
-        'min': min,
-        'max': max
-    }
-
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
@@ -114,6 +108,11 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
             self._context['aggregation'] = 'avg'
 
     def to_representation(self, queryset):
+        aggregation_map = {
+            'avg': float_avg,
+            'min': min,
+            'max': max
+        }
         """Serialize queryset to the expected python object format."""
         assert isinstance(queryset, QuerySet), (
             'ClimateCityScenarioDataSerializer must be given a queryset')
@@ -122,7 +121,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         if settings.FEATURE_FLAGS['array_data']:
             # default to averaging
-            aggregation_func = self._AGGREGATION_MAP.get(aggregation, float_avg)
+            aggregation_func = aggregation_map.get(aggregation, float_avg)
 
             queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
             queryset = queryset.order_by('year')
