@@ -237,6 +237,12 @@ class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, Indicator):
     expression = (F('tasmax') - F('tasmin'))
 
 
+class DiurnalTemperatureRangeArray(ArrayStreakIndicator, DiurnalTemperatureRange):
+    def aggregate(self, bucket):
+        pairs = zip(bucket['tasmax'], bucket['tasmin'])
+        return np.mean([tasmax - tasmin for tasmax, tasmin in pairs])
+
+
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature'
