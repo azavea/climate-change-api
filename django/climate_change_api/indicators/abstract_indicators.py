@@ -411,7 +411,7 @@ class ArrayIndicator(Indicator):
         between variables
         """
         variable = self.variables[0]
-        values = bucket[variable]
+        values = [x for x in bucket[variable] if x is not None]
         return self.agg_function(values)
 
     def calculate(self):
