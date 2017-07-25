@@ -260,6 +260,17 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
         return self.params.basetemp.value - (F('tasmax') + F('tasmin')) / 2
 
 
+class HeatingDegreeDaysArray(ArrayIndicator, HeatingDegreeDays):
+    def aggregate(self, bucket):
+        pairs = zip(bucket['tasmax'], bucket['tasmin'])
+        # Get the average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+        # Only count days that are below the threshold temperature
+        heating_days = (temp for temp in average_temp if temp < self.params.basetemp.value)
+        # Sum the difference for all days below the threshold
+        return sum(self.params.basetemp.value - temp for temp in heating_days)
+
+
 class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
     label = 'Cooling Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature '
@@ -275,6 +286,17 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
     @property
     def expression(self):
         return (F('tasmax') + F('tasmin')) / 2 - self.params.basetemp.value
+
+
+class CoolingDegreeDaysArray(ArrayIndicator, CoolingDegreeDays):
+    def aggregate(self, bucket):
+        pairs = zip(bucket['tasmax'], bucket['tasmin'])
+        # Get the average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+        # Only count days that are above the threshold temperature
+        cooling_days = (temp for temp in average_temp if temp > self.params.basetemp.value)
+        # Sum the difference for all days above the threshold
+        return sum(temp - self.params.basetemp.value for temp in cooling_days)
 
 
 class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
