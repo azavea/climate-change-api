@@ -151,7 +151,7 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
 
 
 class MaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
-    label = 'Yearly Max Consecutive Dry Days'
+    label = 'Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation')
     variables = ('pr',)
     raw_condition = 'pr = 0'
@@ -175,7 +175,7 @@ class MaxConsecutiveDryDaysArray(ArrayIndicator, MaxConsecutiveDryDays):
 
 
 class DrySpells(CountUnitsMixin, YearlySequenceIndicator):
-    label = 'Yearly Dry Spells'
+    label = 'Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
