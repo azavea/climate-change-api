@@ -166,6 +166,15 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
     conditions = {'tasmin__lt': 273.15}
 
 
+class FrostDaysArray(ArrayIndicator, FrostDays):
+
+    @classmethod
+    def agg_function(cls, bucket):
+        comparator = (lambda a: a <= 273.15)
+        count = sum(1 for value in bucket if comparator(value))
+        return count
+
+
 class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     label = 'Yearly Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation')
