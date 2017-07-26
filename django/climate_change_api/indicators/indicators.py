@@ -150,14 +150,14 @@ class FrostDays(DaysUnitsMixin, CountIndicator):
     conditions = {'tasmin__lt': 273.15}
 
 
-class YearlyMaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
+class MaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
     label = 'Yearly Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation')
     variables = ('pr',)
     raw_condition = 'pr = 0'
 
 
-class YearlyMaxConsecutiveDryDaysArray(ArrayIndicator, YearlyMaxConsecutiveDryDays):
+class MaxConsecutiveDryDaysArray(ArrayIndicator, MaxConsecutiveDryDays):
     @staticmethod
     def agg_function(precipitation):
         # Combine all days into groups of consective days based on if there is rain that day or not
@@ -174,7 +174,7 @@ class YearlyMaxConsecutiveDryDaysArray(ArrayIndicator, YearlyMaxConsecutiveDryDa
             return 0
 
 
-class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
+class DrySpells(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Yearly Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
@@ -193,7 +193,7 @@ class YearlyDrySpells(CountUnitsMixin, YearlySequenceIndicator):
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
 
 
-class YearlyDrySpellsArray(ArrayStreakIndicator, YearlyDrySpells):
+class DrySpellsArray(ArrayStreakIndicator, DrySpells):
     predicate = staticmethod(lambda pr: pr == 0)
     min_streak = 5
 
@@ -408,8 +408,18 @@ def indicator_factory(indicator_name):
     If no match found, return None.
     """
     this_module = sys.modules[__name__]
-    class_name = ''.join([s.capitalize() for s in indicator_name.split('_')])
-    if settings.FEATURE_FLAGS['array_data'] and hasattr(this_module, '{}Array'.format(class_name)):
-        # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
-        class_name = '{}Array'.format(class_name)
+    class_name_parts = [s.capitalize() for s in indicator_name.split('_')]
+
+    # Strip any Yearly prefix to maintain historical compatability, for example YearlyDrySpells
+    if class_name_parts[0] == 'Yearly':
+        class_name_parts = class_name_parts[1:]
+
+    if settings.FEATURE_FLAGS['array_data'] and class_name_parts[-1] != 'Array':
+        try:
+            # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
+            class_name = ''.join(class_name_parts + ['Array'])
+            return getattr(this_module, class_name)
+        except AttributeError:
+            pass
+    class_name = ''.join(class_name_parts)
     return getattr(this_module, class_name, None)
