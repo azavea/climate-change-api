@@ -17,6 +17,7 @@ from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, Extrem
                      HeatWaveIndicatorParams)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
                               CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
+from .utils import running_total
 
 
 ##########################
@@ -330,20 +331,6 @@ class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
 
 
 class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegreeDays):
-    @staticmethod
-    def running_total(iterator, floor=None):
-        """Calculate a running total from a numeric iterator.
-
-        For instance, range(6) becomes (0, 1, 3, 6, 10, 15)
-
-        If floor is set, the running total will never fall beneath that value.
-        """
-        total = 0
-        for val in iterator:
-            # If val is negative, ensure we don't go below floor
-            total = max(total + val, floor)
-            yield total
-
     def aggregate(self, bucket):
         pairs = zip(bucket['tasmax'], bucket['tasmin'])
         # Get the average temperature to compare with
@@ -352,7 +339,7 @@ class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegr
         freezing_degree_days = (273.15 - temp for temp in average_temp)
 
         # Convert each data point into a running total, bounded at 0
-        accumulated_degree_days = self.running_total(freezing_degree_days, 0)
+        accumulated_degree_days = running_total(freezing_degree_days, 0)
 
         try:
             # Return the peak running total for this period
