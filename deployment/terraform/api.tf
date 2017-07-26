@@ -187,6 +187,7 @@ data "template_file" "cc_api_management_ecs_task" {
 
   vars {
     management_url                   = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
+    management_statsd_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
     django_secret_key                = "${var.django_secret_key}"
     rds_host                         = "${module.database.hostname}"
     rds_password                     = "${var.rds_password}"
@@ -213,5 +214,10 @@ resource "aws_ecs_task_definition" "cc_api_management" {
   volume {
     name      = "tmp"
     host_path = "/tmp"
+  }
+
+  volume {
+    name      = "statsd"
+    host_path = "/var/lib/statsd/config.js"
   }
 }
