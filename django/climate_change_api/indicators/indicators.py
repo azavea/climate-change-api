@@ -131,19 +131,15 @@ class TotalPrecipitation(PrecipUnitsMixin, Indicator):
 
 
 class TotalPrecipitationArray(ArrayIndicator, TotalPrecipitation):
-    # Use the staticmethod decorated to prevent the function from being bound and  `self` from
-    # being added as the first argument
-    agg_function = staticmethod(np.sum)
 
-    def aggregate(self, bucket):
+    @staticmethod
+    def agg_function(values):
         """Convert precipitation rate to total amount.
 
         Precipitation is stored per-second, and we want a total for all days in the aggregation,
-        so we need to multiple each day's value by 86400 to get the total for that day and then
-        sum the results.
+        so we need to multiply the value by 86400.
         """
-        values = bucket['pr']
-        return self.agg_function(values) * SECONDS_PER_DAY
+        return sum(values) * SECONDS_PER_DAY
 
 
 class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
