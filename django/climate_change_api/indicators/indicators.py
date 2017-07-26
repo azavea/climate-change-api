@@ -329,6 +329,39 @@ class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', max_total)])
 
 
+class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegreeDays):
+    @staticmethod
+    def running_total(iterator, floor=None):
+        """Calculate a running total from a numeric iterator.
+
+        For instance, range(6) becomes (0, 1, 3, 6, 10, 15)
+
+        If floor is set, the running total will never fall beneath that value.
+        """
+        total = 0
+        for val in iterator:
+            # If val is negative, ensure we don't go below floor
+            total = max(total + val, floor)
+            yield total
+
+    def aggregate(self, bucket):
+        pairs = zip(bucket['tasmax'], bucket['tasmin'])
+        # Get the average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+        # Get the difference of the average from freezing
+        freezing_degree_days = (273.15 - temp for temp in average_temp)
+
+        # Convert each data point into a running total, bounded at 0
+        accumulated_degree_days = self.running_total(freezing_degree_days, 0)
+
+        try:
+            # Return the peak running total for this period
+            return max(accumulated_degree_days)
+        except ValueError:
+            # ....there were no days in this period? None?
+            return 0
+
+
 class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '
