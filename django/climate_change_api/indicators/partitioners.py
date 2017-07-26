@@ -11,6 +11,9 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+LEAP_YEAR_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+CONVENTIONAL_YEAR_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
 
 class Partitioner(object):
     """Partition a sequence of ClimateDataYear array data into the desired time aggregation.
@@ -156,12 +159,10 @@ class MonthlyPartitioner(LengthPartitioner):
     @classmethod
     def lengths(cls, year):
         """Return the length of the months in the year, depending if it's a leap year or not."""
-        return {
-            # Leap year month lengths
-            True: [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-            # Normal year month lengths
-            False: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        }.get(calendar.isleap(year))
+        if calendar.isleap(year):
+            return LEAP_YEAR_MONTH_LENGTHS
+        else:
+            return CONVENTIONAL_YEAR_MONTH_LENGTHS
 
     @classmethod
     def agg_key(cls, year, month):
@@ -173,12 +174,10 @@ class QuarterlyPartitioner(LengthPartitioner):
     @classmethod
     def lengths(cls, year):
         """Return the length of the quarters in the year, depending if it's a leap year or not."""
-        return {
-            # Leap year quarter lengths
-            True: [91, 91, 92, 92],
-            # Normal year quarter lengths
-            False: [90, 91, 92, 92]
-        }.get(calendar.isleap(year))
+        if calendar.isleap(year):
+            return [91, 91, 92, 92]
+        else:
+            return [90, 91, 92, 92]
 
     @classmethod
     def agg_key(cls, year, quarter):
@@ -187,6 +186,10 @@ class QuarterlyPartitioner(LengthPartitioner):
 
 
 class CustomPartitioner(IntervalPartitioner):
+    # Spans are a user-defined string of sets of MM-DD, either alone or as a range like MM-DD:MM-DD
+    # joined together by commas, like MM-DD,MM-DD:MM-DD
+    spans = None
+
     def __init__(self, *args, **kwargs):
         self.spans = kwargs.pop('spans')
         super(CustomPartitioner, self).__init__(*args, **kwargs)
@@ -207,23 +210,28 @@ class CustomPartitioner(IntervalPartitioner):
 
     def day_index(self, date, year):
         """Convert a string of the form MM-DD to an index (day-of-year minus one) for that year."""
-        month_start_offset = {
-            # Offset for the first day of the month for each day in a leap year
-            True: [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366],
-            # Offset for the first day of the month for each day in a conventional year
-            False: [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-        }.get(calendar.isleap(year))
+        if calendar.isleap(year):
+            month_lengths = LEAP_YEAR_MONTH_LENGTHS
+        else:
+            month_lengths = CONVENTIONAL_YEAR_MONTH_LENGTHS
 
-        month, dom = [int(part) for part in date.split('-', 1)]
+        # Offset day and month values by one because human dates have to be special
+        month, dom = [int(part) - 1 for part in date.split('-', 1)]
 
-        # Offset calculations by a month and a day because weird human dates start with 1
-        doy = month_start_offset[month - 1] + dom - 1
-        # Make sure we have a non-zero DOM
-        assert (dom > 0), "Invalid date provided"
+        # Make sure we have a positive DOM
+        assert (dom >= 0), "Invalid date provided"
         # Make sure this date exists in the month given
-        assert (doy <= month_start_offset[month]), "Invalid date provided"
+        assert (dom < month_lengths[month]), "Invalid date provided"
+
+        month_start_offset = sum(month_lengths[:month])
+
+        doy = month_start_offset + dom
 
         return doy
 
     def process_spans(self):
+        """Split spans into tuples of (month, day) pairs.
+
+        Spans are of the form MM-DD:MM-DD,MM-DD
+        """
         return (tuple(range.split(':', 1)) for range in self.spans.split(','))
