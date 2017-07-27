@@ -14,34 +14,34 @@ class MergeDictsTestCase(TestCase):
 
 class SlidingWindowTestCase(TestCase):
     def test_window(self):
-        it = [1, 2, 3]
+        it = iter([1, 2, 3])
         windows = list(sliding_window(it, n=2))
         self.assertEqual(windows, [(1, 2), (2, 3)])
 
     def test_too_short_window(self):
-        it = [1, 2, 3]
+        it = iter([1, 2, 3])
         windows = list(sliding_window(it, n=4))
         # Have 3 points but ask for a window 4 wide, so we should get nothing
         self.assertEqual(windows, [])
 
     def test_empty_window(self):
-        it = []
+        it = iter([])
         windows = list(sliding_window(it, n=2))
         self.assertEqual(windows, [])
 
 
 def RunningTotalTestCase(TestCase):
     def test_empty_sequence(self):
-        it = []
+        it = iter([])
         totals = list(running_total(it))
         self.assertEqual(totals, [])
 
     def test_increasing_range(self):
-        it = [1, 2, 3, 4]
+        it = iter([1, 2, 3, 4])
         totals = list(running_total(it))
         self.assertEqual(totals, [1, 3, 6, 10])
 
     def test_floor(self):
-        it = [1, 2, -100, 3]
+        it = iter([1, 2, -100, 3])
         totals = list(running_total(it, floor=0))
         self.assertEqual(totals, [1, 3, 0, 3])
