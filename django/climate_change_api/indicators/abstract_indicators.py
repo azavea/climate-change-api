@@ -6,7 +6,7 @@ from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
 
-from climate_data.models import ClimateData, ClimateDataYear
+from climate_data.models import ClimateData, ClimateDataYear, ClimateDataBaseline
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -453,3 +453,14 @@ class ArrayStreakIndicator(ArrayIndicator):
             if match and sum(1 for v in group) >= cls.min_streak:
                 count += 1
         return count
+
+
+class ArrayBaselineIndicator(ArrayIndicator):
+    def calculate_value(self, *args, **kwargs):
+        self.baseline = ClimateDataBaseline.objects.get(
+            map_cell=self.city.map_cell,
+            historic_range_id=self.params.historic_range.value,
+            percentile=self.params.percentile.value
+        )
+
+        return super(ArrayBaselineIndicator, self).calculate_value(*args, **kwargs)
