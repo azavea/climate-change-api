@@ -170,7 +170,7 @@ class YearlyMaxConsecutiveDryDaysArray(ArrayIndicator, YearlyMaxConsecutiveDryDa
         try:
             return max(dry_lengths)
         except ValueError:
-            # If not a single day didn't have rain, then the longest streak was 0
+            # If every single day had rain, then the longest streak was 0
             return 0
 
 
