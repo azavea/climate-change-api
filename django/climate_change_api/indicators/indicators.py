@@ -9,6 +9,7 @@ from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   BasetempIndicatorMixin, ArrayStreakIndicator,
+                                  ArrayThresholdIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
@@ -29,6 +30,11 @@ class MaxTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
     variables = ('tasmax',)
 
 
+class MaxTemperatureThresholdArray(ArrayThresholdIndicator, MaxTemperatureThreshold):
+    pass
+    # variables = ('tasmax',)  # Instantiate upon final array indicator conversion
+
+
 class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
     label = 'Min Temperature Threshold'
     description = ('Number of days where min temperature, generated from daily data ' +
@@ -36,11 +42,21 @@ class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin
     variables = ('tasmin',)
 
 
+class MinTemperatureThresholdArray(ArrayThresholdIndicator, MinTemperatureThreshold):
+    pass
+    # variables = ('tasmin',)  # Instantiate upon final array indicator conversion
+
+
 class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixin, CountIndicator):
     label = 'Precipitation Threshold'
     description = ('Number of days where precipitation, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('pr',)
+
+
+class PrecipitationThresholdArray(ArrayThresholdIndicator, PrecipitationThreshold):
+    pass
+    # variables = ('pr',)  # Instantiate upon final array indicator conversion
 
 
 class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
