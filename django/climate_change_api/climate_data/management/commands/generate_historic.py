@@ -98,6 +98,7 @@ def generate_baselines(mapcells, time_periods, queryset):
 def generate_averages(mapcells, time_periods, queryset):
     for cell in mapcells.filter(historic_average=None):
         logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
+
         for period in time_periods:
             existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell,
                                                                           historic_range=period)
@@ -119,7 +120,8 @@ def generate_averages(mapcells, time_periods, queryset):
 
 def generate_year_averages(mapcells, time_periods, queryset):
     for cell in mapcells.filter(historic_average_array=None):
-        logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
+        logger.info("Calculating yearly averages for cell (%f,%f)", cell.lat, cell.lon)
+
         for period in time_periods:
             # We can't calculate an average directly in the database, and we don't want
             # to hold all of the time period's raw data in memory either.
