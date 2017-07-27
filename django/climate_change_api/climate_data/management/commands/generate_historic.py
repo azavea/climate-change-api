@@ -132,19 +132,19 @@ def generate_year_averages(mapcells, time_periods, queryset):
                 data_source__year__gte=period.start_year,
                 data_source__year__lte=period.end_year
             ).values(*VARIABLES)
-            totals = {var: defaultdict(0) for var in VARIABLES}
-            counts = {var: defaultdict(0) for var in VARIABLES}
+            totals = {var: defaultdict(int) for var in VARIABLES}
+            counts = {var: defaultdict(int) for var in VARIABLES}
 
             for year in yearly_data:
                 for var in VARIABLES:
                     for index, val in enumerate(year[var]):
                         if val is not None:
-                            totals[var][index] += val
+                            totals[var][index] += float(val)
                             counts[var][index] += 1
 
             # Reduce the totals and counts into an ordered list of averages
             averages = {var: [totals[var][index] / counts[var][index]
-                              for index in range(max(totals.keys()))]
+                              for index in range(max(int(v) for v in totals[var].keys()))]
                         for var in VARIABLES}
 
             yield HistoricAverageClimateDataYear(
