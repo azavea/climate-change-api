@@ -22,3 +22,17 @@ def sliding_window(it, n=2):
     for elem in it:
         result = result[1:] + (elem,)
         yield result
+
+
+def running_total(iterator, floor=None):
+    """Calculate a running total from a numeric iterator.
+
+    For instance, range(5) becomes (0, 1, 3, 6, 10)
+
+    If floor is set, the running total will never fall beneath that value.
+    """
+    total = 0
+    for val in iterator:
+        # If val is negative, ensure we don't go below floor
+        total = max(total + val, floor)
+        yield total
