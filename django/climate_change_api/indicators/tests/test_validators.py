@@ -103,6 +103,9 @@ class CustomTimeParamValidatorTestCase(ValidatorTestCase):
         with self.assertRaises(ValidationError):
             self.validator('1-1:2-b,5-1:6-1')
 
+    def test_feb_twentynine_valid(self):
+        self.should_succeed_with_value(self.validator, '2-1:2-29')
+
     def test_invalid_dates(self):
         with self.assertRaises(ValidationError):
             self.validator('1-1:3-40')
