@@ -469,11 +469,8 @@ class ArrayThresholdIndicator(ArrayIndicator):
         return count
 
 
-class ArrayStreakIndicator(ArrayIndicator):
-    """Calculate the number of times a criteria is met in a number of consecutive days.
-
-    Streaks can be configured both in what the criteria to be met is, as well as the number of
-    consecutive days needed to be considered a streak.
+class ArrayPredicateIndicator(ArrayIndicator):
+    """Calculate a value based on if a criteria is met in groups of consecutive days.
     """
 
     @classmethod
@@ -481,19 +478,45 @@ class ArrayStreakIndicator(ArrayIndicator):
         """Return true if the value matches the condition of a streak."""
         raise NotImplementedError()
 
+    @classmethod
+    def agg_function(cls, lengths):
+        """Calculate a value based on a sequence of streak lengths.
+
+        By default returns the number of days that matched the predicate.
+        """
+        return sum(l for l in lengths)
+
+    @classmethod
+    def aggregate(cls, bucket):
+        """Return number of times the predicate is met for at least min_streak consecutive days."""
+
+        # Move the independant arrays into a sequence of a daily value from each
+        if len(cls.variables) > 1:
+            variable_sequences = (bucket[var] for var in cls.variables)
+            daily_sets = zip(*variable_sequences)
+        else:
+            variable = cls.variables[0]
+            daily_sets = bucket[variable]
+
+        # Use groupby to automatically divide the bucket into matches or non-matches
+        streak_groups = groupby(daily_sets, cls.predicate)
+        # Filter out all non-matching groups
+        matching_streaks = (values for matching, values in streak_groups if matching)
+        # Calculate the length of every matching group
+        streak_lengths = (sum(1 for v in values) for values in matching_streaks)
+        # Pass the lengths sequence to the aggregation function to reduce to a single value
+        return cls.agg_function(streak_lengths)
+
+
+class ArrayStreakIndicator(ArrayPredicateIndicator):
+    """Calculate the number of times a predicate is met in a minimum number of consecutive days."""
     # How many consecutive days should the criteria be met to count as a streak
     min_streak = 1
 
     @classmethod
-    def agg_function(cls, bucket):
-        """Return number of times the predicate is met for at least min_streak consecutive days."""
-        count = 0
-        # Use groupby to automatically divide the bucket into matches or non-matches
-        for match, group in groupby(bucket, cls.predicate):
-            # groupby groups don't have a len, but we can use sum to count how many items it has
-            if match and sum(1 for v in group) >= cls.min_streak:
-                count += 1
-        return count
+    def agg_function(cls, lengths):
+        """Calculate the number of times a sequence is longer than min_streak."""
+        return sum(1 for l in lengths if l >= cls.min_streak)
 
 
 class ArrayBaselineIndicator(ArrayIndicator):
