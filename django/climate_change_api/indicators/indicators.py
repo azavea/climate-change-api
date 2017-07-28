@@ -13,7 +13,8 @@ from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
-                                  YearlySequenceIndicator, ArrayBaselineIndicator)
+                                  YearlySequenceIndicator, ArrayBaselineIndicator,
+                                  ArrayPredicateIndicator)
 from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, ExtremeIndicatorParams,
                      HeatWaveIndicatorParams)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
@@ -446,7 +447,7 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
         return super(HeatWaveDurationIndex, self).aggregate()
 
 
-class HeatWaveDurationIndexArray(ArrayIndicator, HeatWaveDurationIndex):
+class HeatWaveDurationIndexArray(ArrayPredicateIndicator, HeatWaveDurationIndex):
     variables = ('tasmax', 'map_cell__historic_average_array__tasmax')
 
     @property
@@ -455,25 +456,16 @@ class HeatWaveDurationIndexArray(ArrayIndicator, HeatWaveDurationIndex):
             'map_cell__historic_average_array__historic_range': self.params.historic_range.value
         }
 
-    def aggregate(self, bucket):
-        def heatwave_thresholder(pair):
-            """Determine if a day is abnormally warm enough to constitute part of a heatwave.
+    @staticmethod
+    def predicate(pair):
+        """Determine if a day is abnormally warm enough to constitute part of a heatwave."""
+        tasmax, historical = pair
+        return tasmax > historical + 5
 
-            Defined as a function because you can't decompose tuples in a lambda.
-            """
-            tasmax, historical = pair
-            return tasmax > historical + 5
-
-        daily_pairs = zip(bucket['tasmax'], bucket['map_cell__historic_average_array__tasmax'])
-        # Find streaks of days that might constitute as a heatwave
-        grouped_spans = groupby(daily_pairs, heatwave_thresholder)
-        # Only keep the streaks that have exceedingly warm maximum temperatures
-        heatwaves = (values for exceeding, values in grouped_spans if exceeding)
-        # Find the lengths of each streak
-        heatwave_lengths = (sum(1 for v in values) for values in heatwaves)
-
+    @staticmethod
+    def agg_function(lengths):
         try:
-            return max(heatwave_lengths)
+            return max(lengths)
         except ValueError:
             # There were no exceedingly warm days in this period
             return 0
@@ -504,6 +496,23 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
 
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
+
+
+class HeatWaveIncidentsArray(ArrayStreakIndicator, HeatWaveIncidents):
+    variables = ('tasmax', 'map_cell__historic_average_array__tasmax')
+    min_streak = 5
+
+    @property
+    def filters(self):
+        return {
+            'map_cell__historic_average_array__historic_range': self.params.historic_range.value
+        }
+
+    @staticmethod
+    def predicate(pair):
+        """Determine if a day is abnormally warm enough to constitute part of a heatwave."""
+        tasmax, historical = pair
+        return tasmax > historical + 5
 
 
 def list_available_indicators():
