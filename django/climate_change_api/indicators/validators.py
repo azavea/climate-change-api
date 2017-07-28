@@ -73,14 +73,16 @@ class CustomTimeParamValidator(object):
 
         Spans are strings of the form MM-DD:MM-DD,MM-DD
         """
-        return (tuple(r.split(':')[:2]) for r in spans.split(','))
+        return (tuple(r.split(':')) for r in spans.split(','))
 
     def __call__(self, value):
         if value is None:
             return
         for date_range in self.process_spans(value):
-            if len(date_range) != 2:
-                raise ValidationError('Each date range must contain a start and end MM-DD')
+            if len(date_range) < 2:
+                raise ValidationError('Each date range must have a start and end MM-DD')
+            if len(date_range) > 2:
+                raise ValidationError('Each date range must have only two MM-DD values')
             start_mm, start_dd = date_range[0].split('-')[:2]
             end_mm, end_dd = date_range[1].split('-')[:2]
             try:

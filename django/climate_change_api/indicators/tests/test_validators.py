@@ -95,6 +95,10 @@ class CustomTimeParamValidatorTestCase(ValidatorTestCase):
         with self.assertRaises(ValidationError):
             self.validator('1-1:1-31,2-1')
 
+    def test_too_many_date_ranges(self):
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:1-31:3-1,4-1:5-1')
+
     def test_invalid_month_day_values(self):
         with self.assertRaises(ValidationError):
             self.validator('aa-1:2-1')
