@@ -124,6 +124,12 @@ class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
         return Percentile(expression, int(self.params.percentile.value) / 100.0)
 
 
+class PercentileHighTemperatureArray(ArrayIndicator, PercentileHighTemperature):
+    def agg_function(self, values):
+        percentile = self.params.percentile.value
+        return np.percentile(values, percentile)
+
+
 class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
     label = 'Percentile Low Temperature'
     description = ('The specified percentile of low temperature for each timespan. '
@@ -134,6 +140,12 @@ class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
 
     def agg_function(self, expression):
         return Percentile(expression, int(self.params.percentile.value) / 100.0)
+
+
+class PercentileLowTemperatureArray(ArrayIndicator, PercentileLowTemperature):
+    def agg_function(self, values):
+        percentile = self.params.percentile.value
+        return np.percentile(values, percentile)
 
 
 class TotalPrecipitation(PrecipUnitsMixin, Indicator):
@@ -169,6 +181,12 @@ class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
 
     def agg_function(self, expression):
         return Percentile(expression, int(self.params.percentile.value) / 100.0) * SECONDS_PER_DAY
+
+
+class PercentilePrecipitationArray(ArrayIndicator, PercentilePrecipitation):
+    def agg_function(self, values):
+        percentile = self.params.percentile.value
+        return np.percentile(values, percentile) * SECONDS_PER_DAY
 
 
 class FrostDays(DaysUnitsMixin, CountIndicator):
