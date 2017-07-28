@@ -60,7 +60,12 @@ class CustomTimeParamValidator(object):
     - Date ranges are always paired with a start and end
     - The start MM-DD is chronologically earlier than the end MM-DD
 
+    Since our ranges are year agnostic, we always allow 2-29 to validate so that the
+      day can be included for leap years.
+
     """
+
+    ANY_LEAP_YEAR = 2000
 
     @classmethod
     def process_spans(cls, spans):
@@ -79,8 +84,8 @@ class CustomTimeParamValidator(object):
             start_mm, start_dd = date_range[0].split('-')[:2]
             end_mm, end_dd = date_range[1].split('-')[:2]
             try:
-                start_date = datetime(2000, int(start_mm), int(start_dd))
-                end_date = datetime(2000, int(end_mm), int(end_dd))
+                start_date = datetime(self.ANY_LEAP_YEAR, int(start_mm), int(start_dd))
+                end_date = datetime(self.ANY_LEAP_YEAR, int(end_mm), int(end_dd))
             except ValueError:
                 raise ValidationError('{}-{}:{}-{} must be a valid date range'
                                       .format(start_mm, start_dd, end_mm, end_dd))
