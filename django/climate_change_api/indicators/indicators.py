@@ -449,6 +449,7 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
 
 class HeatWaveDurationIndexArray(ArrayPredicateIndicator, HeatWaveDurationIndex):
     variables = ('tasmax', 'map_cell__historic_average_array__tasmax')
+    agg_function = max
 
     @property
     def filters(self):
@@ -461,14 +462,6 @@ class HeatWaveDurationIndexArray(ArrayPredicateIndicator, HeatWaveDurationIndex)
         """Determine if a day is abnormally warm enough to constitute part of a heatwave."""
         tasmax, historical = pair
         return tasmax > historical + 5
-
-    @staticmethod
-    def agg_function(lengths):
-        try:
-            return max(lengths)
-        except ValueError:
-            # There were no exceedingly warm days in this period
-            return 0
 
 
 class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):

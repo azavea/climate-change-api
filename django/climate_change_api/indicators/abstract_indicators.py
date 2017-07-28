@@ -446,29 +446,6 @@ class ArrayIndicator(Indicator):
                                                  aggregations=self.params.agg.value.split(','))
 
 
-class ArrayThresholdIndicator(ArrayIndicator):
-    """Calculate the number of days a variable criteria ("threshold") is met."""
-
-    @classmethod
-    def get_comparator(cls):
-        """Helper method to translate an aliased string param to its mathematical operation."""
-        options = {'lt': lambda a, b: a < b,
-                   'lte': lambda a, b: a <= b,
-                   'gt': lambda a, b: a > b,
-                   'gte': lambda a, b: a >= b}
-        return options[cls.params_class.threshold_comparator.value]
-
-    @classmethod
-    def agg_function(cls, bucket):
-        """Count number of days the threshold is met."""
-        count = 0
-        comparator = cls.get_comparator()
-        for value in bucket:
-            if comparator(value, cls.params_class.threshold.value):
-                count += 1
-        return count
-
-
 class ArrayPredicateIndicator(ArrayIndicator):
     """Calculate a value based on if a criteria is met in groups of consecutive days.
     """
@@ -486,26 +463,49 @@ class ArrayPredicateIndicator(ArrayIndicator):
         """
         return sum(l for l in lengths)
 
-    @classmethod
-    def aggregate(cls, bucket):
+    def aggregate(self, bucket):
         """Return number of times the predicate is met for at least min_streak consecutive days."""
 
         # Move the independant arrays into a sequence of a daily value from each
-        if len(cls.variables) > 1:
-            variable_sequences = (bucket[var] for var in cls.variables)
+        if len(self.variables) > 1:
+            variable_sequences = (bucket[var] for var in self.variables)
             daily_sets = zip(*variable_sequences)
         else:
-            variable = cls.variables[0]
+            variable = self.variables[0]
             daily_sets = bucket[variable]
 
         # Use groupby to automatically divide the bucket into matches or non-matches
-        streak_groups = groupby(daily_sets, cls.predicate)
+        streak_groups = groupby(daily_sets, self.predicate)
         # Filter out all non-matching groups
         matching_streaks = (values for matching, values in streak_groups if matching)
         # Calculate the length of every matching group
         streak_lengths = (sum(1 for v in values) for values in matching_streaks)
-        # Pass the lengths sequence to the aggregation function to reduce to a single value
-        return cls.agg_function(streak_lengths)
+
+        try:
+            # Pass the lengths sequence to the aggregation function to reduce to a single value
+            return self.agg_function(streak_lengths)
+        except ValueError:
+            return 0
+
+
+class ArrayThresholdIndicator(ArrayPredicateIndicator):
+    """Calculate the number of days a variable criteria ("threshold") is met."""
+
+    predicate = None
+
+    def __init__(self, *args, **kwargs):
+        super(ArrayThresholdIndicator, self).__init__(*args, **kwargs)
+
+        self.predicate = self.get_comparator()
+
+    def get_comparator(self):
+        """Helper method to translate an aliased string param to its mathematical operation."""
+        threshold = self.params_class.threshold.value
+        options = {'lt': lambda val: val < threshold,
+                   'lte': lambda val: val <= threshold,
+                   'gt': lambda val: val > threshold,
+                   'gte': lambda val: val >= threshold}
+        return options[self.params_class.threshold_comparator.value]
 
 
 class ArrayStreakIndicator(ArrayPredicateIndicator):
