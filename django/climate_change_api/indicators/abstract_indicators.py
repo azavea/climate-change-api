@@ -347,6 +347,9 @@ class ArrayIndicator(Indicator):
     # first argument
     agg_function = None
 
+    # Dictionary storing custom parameters to pass to self.queryset.filter()
+    filters = None
+
     def get_queryset(self):
         """Get the initial indicator queryset.
 
@@ -367,6 +370,9 @@ class ArrayIndicator(Indicator):
         filterset = ClimateDataFilterSet(**filter_params)
         queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
         queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+
+        if self.filters:
+            queryset.filter(**self.filters)
 
         return queryset
 
