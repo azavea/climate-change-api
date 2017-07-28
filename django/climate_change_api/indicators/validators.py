@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 
 
@@ -48,6 +50,43 @@ class ChoicesValidator(object):
     def __call__(self, value):
         if value not in self.choices and not self.is_null_allowed:
             raise ValidationError('{} must be one of {}'.format(value, self.choices))
+
+
+class CustomTimeParamValidator(object):
+    """Validates custom_time_agg parameter of the Climate API.
+
+    Checks to ensure that:
+    - Date ranges are of the valid form MM-DD:MM-DD
+    - Date ranges are always paired with a start and end
+    - The start MM-DD is chronologically earlier than the end MM-DD
+
+    """
+
+    @classmethod
+    def process_spans(cls, spans):
+        """Split spans into tuples of mm-dd (start, end) pairs.
+
+        Spans are strings of the form MM-DD:MM-DD,MM-DD
+        """
+        return (tuple(r.split(':')[:2]) for r in spans.split(','))
+
+    def __call__(self, value):
+        if value is None:
+            return
+        for date_range in self.process_spans(value):
+            if len(date_range) != 2:
+                raise ValidationError('Each date range must contain a start and end MM-DD')
+            start_mm, start_dd = date_range[0].split('-')[:2]
+            end_mm, end_dd = date_range[1].split('-')[:2]
+            try:
+                start_date = datetime(2000, int(start_mm), int(start_dd))
+                end_date = datetime(2000, int(end_mm), int(end_dd))
+            except ValueError:
+                raise ValidationError('{}-{}:{}-{} must be a valid date range'
+                                      .format(start_mm, start_dd, end_mm, end_dd))
+            if start_date > end_date:
+                raise ValidationError('{}-{} must be earlier than {}-{}'
+                                      .format(start_mm, start_dd, end_mm, end_dd))
 
 
 percentile_range_validator = IntRangeValidator(minimum=0, maximum=100)
