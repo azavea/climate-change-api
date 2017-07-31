@@ -13,7 +13,7 @@ from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
-                                  YearlySequenceIndicator)
+                                  YearlySequenceIndicator, ArrayBaselineIndicator)
 from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, ExtremeIndicatorParams,
                      HeatWaveIndicatorParams)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
@@ -244,6 +244,11 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
                 'map_cell__baseline__percentile': self.params.percentile.value}
 
 
+class ExtremePrecipitationEventsArray(ArrayBaselineIndicator, ExtremePrecipitationEvents):
+    def agg_function(self, values):
+        return sum(1 for v in values if v > self.baseline.pr)
+
+
 class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Heat Events'
     description = ('Total number of times per period daily maximum temperature exceeds the '
@@ -260,6 +265,11 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
                 'map_cell__baseline__percentile': self.params.percentile.value}
 
 
+class ExtremeHeatEventsArray(ArrayBaselineIndicator, ExtremeHeatEvents):
+    def agg_function(self, values):
+        return sum(1 for v in values if v > self.baseline.tasmax)
+
+
 class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     label = 'Extreme Cold Events'
     description = ('Total number of times per period daily minimum temperature is below the '
@@ -274,6 +284,11 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     def filters(self):
         return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
                 'map_cell__baseline__percentile': self.params.percentile.value}
+
+
+class ExtremeColdEventsArray(ArrayBaselineIndicator, ExtremeColdEvents):
+    def agg_function(self, values):
+        return sum(1 for v in values if v < self.baseline.tasmin)
 
 
 class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, Indicator):
