@@ -447,8 +447,7 @@ class ArrayIndicator(Indicator):
 
 
 class ArrayPredicateIndicator(ArrayIndicator):
-    """Calculate a value based on if a criteria is met in groups of consecutive days.
-    """
+    """Calculate a value based on if a criteria is met in groups of consecutive days."""
 
     @classmethod
     def predicate(cls, value):
@@ -465,7 +464,6 @@ class ArrayPredicateIndicator(ArrayIndicator):
 
     def aggregate(self, bucket):
         """Return number of times the predicate is met for at least min_streak consecutive days."""
-
         # Move the independant arrays into a sequence of a daily value from each
         if len(self.variables) > 1:
             variable_sequences = (bucket[var] for var in self.variables)
@@ -510,6 +508,7 @@ class ArrayThresholdIndicator(ArrayPredicateIndicator):
 
 class ArrayStreakIndicator(ArrayPredicateIndicator):
     """Calculate the number of times a predicate is met in a minimum number of consecutive days."""
+
     # How many consecutive days should the criteria be met to count as a streak
     min_streak = 1
 
