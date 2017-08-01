@@ -323,12 +323,10 @@ class HistoricAverageClimateData(models.Model):
 class HistoricAverageClimateDataYear(models.Model):
     """Model storing computed averages for historic climate data for various historic ranges.
 
-    Used in computing the heat wave duration index (HWDI) heat wave incidents indicators
+    Used in computing the heat wave duration index (HWDI) and heat wave incidents indicators
     http://www.vsamp.com/resume/publications/Frich_et_al.pdf
 
-    Derived from raw historic ClimateData, and stored separately partly for performance, and
-    partly for development environment convenience (averages can be loaded from a fixture,
-    whereas the raw data is too large to load practically in development.)
+    Derived from raw historic ClimateData and stored separately for performance and ease of access.
     """
 
     map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average_array')
