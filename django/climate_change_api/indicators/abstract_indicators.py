@@ -2,9 +2,9 @@ from collections import OrderedDict, defaultdict
 from itertools import groupby
 import re
 
+from django.core.exceptions import ValidationError
 from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
-
 
 from climate_data.models import ClimateData, ClimateDataYear, ClimateDataBaseline
 from climate_data.filters import ClimateDataFilterSet
@@ -388,6 +388,11 @@ class ArrayIndicator(Indicator):
 
         # The custom time aggregation allows a user-defined parameter to choose which dates to use
         if self.params.custom_time_agg.value is not None:
+            # TODO: #600, 601 - Remove this check once it can be handled in the params
+            #                   validation framework
+            if self.params.time_aggregation.value != 'custom':
+                raise ValidationError('If custom_time_agg is provided, ' +
+                                      'param time_aggregation must equal "custom"')
             partitioner_params['spans'] = self.params.custom_time_agg.value
 
         # The partitioner will take a filtered ClimateDataYear queryset and produce
