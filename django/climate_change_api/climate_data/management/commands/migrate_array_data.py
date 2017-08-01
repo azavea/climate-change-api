@@ -1,13 +1,14 @@
 import logging
-from itertools import groupby
+from itertools import groupby, product
 
-from climate_data.models import ClimateData, ClimateDataYear
+from climate_data.models import ClimateData, ClimateDataCell, ClimateDataSource, ClimateDataYear
 
 from django.db import IntegrityError
-from django.db.models import Max
 from django.core.management.base import BaseCommand
 
 logger = logging.getLogger(__name__)
+
+VARIABLES = ['pr', 'tasmax', 'tasmin']
 
 
 class Command(BaseCommand):
@@ -15,38 +16,43 @@ class Command(BaseCommand):
 
     help = 'Migrates data from daily ClimateData to yearly ClimateDataYear'
 
-    def calculate_yearly_sets(self, queryset):
-        # get last day of year for this model/year
-        max_days = queryset.aggregate(Max('day_of_year'))['day_of_year__max']
+    def calculate_yearly_sets(self, queryset, map_cell, source):
+        if ClimateDataYear.objects.filter(map_cell=map_cell, data_source=source).exists():
+            print("Array data for map cell {}, source {} already exists, skipping".format(
+                map_cell.id, source.id))
+            return
 
         # Loop over all ClimateData data points, grouped by map cell and data source
-        all_data = queryset.values().order_by('map_cell', 'data_source', 'day_of_year')
+        all_data = queryset.filter(map_cell=map_cell, data_source=source).values()
         for (cell, source), data in groupby(all_data.iterator(),
                                             lambda r: (r['map_cell_id'], r['data_source_id'])):
-            tasmin = [None] * max_days
-            tasmax = [None] * max_days
-            pr = [None] * max_days
+
+            daily_rows = {}
 
             for datum in data:
                 day_of_year = datum['day_of_year'] - 1
-                tasmin[day_of_year] = datum['tasmin']
-                tasmax[day_of_year] = datum['tasmax']
-                pr[day_of_year] = datum['pr']
+                daily_rows[day_of_year] = datum
 
-            yield ClimateDataYear(
-                map_cell_id=cell,
-                data_source_id=source,
-                tasmin=tasmin,
-                tasmax=tasmax,
-                pr=pr
-            )
+            max_days = max(daily_rows.keys())
+            flat_list = [daily_rows.get(i, {}) for i in range(max_days)]
+
+            variables = {var: [datum.get(var, None) for datum in flat_list]
+                         for var in VARIABLES}
+
+            climate_args = dict(variables,
+                                map_cell_id=cell,
+                                data_source_id=source)
+            try:
+                ClimateDataYear.objects.create(**climate_args)
+            except IntegrityError:
+                pass
 
     def handle(self, *args, **options):
         queryset = ClimateData.objects.all()
-        climate_data_years = self.calculate_yearly_sets(queryset)
 
-        for climate_data_year in climate_data_years:
-            try:
-                climate_data_year.save()
-            except IntegrityError:
-                pass
+        map_cells = ClimateDataCell.objects.all()
+        sources = ClimateDataSource.objects.all()
+
+        # Create yearly climate data for all combinations of map cells and sources
+        for map_cell, source in product(map_cells, sources):
+            self.calculate_yearly_sets(queryset, map_cell, source)
