@@ -3,6 +3,7 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 
+from .validators import CustomTimeParamValidator
 from .utils import sliding_window
 
 from django.db.models import F
@@ -147,6 +148,17 @@ class IntervalPartitioner(Partitioner):
 
 
 class LengthPartitioner(IntervalPartitioner):
+
+    @classmethod
+    def lengths(cls, year):
+        """Return an array containing the number of days in each bucket length.
+
+        For a concrete example, a partitioner that returns an aggregated value for each quarter
+        of the calendar year would return something like [90, 91, 92, 92] for non-leap years.
+
+        """
+        raise NotImplementedError()
+
     def intervals(self, year):
         lengths = self.lengths(year)
         pos = 0
@@ -199,7 +211,7 @@ class CustomPartitioner(IntervalPartitioner):
         return '%04d-%02d' % (year, period)
 
     def intervals(self, year):
-        for term in self.process_spans():
+        for term in CustomTimeParamValidator.process_spans(self.spans):
             if len(term) == 1:
                 index = self.day_index(term[0], year)
                 yield (index, index + 1)
@@ -228,10 +240,3 @@ class CustomPartitioner(IntervalPartitioner):
         doy = month_start_offset + dom
 
         return doy
-
-    def process_spans(self):
-        """Split spans into tuples of (month, day) pairs.
-
-        Spans are of the form MM-DD:MM-DD,MM-DD
-        """
-        return (tuple(range.split(':', 1)) for range in self.spans.split(','))
