@@ -148,6 +148,17 @@ class IntervalPartitioner(Partitioner):
 
 
 class LengthPartitioner(IntervalPartitioner):
+
+    @classmethod
+    def lengths(cls, year):
+        """Return an array containing the number of days in each bucket length.
+
+        For a concrete example, a partitioner that returns an aggregated value for each quarter
+        of the calendar year would return something like [90, 91, 92, 92] for non-leap years.
+
+        """
+        raise NotImplementedError()
+
     def intervals(self, year):
         lengths = self.lengths(year)
         pos = 0
