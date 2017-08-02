@@ -73,12 +73,13 @@
         "showMinimum": {"type": "boolean"},
         "showMaximum": {"type": "boolean"},
         "minimumValue": {"type": "number"},
-        "maximumValue": {"type": "number"}
+        "maximumValue": {"type": "number"},
+        "unit": {"type": "string"}
       },
       "additionalProperties": false,
       "required": ["indicator", "showSettings", "showTrendline",
                    "showMinimum", "showMaximum", "minimumValue",
-                   "maximumValue"]
+                   "maximumValue", "unit"]
     },
     "model": {
       "type": "object",
