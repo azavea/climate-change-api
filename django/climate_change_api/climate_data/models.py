@@ -97,6 +97,7 @@ class ClimateDataSource(models.Model):
         return (self.model, self.scenario, self.year)
 
     def __str__(self):
+        """Override str for useful info in console."""
         return '{}, {}, {}'.format(self.scenario, self.model, self.year)
 
 
@@ -118,6 +119,7 @@ class ClimateDataCell(models.Model):
         return (self.lat, self.lon)
 
     def __str__(self):
+        """Override str for useful info in console."""
         return '{}, {}'.format(self.lat, self.lon)
 
 
