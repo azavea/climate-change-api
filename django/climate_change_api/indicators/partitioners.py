@@ -3,6 +3,7 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 
+from .validators import CustomTimeParamValidator
 from .utils import sliding_window
 
 from django.db.models import F
@@ -10,6 +11,9 @@ from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
+
+LEAP_YEAR_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+CONVENTIONAL_YEAR_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 
 class Partitioner(object):
@@ -119,8 +123,7 @@ class IntervalPartitioner(Partitioner):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def partition(cls, queryset):
+    def partition(self, queryset):
         """Given a queryset of ClimateDataYear, return a sequence of tuples per time partition.
 
         This assumes that intervals existing entirely within years, and iterates across the interval
@@ -129,32 +132,49 @@ class IntervalPartitioner(Partitioner):
         queryset = queryset.annotate(year=F('data_source__year'))
         for bucket in queryset.iterator():
             year = bucket.pop('year')
-            pos = 0
-            for period, length in enumerate(cls.intervals(year), start=1):
+            for period, interval in enumerate(self.intervals(year), start=1):
+                start, stop = interval
                 # This should never happen in production, but in testing we don't use full years
                 #  which means there will be periods with 0 data points and can cause exceptions
-                if any(pos > len(bucket[var]) for var in bucket):
+                if any(start > len(bucket[var]) for var in bucket):
                     if not settings.DEBUG:
                         logger.warn("Variable in bucket (%d, %d) contained less than %d values",
-                                    year, period, pos)
+                                    year, period, start)
                     break
 
-                yield (cls.agg_key(year, period),
-                       # use `pos` to move a window `length`-long along the variable's data
-                       {var: value[pos:pos + length] for var, value in bucket.items()})
-                pos += length
+                yield (self.agg_key(year, period),
+                       # use start and stop to choose the interval to output
+                       {var: value[start:stop] for var, value in bucket.items()})
 
 
-class MonthlyPartitioner(IntervalPartitioner):
+class LengthPartitioner(IntervalPartitioner):
+
     @classmethod
-    def intervals(cls, year):
+    def lengths(cls, year):
+        """Return an array containing the number of days in each bucket length.
+
+        For a concrete example, a partitioner that returns an aggregated value for each quarter
+        of the calendar year would return something like [90, 91, 92, 92] for non-leap years.
+
+        """
+        raise NotImplementedError()
+
+    def intervals(self, year):
+        lengths = self.lengths(year)
+        pos = 0
+        for l in lengths:
+            yield (pos, pos + l)
+            pos += l
+
+
+class MonthlyPartitioner(LengthPartitioner):
+    @classmethod
+    def lengths(cls, year):
         """Return the length of the months in the year, depending if it's a leap year or not."""
-        return {
-            # Leap year month lengths
-            True: [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-            # Normal year month lengths
-            False: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        }.get(calendar.isleap(year))
+        if calendar.isleap(year):
+            return LEAP_YEAR_MONTH_LENGTHS
+        else:
+            return CONVENTIONAL_YEAR_MONTH_LENGTHS
 
     @classmethod
     def agg_key(cls, year, month):
@@ -162,18 +182,61 @@ class MonthlyPartitioner(IntervalPartitioner):
         return '%04d-%02d' % (year, month)
 
 
-class QuarterlyPartitioner(IntervalPartitioner):
+class QuarterlyPartitioner(LengthPartitioner):
     @classmethod
-    def intervals(cls, year):
+    def lengths(cls, year):
         """Return the length of the quarters in the year, depending if it's a leap year or not."""
-        return {
-            # Leap year quarter lengths
-            True: [91, 91, 92, 92],
-            # Normal year quarter lengths
-            False: [90, 91, 92, 92]
-        }.get(calendar.isleap(year))
+        if calendar.isleap(year):
+            return [91, 91, 92, 92]
+        else:
+            return [90, 91, 92, 92]
 
     @classmethod
     def agg_key(cls, year, quarter):
         """Key quarterly buckets by YYYY-Q[1-4]."""
         return '%04d-Q%d' % (year, quarter)
+
+
+class CustomPartitioner(IntervalPartitioner):
+    # Spans are a user-defined string of sets of MM-DD, either alone or as a range like MM-DD:MM-DD
+    # joined together by commas, like MM-DD,MM-DD:MM-DD
+    spans = None
+
+    def __init__(self, *args, **kwargs):
+        self.spans = kwargs.pop('spans')
+        super(CustomPartitioner, self).__init__(*args, **kwargs)
+
+    def agg_key(self, year, period):
+        """Key monthly buckets by YYYY-MM."""
+        return '%04d-%02d' % (year, period)
+
+    def intervals(self, year):
+        for term in CustomTimeParamValidator.process_spans(self.spans):
+            if len(term) == 1:
+                index = self.day_index(term[0], year)
+                yield (index, index + 1)
+            else:
+                start, stop = [self.day_index(date, year) for date in term]
+                assert start <= stop, "Start date must precede end date"
+                yield (start, stop + 1)
+
+    def day_index(self, date, year):
+        """Convert a string of the form MM-DD to an index (day-of-year minus one) for that year."""
+        if calendar.isleap(year):
+            month_lengths = LEAP_YEAR_MONTH_LENGTHS
+        else:
+            month_lengths = CONVENTIONAL_YEAR_MONTH_LENGTHS
+
+        # Offset day and month values by one because human dates have to be special
+        month, dom = [int(part) - 1 for part in date.split('-', 1)]
+
+        # Make sure we have a positive DOM
+        assert (dom >= 0), "Invalid date provided"
+        # Make sure this date exists in the month given
+        assert (dom < month_lengths[month]), "Invalid date provided"
+
+        month_start_offset = sum(month_lengths[:month])
+
+        doy = month_start_offset + dom
+
+        return doy
