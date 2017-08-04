@@ -279,6 +279,7 @@ class IndicatorDataView(APIView):
             raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
         try:
             indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
+            data = indicator_class.calculate()
         except ValidationError as e:
             # If indicator class/params fails validation, return error with help text for
             # as much context as possible.
@@ -286,7 +287,6 @@ class IndicatorDataView(APIView):
                 ('error', str(e)),
                 ('help', IndicatorClass.init_params_class().to_dict()),
             ]), status=status.HTTP_400_BAD_REQUEST)
-        data = indicator_class.calculate()
 
         return Response(OrderedDict([
             ('city', CitySerializer(city).data),
