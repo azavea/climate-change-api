@@ -5,7 +5,7 @@ import collections
 import numpy
 import netCDF4
 
-from .models import City, ClimateData, ClimateDataCell
+from .models import City, ClimateDataYear, ClimateDataCell
 from django.db import IntegrityError
 
 
@@ -15,6 +15,8 @@ class Nex2DB(object):
     # cache list of cites to guarantee ordering during import
     cities = None
 
+    DB_INSERT_BATCH_SIZE = 500
+
     def __init__(self, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
 
@@ -23,18 +25,16 @@ class Nex2DB(object):
             self.cities = list(City.objects.all().order_by('pk'))
         return self.cities
 
-    def netcdf2date(self, value, time_unit, calendar):
-        parsed = netCDF4.num2date(value, time_unit, calendar=calendar)
-        try:
-            return parsed.date()
-        except AttributeError:
-            # We got a netcdftime object, which doesn't have a date() method.
-            # However, it does have timetuple(), which gives (year, month, day, [...])
-            timetuple = parsed.timetuple()
-            # We only want the first three, which we can give to datetime.date
-            return datetime.date(*timetuple[0:3])
+    def netcdf2year(self, time_array, time_unit, calendar):
+        first_date = netCDF4.num2date(time_array[0], time_unit, calendar=calendar)
+        last_date = netCDF4.num2date(time_array[-1], time_unit, calendar=calendar)
+        if first_date.year == last_date.year:
+            return first_date.year
+        else:
+            raise ValueError("Expected netcdf2year time_array to only contain values " +
+                             "for a single year")
 
-    def get_var_data(self, var_name, path):
+    def get_var_data(self, var_name, path, data_source):
         """Read out data from a NetCDF file and return its data, translated.
 
         Reads only the points representing the cities in the database.
@@ -57,9 +57,8 @@ class Nex2DB(object):
             # using non-standard calendar
             calendar = ds.variables['time'].calendar
 
-            # build map of converted date-time values to its array index in the variable values
-            dates = [self.netcdf2date(numdays, time_unit, calendar=calendar)
-                     for numdays in ds.variables['time']]
+            year = self.netcdf2year(ds.variables['time'], time_unit, calendar)
+            assert(year == data_source.year)
 
             # read variable data into memory
             var_data = ds.variables[var_name]
@@ -84,7 +83,7 @@ class Nex2DB(object):
 
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
             cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
-                         dict(zip(dates, list(var_data[:, latidx, lonidx])))  # netcdf slicing
+                         list(var_data[:, latidx, lonidx])  # netcdf slicing
                          for (latidx, lonidx) in cell_idx}
 
         return {'cities': city_to_coords, 'cells': cell_data}
@@ -96,77 +95,66 @@ class Nex2DB(object):
                               NetCDF file
         @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
-        assert(set(variable_paths) == ClimateData.VARIABLE_CHOICES)
+        assert(set(variable_paths) == ClimateDataYear.VARIABLE_CHOICES)
 
-        variable_data = {label: self.get_var_data(label, path)
+        variable_data = {label: self.get_var_data(label, path, data_source)
                          for label, path in variable_paths.items()}
 
-        # Collate the variables into one list keyed by coordinates
-        cell_list = {}
+        # Convert data from {variable: {'cells': coords: [data]}}
+        # to {(coords): {'variable': [data]}}
+        datasource_data = collections.defaultdict(dict)
+        for variable, results in variable_data.items():
+            for coords, data in results['cells'].items():
+                datasource_data[coords][variable] = data
+
+        self.logger.debug('Combining city list')
         city_coords = {}
-        self.logger.debug('Collating results')
-        for label, results in variable_data.items():
-            for coords, timeseries_data in results['cells'].items():
-                if coords not in cell_list:
-                    cell_list[coords] = collections.defaultdict(dict)
-
-                for date, value in timeseries_data.items():
-                    cell_list[coords][date].update({
-                        label: value
-                    })
-
+        for results in variable_data.values():
             city_coords.update(results['cities'])
 
         # Go through the collated list and create all the relevant datapoints
-        self.logger.debug('Creating database entries')
+        self.logger.debug('Generating database entries')
 
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
 
-        for coords, timeseries_data in cell_list.items():
-            (lat, lon) = coords
+        climatedatayear_list = []
+
+        for coords, results in datasource_data.items():
+
+            assert(set(results.keys()) == ClimateDataYear.VARIABLE_CHOICES)
+
+            lat, lon = coords
             try:
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
-                cell_model, created = ClimateDataCell.objects.get_or_create(
-                    lat=lat.item(),
-                    lon=lon.item()
-                )
+                cell_model, created = ClimateDataCell.objects.get_or_create(lat=lat, lon=lon)
                 cell_models[coords] = cell_model
 
-            climatedata_list = []
-            for date, values in timeseries_data.items():
-                # Testing, ensure that we have values for all variables
-                # (set(dict) produces an unordered set of keys, no values)
-                assert(set(values) == ClimateData.VARIABLE_CHOICES)
+            climatedatayear_args = {
+                'map_cell': cell_model,
+                'data_source': data_source,
+            }
+            climatedatayear_args.update(results)
+            climatedatayear_list.append(ClimateDataYear(**climatedatayear_args))
 
-                # Use a dictionary since some of ClimateData's keyword args
-                # are variable defined
-                climatedata_args = {
-                    'map_cell': cell_model,
-                    'day_of_year': date.timetuple().tm_yday,
-                    'data_source': data_source,
-                }
-                # Attach the datapoints for this date to the args
-                climatedata_args.update(values)
-
-                # Create the ClimateData entry
-                climatedata_list.append(ClimateData(**climatedata_args))
-
-            try:
-                ClimateData.objects.bulk_create(climatedata_list)
-            except IntegrityError:
-                self.logger.warn('Deleting existing records for model %s scenario %s year %s',
-                                 data_source.model.name,
-                                 data_source.scenario.name,
-                                 data_source.year)
-                ClimateData.objects.filter(data_source=data_source).delete()
-                self.logger.warn('Re-attempting record insert for model %s scenario %s year %s',
-                                 data_source.model.name,
-                                 data_source.scenario.name,
-                                 data_source.year)
-                ClimateData.objects.bulk_create(climatedata_list)
+        self.logger.debug('Saving database entries')
+        try:
+            ClimateDataYear.objects.bulk_create(climatedatayear_list,
+                                                batch_size=self.DB_INSERT_BATCH_SIZE)
+        except IntegrityError:
+            self.logger.warn('Deleting existing records for model %s scenario %s year %s',
+                                data_source.model.name,
+                                data_source.scenario.name,
+                                data_source.year)
+            ClimateDataYear.objects.filter(data_source=data_source).delete()
+            self.logger.warn('Re-attempting record insert for model %s scenario %s year %s',
+                                data_source.model.name,
+                                data_source.scenario.name,
+                                data_source.year)
+            ClimateDataYear.objects.bulk_create(climatedatayear_list,
+                                                batch_size=self.DB_INSERT_BATCH_SIZE)
 
         # Go through all the cities and set their map_cell to the appropriate model
         self.logger.debug('Updating cities')
