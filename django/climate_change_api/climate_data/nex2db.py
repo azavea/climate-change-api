@@ -1,4 +1,3 @@
-import datetime
 import logging
 import collections
 
@@ -145,14 +144,14 @@ class Nex2DB(object):
                                                 batch_size=self.DB_INSERT_BATCH_SIZE)
         except IntegrityError:
             self.logger.warn('Deleting existing records for model %s scenario %s year %s',
-                                data_source.model.name,
-                                data_source.scenario.name,
-                                data_source.year)
+                             data_source.model.name,
+                             data_source.scenario.name,
+                             data_source.year)
             ClimateDataYear.objects.filter(data_source=data_source).delete()
             self.logger.warn('Re-attempting record insert for model %s scenario %s year %s',
-                                data_source.model.name,
-                                data_source.scenario.name,
-                                data_source.year)
+                             data_source.model.name,
+                             data_source.scenario.name,
+                             data_source.year)
             ClimateDataYear.objects.bulk_create(climatedatayear_list,
                                                 batch_size=self.DB_INSERT_BATCH_SIZE)
 
