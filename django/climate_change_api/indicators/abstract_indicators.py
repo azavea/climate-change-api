@@ -6,14 +6,18 @@ from django.core.exceptions import ValidationError
 from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
-from climate_data.models import ClimateData, ClimateDataYear, ClimateDataBaseline
+from climate_data.models import (ClimateData, ClimateDataYear, ClimateDataBaseline,
+                                 HistoricAverageClimateDataYear)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
 from .partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
                            OffsetYearlyPartitioner, CustomPartitioner)
+from .utils import merge_dicts
 from . import queryset_generator
+
+HISTORICAL_VARIABLE_PREFIX = 'historical_'
 
 
 class Indicator(object):
@@ -371,7 +375,9 @@ class ArrayIndicator(Indicator):
         queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
         queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
 
-        value_columns = ['data_source__year', 'data_source__model_id'] + list(self.variables)
+        value_columns = ['data_source__year', 'data_source__model_id']
+        value_columns.extend(var for var in self.variables
+                             if not var.startswith(HISTORICAL_VARIABLE_PREFIX))
         queryset = queryset.values(*value_columns)
 
         return queryset
@@ -380,10 +386,9 @@ class ArrayIndicator(Indicator):
         # Split data into segments according to model, so the partitioner doesn't need to worry
         # about combining values between different prediction models
         queryset = self.queryset.order_by('data_source__model_id', 'data_source__year')
-        for model, yearly_data in groupby(queryset, lambda r: r['data_source__model_id']):
+        for model, yearly_data in groupby(queryset, lambda r: r.pop('data_source__model_id')):
             # Convert the database dictionary values into tuples
-            it = ((row['data_source__year'], {var: row[var] for var in self.variables})
-                  for row in yearly_data)
+            it = ((row.pop('data_source__year'), row) for row in yearly_data)
             yield it
 
     def partition_segments(self, yearly_segments):
@@ -547,3 +552,35 @@ class ArrayBaselineIndicator(ArrayIndicator):
         )
 
         return super(ArrayBaselineIndicator, self).calculate_value(*args, **kwargs)
+
+
+class ArrayHistoricAverageIndicator(ArrayIndicator):
+    def generate_yearly_segments(self):
+        def append_historical_values(it, addenda):
+            for year, data in it:
+                yield (year, merge_dicts(data, addenda))
+
+        def get_historical_averages():
+            # Only load historical averages for the historical columns
+            variables = [var for var in self.variables
+                         if var.startswith(HISTORICAL_VARIABLE_PREFIX)]
+
+            # Remove the prefix to get the raw database column names
+            raw_variables = [var[len(HISTORICAL_VARIABLE_PREFIX):] for var in variables]
+
+            # Load historical averages for our desired variables
+            averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
+                        .get(map_cell=self.city.map_cell,
+                             historic_range=self.params.historic_range.value))
+
+            # Label the dictionary keys so they don't conflict with yearly data
+            return {label: averages[var]
+                    for label, var in zip(variables, raw_variables)}
+
+        # Load daily averages, with remapped keys
+        averages = get_historical_averages()
+
+        # Get the segments of yearly data we want to inject our historical averages into
+        segments = super(ArrayHistoricAverageIndicator, self).generate_yearly_segments()
+        for segment in segments:
+            yield append_historical_values(segment, averages)
