@@ -1,5 +1,5 @@
 from collections import OrderedDict, defaultdict
-from itertools import groupby
+from itertools import groupby, chain
 import re
 
 from django.core.exceptions import ValidationError
@@ -371,16 +371,26 @@ class ArrayIndicator(Indicator):
         queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
         queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
 
-        if self.filters:
-            queryset.filter(**self.filters)
+        value_columns = ['data_source__year', 'data_source__model_id'] + list(self.variables)
+        queryset = queryset.values(*value_columns)
 
         return queryset
 
-    def align_buckets(self):
+    def generate_yearly_segments(self):
+        # Split data into segments according to model, so the partitioner doesn't need to worry
+        # about combining values between different prediction models
+        queryset = self.queryset.order_by('data_source__model_id', 'data_source__year')
+        for model, yearly_data in groupby(queryset, lambda r: r['data_source__model_id']):
+            # Convert the database dictionary values into tuples
+            it = ((row['data_source__year'], {var: row[var] for var in self.variables})
+                  for row in yearly_data)
+            yield it
+
+    def partition_segments(self, yearly_segments):
         """Group raw data into buckets corresponding to the time aggregation.
 
-        By default data is accumulated in buckets that align with calendar years. For monthly,
-        quarterly, and other aggregations, we'll want to re-align the buckets to match the output
+        By default data within a segment is in chunks that align with calendar years. For monthly,
+        quarterly, and other aggregations, we'll want to re-align the chunks to match the output
         """
         partitioner_class = {
             'yearly': YearlyPartitioner,
@@ -401,11 +411,17 @@ class ArrayIndicator(Indicator):
                                       'param time_aggregation must equal "custom"')
             partitioner_params['spans'] = self.params.custom_time_agg.value
 
-        # The partitioner will take a filtered ClimateDataYear queryset and produce
-        # a sequence of tuples of the format (agg_key, {var: [data], ...}), one for each
+        # The partitioner will sequence of (key, values) tuples and produce a sequence of tuples of
+        # the same format, resized one for each
         # relevant timespan within the queryset.
-        partitioner = partitioner_class(self.variables, **partitioner_params)
-        return partitioner(self.queryset)
+        partitioner = partitioner_class(**partitioner_params)
+
+        for iterator in yearly_segments:
+            yield partitioner(iterator)
+
+    def flatten_partitions(self, partitioned_segments):
+        """Produce a single iterator of data tuples from a sequence of iterators per model."""
+        return chain.from_iterable(partitioned_segments)
 
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
@@ -433,8 +449,12 @@ class ArrayIndicator(Indicator):
         return self.agg_function(values)
 
     def calculate(self):
-        # Parse yearly-aggregated data into other aggregations as needed
-        data = self.align_buckets()
+        # Produce a sequence of iterators for segments of yearly data, per model
+        data = self.generate_yearly_segments()
+        # Parse segments of yearly data into other aggregations as needed
+        data = self.partition_segments(data)
+        # Flatten all segments into a single iterator of anonymous partitioned data
+        data = self.flatten_partitions(data)
         # Process raw variable data into indicator values
         data = self.calculate_value(data)
         # Convert indicator values into the requested units
