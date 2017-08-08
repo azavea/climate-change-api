@@ -14,7 +14,7 @@ from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
                                   YearlySequenceIndicator, ArrayBaselineIndicator,
-                                  ArrayPredicateIndicator)
+                                  ArrayPredicateIndicator, ArrayHistoricAverageIndicator)
 from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, ExtremeIndicatorParams,
                      HeatWaveIndicatorParams)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
@@ -447,15 +447,10 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
         return super(HeatWaveDurationIndex, self).aggregate()
 
 
-class HeatWaveDurationIndexArray(ArrayPredicateIndicator, HeatWaveDurationIndex):
-    variables = ('tasmax', 'map_cell__historic_average_array__tasmax')
+class HeatWaveDurationIndexArray(ArrayPredicateIndicator, ArrayHistoricAverageIndicator,
+                                 HeatWaveDurationIndex):
+    variables = ('tasmax', 'historical_tasmax')
     agg_function = max
-
-    @property
-    def filters(self):
-        return {
-            'map_cell__historic_average_array__historic_range': self.params.historic_range.value
-        }
 
     @staticmethod
     def predicate(pair):
@@ -491,15 +486,10 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
 
 
-class HeatWaveIncidentsArray(ArrayStreakIndicator, HeatWaveIncidents):
-    variables = ('tasmax', 'map_cell__historic_average_array__tasmax')
+class HeatWaveIncidentsArray(ArrayStreakIndicator, ArrayHistoricAverageIndicator,
+                             HeatWaveIncidents):
+    variables = ('tasmax', 'historical_tasmax')
     min_streak = 5
-
-    @property
-    def filters(self):
-        return {
-            'map_cell__historic_average_array__historic_range': self.params.historic_range.value
-        }
 
     @staticmethod
     def predicate(pair):
