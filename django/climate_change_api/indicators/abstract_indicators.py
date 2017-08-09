@@ -382,21 +382,7 @@ class ArrayIndicator(Indicator):
 
         return queryset
 
-    def generate_yearly_segments(self):
-        # Split data into segments according to model, so the partitioner doesn't need to worry
-        # about combining values between different prediction models
-        queryset = self.queryset.order_by('data_source__model_id', 'data_source__year')
-        for model, yearly_data in groupby(queryset, lambda r: r.pop('data_source__model_id')):
-            # Convert the database dictionary values into tuples
-            it = ((row.pop('data_source__year'), row) for row in yearly_data)
-            yield it
-
-    def partition_segments(self, yearly_segments):
-        """Group raw data into buckets corresponding to the time aggregation.
-
-        By default data within a segment is in chunks that align with calendar years. For monthly,
-        quarterly, and other aggregations, we'll want to re-align the chunks to match the output
-        """
+    def get_partitioner(self):
         partitioner_class = {
             'yearly': YearlyPartitioner,
             'monthly': MonthlyPartitioner,
@@ -416,16 +402,36 @@ class ArrayIndicator(Indicator):
                                       'param time_aggregation must equal "custom"')
             partitioner_params['spans'] = self.params.custom_time_agg.value
 
-        # The partitioner will sequence of (key, values) tuples and produce a sequence of tuples of
-        # the same format, resized one for each
-        # relevant timespan within the queryset.
-        partitioner = partitioner_class(**partitioner_params)
+        # The partitioner will take an iterator of (key, values) tuples, and produce a sequence of
+        # tuples of the same format, with values resized to match the desired time aggregation
+        return partitioner_class(**partitioner_params)
 
-        for iterator in yearly_segments:
-            yield partitioner(iterator)
+    def generate_model_segments(self):
+        """Return a sequence of tuple iterators form (year, data) from a queryset result set.
 
-    def flatten_partitions(self, partitioned_segments):
-        """Produce a single iterator of data tuples from a sequence of iterators per model."""
+        Each segment within the sequence shares a single data source model, to prevent
+        partioning from accidentally slicing between models.
+        """
+        queryset = self.queryset.order_by('data_source__model_id', 'data_source__year')
+        for model, yearly_data in groupby(queryset, lambda r: r.pop('data_source__model_id')):
+            yield ((row.pop('data_source__year'), row) for row in yearly_data)
+
+    def generate_partitions(self):
+        """Group raw data into buckets corresponding to the time aggregation.
+
+        By default data within a segment is in chunks that align with calendar years. For monthly,
+        quarterly, and other aggregations, we'll want to re-align the chunks to match the output
+        """
+        # Split data into segments according to model, so the partitioner doesn't need to worry
+        # about combining values between different prediction models
+        model_segments = self.generate_model_segments()
+
+        # Partition each segment individually, so there's no risk of accidentally connecting data
+        # from unconnected data sources
+        partitioner = self.get_partitioner()
+        partitioned_segments = (partitioner(yearly_data) for yearly_data in model_segments)
+
+        # Merge all of the segments into a string of tuples, all of the form (agg_key, payload)
         return chain.from_iterable(partitioned_segments)
 
     def calculate_value(self, data):
@@ -436,10 +442,31 @@ class ArrayIndicator(Indicator):
                       for var, data in variable_data.items()}
             # Return a dictionary for compatability with existing Indicator logic
             # in convert_units() and collate_results()
-            yield {
-                'agg_key': agg_key,
-                'value': self.aggregate(values)
-            }
+            yield (agg_key, self.aggregate(values))
+
+    def convert_units(self, aggregations):
+        """Convert aggregated results to the requested unit.
+
+        @param aggregations iterator of tuples containing aggregation keys and indicator values
+        @returns Tuples in same format as the aggregations parameter, with values converted
+                 to `self.params.units.value`
+        """
+        converter = self.getConverter(self.storage_units, self.params.units.value)
+        for agg_key, value in aggregations:
+            if value is not None:
+                value = converter(value)
+            yield (agg_key, value)
+
+    def collate_results(self, aggregations):
+        """Take results as a series of datapoints and collate them by key.
+
+        @param aggregations iterator of tuples containing aggregation key and indicator values
+        @returns Dict of list of values, keyed by the tuple's first aggregation key value
+        """
+        results = defaultdict(list)
+        for agg_key, value in aggregations:
+            results[agg_key].append(value)
+        return results
 
     def aggregate(self, bucket):
         """Process an aggregation-aligned bucket of raw data into a single value.
@@ -454,18 +481,17 @@ class ArrayIndicator(Indicator):
         return self.agg_function(values)
 
     def calculate(self):
-        # Produce a sequence of iterators for segments of yearly data, per model
-        data = self.generate_yearly_segments()
-        # Parse segments of yearly data into other aggregations as needed
-        data = self.partition_segments(data)
-        # Flatten all segments into a single iterator of anonymous partitioned data
-        data = self.flatten_partitions(data)
-        # Process raw variable data into indicator values
+        # Load and partition data into a series of tuples of the form (agg_key, raw_values)
+        data = self.generate_partitions()
+        # Process the tuple's raw values into a single calculated value defined by the indicator
         data = self.calculate_value(data)
-        # Convert indicator values into the requested units
+        # Localize indicator output values into the requested units, if necessary
         data = self.convert_units(data)
-        # Collect results with a common key into a dictionary of keyed groups
+
+        # Convert the sequence of tuples into a dictionary, collecting all values with a given
+        # aggregation key in a common list
         results = self.collate_results(data)
+
         # Serialize the keyed groups using the requested sub-aggregations
         return self.serializer.to_representation(results,
                                                  aggregations=self.params.agg.value.split(','))
@@ -555,32 +581,40 @@ class ArrayBaselineIndicator(ArrayIndicator):
 
 
 class ArrayHistoricAverageIndicator(ArrayIndicator):
-    def generate_yearly_segments(self):
+    def get_historical_averages(self):
+        """Return a dictionary of historic values, keyed to use the historical_ prefix."""
+        # Only load historical averages for the historical columns
+        variables = [var for var in self.variables
+                     if var.startswith(HISTORICAL_VARIABLE_PREFIX)]
+
+        # Remove the prefix to get the raw database column names
+        raw_variables = [var[len(HISTORICAL_VARIABLE_PREFIX):] for var in variables]
+
+        # Load historical averages for our desired variables
+        averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
+                    .get(map_cell=self.city.map_cell,
+                         historic_range=self.params.historic_range.value))
+
+        # Label the dictionary keys so they don't conflict with yearly data
+        return {label: averages[var]
+                for label, var in zip(variables, raw_variables)}
+
+    def generate_model_segments(self):
+        """Inject historical yearly values into every year's data payload as if they were native.
+
+        This allows the partitioner to resize the chunks as needed, without needing to know too many
+        details or have esoteric database logic built-in.
+        """
         def append_historical_values(it, addenda):
+            """Insert the addenda dictionary to every tuple's payload in the iterator."""
             for year, data in it:
                 yield (year, merge_dicts(data, addenda))
 
-        def get_historical_averages():
-            # Only load historical averages for the historical columns
-            variables = [var for var in self.variables
-                         if var.startswith(HISTORICAL_VARIABLE_PREFIX)]
-
-            # Remove the prefix to get the raw database column names
-            raw_variables = [var[len(HISTORICAL_VARIABLE_PREFIX):] for var in variables]
-
-            # Load historical averages for our desired variables
-            averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
-                        .get(map_cell=self.city.map_cell,
-                             historic_range=self.params.historic_range.value))
-
-            # Label the dictionary keys so they don't conflict with yearly data
-            return {label: averages[var]
-                    for label, var in zip(variables, raw_variables)}
-
         # Load daily averages, with remapped keys
-        averages = get_historical_averages()
+        averages = self.get_historical_averages()
 
         # Get the segments of yearly data we want to inject our historical averages into
-        segments = super(ArrayHistoricAverageIndicator, self).generate_yearly_segments()
+        segments = super(ArrayHistoricAverageIndicator, self).generate_model_segments()
+        # Pass them through, but with our historic averages added
         for segment in segments:
             yield append_historical_values(segment, averages)
