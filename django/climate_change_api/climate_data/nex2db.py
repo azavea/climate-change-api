@@ -1,3 +1,4 @@
+import calendar
 import logging
 import collections
 
@@ -6,6 +7,8 @@ import netCDF4
 
 from .models import City, ClimateDataYear, ClimateDataCell
 from django.db import IntegrityError
+
+DAY_OF_YEAR_FEB_29 = 60
 
 
 class Nex2DB(object):
@@ -81,9 +84,15 @@ class Nex2DB(object):
                 city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
 
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
-            cell_data = {(latarr[latidx], lonarr[lonidx]):  # Key on actual coordinates
-                         list(var_data[:, latidx, lonidx])  # netcdf slicing
-                         for (latidx, lonidx) in cell_idx}
+            cell_data = {}
+            for (latidx, lonidx) in cell_idx:
+                values = list(var_data[:, latidx, lonidx])
+                # Our DB assumes that leap years have 366 values in their ArrayFields.
+                #   If we're woking with a calendar that doesn't consider leap years on a leap year,
+                #   insert None for Feb 29
+                if calendar.isleap(year) and len(values) == 365:
+                    values = values[:DAY_OF_YEAR_FEB_29] + [None] + values[DAY_OF_YEAR_FEB_29:]
+                cell_data[(latarr[latidx], lonarr[lonidx])] = values
 
         return {'cities': city_to_coords, 'cells': cell_data}
 
@@ -131,11 +140,9 @@ class Nex2DB(object):
                 cell_model, created = ClimateDataCell.objects.get_or_create(lat=lat, lon=lon)
                 cell_models[coords] = cell_model
 
-            climatedatayear_args = {
-                'map_cell': cell_model,
-                'data_source': data_source,
-            }
-            climatedatayear_args.update(results)
+            climatedatayear_args = dict(map_cell=cell_model,
+                                        data_source=data_source,
+                                        **results)
             climatedatayear_list.append(ClimateDataYear(**climatedatayear_args))
 
         self.logger.debug('Saving database entries')
