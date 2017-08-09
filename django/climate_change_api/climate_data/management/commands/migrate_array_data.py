@@ -29,12 +29,10 @@ class Command(BaseCommand):
 
             daily_rows = {}
 
-            for datum in data:
-                day_of_year = datum['day_of_year'] - 1
-                daily_rows[day_of_year] = datum
+            daily_rows = {row['day_of_year'] - 1: row for row in data}
 
             max_days = max(daily_rows.keys())
-            flat_list = [daily_rows.get(i, {}) for i in range(max_days)]
+            flat_list = [daily_rows.get(i, {}) for i in range(max_days + 1)]
 
             variables = {var: [datum.get(var, None) for datum in flat_list]
                          for var in VARIABLES}
