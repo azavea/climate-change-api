@@ -1,7 +1,6 @@
 import logging
 import numpy as np
 from itertools import islice
-from collections import defaultdict
 
 from django.db import IntegrityError
 from django.core.management.base import BaseCommand
@@ -86,13 +85,11 @@ def generate_baselines(mapcells, time_periods, queryset):
                                  cell.lat, cell.lon)
                     continue
 
-                insert_vals.update({
-                    'map_cell': cell,
-                    'percentile': percentile,
-                    'historic_range': period,
-                })
-
-                yield ClimateDataBaseline(**insert_vals)
+                yield ClimateDataBaseline(
+                    map_cell=cell,
+                    percentile=percentile,
+                    historic_range=period,
+                    **insert_vals)
 
 
 def generate_averages(mapcells, time_periods, queryset):
@@ -113,9 +110,10 @@ def generate_averages(mapcells, time_periods, queryset):
                 # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add
                 # map_cell and historic_range then it's a complete image of what we want in
                 # HistoricAverageClimateData
-                row['map_cell'] = cell
-                row['historic_range'] = period
-                yield HistoricAverageClimateData(**row)
+                yield HistoricAverageClimateData(
+                    map_cell=cell,
+                    historic_range=period,
+                    **row)
 
 
 def generate_year_averages(mapcells, time_periods, queryset):
@@ -132,9 +130,13 @@ def generate_year_averages(mapcells, time_periods, queryset):
                 data_source__year__gte=period.start_year,
                 data_source__year__lte=period.end_year
             ).values(*VARIABLES)
-            totals = {var: defaultdict(int) for var in VARIABLES}
-            counts = {var: defaultdict(int) for var in VARIABLES}
 
+            totals = {var: [0] * 366 for var in VARIABLES}
+            counts = {var: [0] * 366 for var in VARIABLES}
+
+            # With 30 years within a historic range and 21 models, we want to average daily
+            # values for 600 years worth of data. To help minimize memory pressure we can
+            # keep just a running total and count, and calculate the mean from that.
             for year in yearly_data:
                 for var in VARIABLES:
                     for index, val in enumerate(year[var]):
@@ -143,15 +145,13 @@ def generate_year_averages(mapcells, time_periods, queryset):
                             counts[var][index] += 1
 
             # Reduce the totals and counts into an ordered list of averages
-            averages = {var: [totals[var][index] / counts[var][index]
-                              for index in range(max(int(v) for v in totals[var].keys()))]
+            averages = {var: [total / count for total, count in zip(totals[var], counts[var])]
                         for var in VARIABLES}
 
             yield HistoricAverageClimateDataYear(
-                **dict(averages,
-                       map_cell=cell,
-                       historic_range=period)
-            )
+                map_cell=cell,
+                historic_range=period,
+                **averages)
 
 
 class Command(BaseCommand):
