@@ -437,12 +437,21 @@ class ArrayIndicator(Indicator):
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
         for agg_key, variable_data in data:
-            # Compact out any Nones in the data that might have been added to keep partitions even
-            values = {var: (v for v in data if v is not None)
-                      for var, data in variable_data.items()}
-            # Return a dictionary for compatability with existing Indicator logic
-            # in convert_units() and collate_results()
-            yield (agg_key, self.aggregate(values))
+            # If we have more than one variable, combine the variable data into daily values
+            # This will be more useful for the indicators, and lets us filter unwanted data
+            # (For instance, missing Leap Year days) without affecting day-to-day matching
+            if len(self.variables) > 1:
+                variable_sequences = (variable_data[var] for var in self.variables)
+                paired_data = zip(*variable_sequences)
+                # Filter out any daily values that have a None data point
+                daily_values = (v for v in paired_data if all(val is not None for val in v))
+            else:
+                # Take the variable's data and convert it into a simple list, with no `None`s
+                variable = self.variables[0]
+                daily_values = (v for v in variable_data[variable] if v is not None)
+
+            # Yield a single value calculated from the raw data by the indicator's aggregate()
+            yield (agg_key, self.aggregate(daily_values))
 
     def convert_units(self, aggregations):
         """Convert aggregated results to the requested unit.
@@ -468,7 +477,7 @@ class ArrayIndicator(Indicator):
             results[agg_key].append(value)
         return results
 
-    def aggregate(self, bucket):
+    def aggregate(self, daily_values):
         """Process an aggregation-aligned bucket of raw data into a single value.
 
         For most indicators this can be done simply by taking the relevant variable's data and
@@ -476,11 +485,17 @@ class ArrayIndicator(Indicator):
         indicators it may be necessary to overload this to define how to handle interactions
         between variables
         """
-        variable = self.variables[0]
-        values = list(bucket[variable])
-        return self.agg_function(values)
+        # numpy methods don't handle generators, so convert daily_values into a list just in case
+        values_list = list(daily_values)
+        return self.agg_function(values_list)
 
     def calculate(self):
+        """Produce a dictionary of calculated numeric values in a list keyed by time aggregation.
+
+        Uses a sequence of steps that each use an iterator of tuples of the form (agg_key, payload).
+        Each step performs some transformation of the data, until we collate the iterator into a
+        single dictionary for representation to the user.
+        """
         # Load and partition data into a series of tuples of the form (agg_key, raw_values)
         data = self.generate_partitions()
         # Process the tuple's raw values into a single calculated value defined by the indicator
@@ -513,18 +528,10 @@ class ArrayPredicateIndicator(ArrayIndicator):
         """
         return sum(l for l in lengths)
 
-    def aggregate(self, bucket):
+    def aggregate(self, daily_values):
         """Return number of times the predicate is met for at least min_streak consecutive days."""
-        # Move the independant arrays into a sequence of a daily value from each
-        if len(self.variables) > 1:
-            variable_sequences = (bucket[var] for var in self.variables)
-            daily_sets = zip(*variable_sequences)
-        else:
-            variable = self.variables[0]
-            daily_sets = bucket[variable]
-
         # Use groupby to automatically divide the bucket into matches or non-matches
-        streak_groups = groupby(daily_sets, self.predicate)
+        streak_groups = groupby(daily_values, self.predicate)
         # Filter out all non-matching groups
         matching_streaks = (values for matching, values in streak_groups if matching)
         # Calculate the length of every matching group
