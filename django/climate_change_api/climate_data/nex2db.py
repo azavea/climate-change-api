@@ -17,8 +17,6 @@ class Nex2DB(object):
     # cache list of cites to guarantee ordering during import
     cities = None
 
-    DB_INSERT_BATCH_SIZE = 500
-
     def __init__(self, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
 
@@ -121,12 +119,10 @@ class Nex2DB(object):
             city_coords.update(results['cities'])
 
         # Go through the collated list and create all the relevant datapoints
-        self.logger.debug('Generating database entries')
+        self.logger.debug('Saving to database')
 
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
-
-        climatedatayear_list = []
 
         for coords, results in datasource_data.items():
 
@@ -143,24 +139,18 @@ class Nex2DB(object):
             climatedatayear_args = dict(map_cell=cell_model,
                                         data_source=data_source,
                                         **results)
-            climatedatayear_list.append(ClimateDataYear(**climatedatayear_args))
-
-        self.logger.debug('Saving database entries')
-        try:
-            ClimateDataYear.objects.bulk_create(climatedatayear_list,
-                                                batch_size=self.DB_INSERT_BATCH_SIZE)
-        except IntegrityError:
-            self.logger.warn('Deleting existing records for model %s scenario %s year %s',
-                             data_source.model.name,
-                             data_source.scenario.name,
-                             data_source.year)
-            ClimateDataYear.objects.filter(data_source=data_source).delete()
-            self.logger.warn('Re-attempting record insert for model %s scenario %s year %s',
-                             data_source.model.name,
-                             data_source.scenario.name,
-                             data_source.year)
-            ClimateDataYear.objects.bulk_create(climatedatayear_list,
-                                                batch_size=self.DB_INSERT_BATCH_SIZE)
+            try:
+                ClimateDataYear.objects.create(**climatedatayear_args)
+            except IntegrityError:
+                self.logger.warn('Deleting existing record for data_source: %s, map_cell: %s',
+                                 data_source,
+                                 cell_model)
+                ClimateDataYear.objects.filter(map_cell=cell_model,
+                                               data_source=data_source).delete()
+                self.logger.warn('Re-attempting record insert for data_source: %s, map_cell: %s',
+                                 data_source,
+                                 cell_model)
+                ClimateDataYear.objects.create(**climatedatayear_args)
 
         # Go through all the cities and set their map_cell to the appropriate model
         self.logger.debug('Updating cities')
