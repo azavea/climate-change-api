@@ -262,8 +262,8 @@ class YearlyFrostDaysTestCase(IndicatorTests, TestCase):
 
 
 class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyMaxConsecutiveDryDays
-    indicator_name = 'yearly_max_consecutive_dry_days'
+    indicator_class = indicators.MaxConsecutiveDryDays
+    indicator_name = 'max_consecutive_dry_days'
     time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
@@ -279,8 +279,8 @@ class YearlyMaxConsecutiveDryDaysTestCase(IndicatorTests, TestCase):
 
 
 class YearlyDrySpellsTestCase(IndicatorTests, TestCase):
-    indicator_class = indicators.YearlyDrySpells
-    indicator_name = 'yearly_dry_spells'
+    indicator_class = indicators.DrySpells
+    indicator_name = 'dry_spells'
     time_aggregation = 'yearly'
     test_indicator_rcp85_equals = {2000: {'avg': 0, 'min': 0, 'max': 0}}
     test_indicator_rcp45_equals = {2000: {'avg': 0, 'min': 0, 'max': 0},
