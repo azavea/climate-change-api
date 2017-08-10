@@ -25,9 +25,9 @@ class Nex2DB(object):
             self.cities = list(City.objects.all().order_by('pk'))
         return self.cities
 
-    def netcdf2year(self, time_array, time_unit, calendar):
-        first_date = netCDF4.num2date(time_array[0], time_unit, calendar=calendar)
-        last_date = netCDF4.num2date(time_array[-1], time_unit, calendar=calendar)
+    def netcdf2year(self, time_array, time_unit, netcdf_calendar):
+        first_date = netCDF4.num2date(time_array[0], time_unit, calendar=netcdf_calendar)
+        last_date = netCDF4.num2date(time_array[-1], time_unit, calendar=netcdf_calendar)
         if first_date.year == last_date.year:
             return first_date.year
         else:
@@ -55,9 +55,9 @@ class Nex2DB(object):
             lonarr = numpy.asarray(ds.variables['lon'])
             time_unit = ds.variables['time'].units
             # using non-standard calendar
-            calendar = ds.variables['time'].calendar
+            netcdf_calendar = ds.variables['time'].calendar
 
-            year = self.netcdf2year(ds.variables['time'], time_unit, calendar)
+            year = self.netcdf2year(ds.variables['time'], time_unit, netcdf_calendar)
             assert(year == data_source.year)
 
             # read variable data into memory
