@@ -5,11 +5,10 @@ from itertools import islice
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.utils import IntegrityError
 
 from climate_data.models import (City, Scenario, ClimateModel,
                                  ClimateDataSource, ClimateDataCell,
-                                 ClimateData)
+                                 ClimateDataYear)
 
 import requests
 
@@ -148,35 +147,19 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
             data_source = ClimateDataSource.objects.create(model=model,
                                                            scenario=scenario,
                                                            year=int(year))
-
-        # Build a generator for (day_of_year, (tasmin, tasmax, pr))
-        date_value_tuples = enumerate(zip(*(yeardata[v] for v in ('tasmin', 'tasmax', 'pr'))),
-                                      start=1)
-
-        # Exclude any data points that have no value for any of the values
-        filtered_list = ((day, values) for (day, values) in date_value_tuples if any(values))
-
-        # Create a generator that produces a ClimateData object for each data point
-        climate_data_list = (ClimateData(map_cell=local_map_cell,
-                                         data_source=data_source,
-                                         day_of_year=day,
-                                         tasmin=tasmin,
-                                         tasmax=tasmax,
-                                         pr=pr)
-                             for day, (tasmin, tasmax, pr) in filtered_list)
-
-        # Pass the generator to bulk_create
-        try:
-            ClimateData.objects.bulk_create(climate_data_list)
-        except IntegrityError:
-            # should only happen if previous job did not exit cleanly and could not clean up
-            logger.warn('Deleting existing records for model %s scenario %s year %s',
-                        model.name, scenario.name, year)
-            ClimateData.objects.filter(data_source=data_source).delete()
-            logger.warn('Re-attempting record insert for model %s scenario %s year %s',
-                        model.name, scenario.name, year)
-            ClimateData.objects.bulk_create(climate_data_list)
-
+        cdy = ClimateDataYear.objects.get_or_create(
+            map_cell=local_map_cell,
+            data_source=data_source,
+            defaults={
+                'tasmin': [],
+                'tasmax': [],
+                'pr': []
+            }
+        )[0]
+        cdy.tasmin = yeardata['tasmin']
+        cdy.tasmax = yeardata['tasmax']
+        cdy.pr = yeardata['pr']
+        cdy.save()
     # note that the job completed successfully
     data_source.import_completed = True
     data_source.save()
@@ -220,7 +203,7 @@ class Command(BaseCommand):
                     logger.info('Skipping %s, data already imported', model.name)
                     continue
 
-                if ClimateData.objects.filter(
+                if ClimateDataYear.objects.filter(
                         data_source__model=model,
                         data_source__scenario=scenario,
                         map_cell=created_city.map_cell).exists():
@@ -239,7 +222,7 @@ class Command(BaseCommand):
                     except Exception as ex:
                         logger.error(ex, exc_info=True)
                         logger.warn('Failed importing %s, destroying partial import', model.name)
-                        ClimateData.objects.filter(
+                        ClimateDataYear.objects.filter(
                             data_source__model=model,
                             data_source__scenario=scenario,
                             map_cell=created_city.map_cell).delete()
