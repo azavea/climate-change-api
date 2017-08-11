@@ -1,6 +1,4 @@
 from django.test import TestCase
-from climate_data.models import (ClimateDataCell, ClimateModel, Scenario, ClimateDataSource,
-                                 ClimateDataYear)
 from indicators.partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
                                      OffsetYearlyPartitioner, CustomPartitioner)
 
@@ -14,44 +12,17 @@ def float_range(start, stop):
 
 
 class PartitionTest(TestCase):
-    def setUp(self):
-        map_cell = ClimateDataCell.objects.create(lat=33.8, lon=-117.9)
-        model = ClimateModel.objects.create(name='Test Model')
-        scenario = Scenario.objects.create(name='Test Scenario')
-
-        ClimateDataYear.objects.create(
-            map_cell=map_cell,
-            data_source=ClimateDataSource.objects.create(
-                model=model,
-                scenario=scenario,
-                year=2051
-            ),
-            pr=float_range(0, 364),
-            tasmin=float_range(10000, 10364),
-            tasmax=float_range(20000, 20364)
-        )
-        ClimateDataYear.objects.create(
-            map_cell=map_cell,
-            data_source=ClimateDataSource.objects.create(
-                model=model,
-                scenario=scenario,
-                year=2052
-            ),
-            pr=float_range(30000, 30365),
-            tasmin=float_range(40000, 40365),
-            tasmax=float_range(5000, 50365)
-        )
-
     def test_yearly_partitions(self):
-        partitioner = YearlyPartitioner(variables=['pr'])
-        data = ClimateDataYear.objects.all()
+        partitioner = YearlyPartitioner()
+        data = [(2051, {'pr': float_range(0, 364)}),
+                (2052, {'pr': float_range(30000, 30365)})]
         result = list(partitioner(data))
         self.assertEqual(result, [(2051, {'pr': float_range(0, 364)}),
                                   (2052, {'pr': float_range(30000, 30365)})])
 
     def test_monthly_partitions(self):
-        partitioner = MonthlyPartitioner(variables=['pr'])
-        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        partitioner = MonthlyPartitioner()
+        data = [(2051, {'pr': float_range(0, 364)})]
         result = list(partitioner(data))
         self.assertEqual(result, [('2051-01', {'pr': float_range(0, 30)}),
                                   ('2051-02', {'pr': float_range(31, 58)}),
@@ -66,9 +37,26 @@ class PartitionTest(TestCase):
                                   ('2051-11', {'pr': float_range(304, 333)}),
                                   ('2051-12', {'pr': float_range(334, 364)})])
 
+    def test_monthly_partitions_leap_year(self):
+        partitioner = MonthlyPartitioner()
+        data = [(2052, {'pr': float_range(0, 365)})]
+        result = list(partitioner(data))
+        self.assertEqual(result, [('2052-01', {'pr': float_range(0, 30)}),
+                                  ('2052-02', {'pr': float_range(31, 59)}),
+                                  ('2052-03', {'pr': float_range(60, 90)}),
+                                  ('2052-04', {'pr': float_range(91, 120)}),
+                                  ('2052-05', {'pr': float_range(121, 151)}),
+                                  ('2052-06', {'pr': float_range(152, 181)}),
+                                  ('2052-07', {'pr': float_range(182, 212)}),
+                                  ('2052-08', {'pr': float_range(213, 243)}),
+                                  ('2052-09', {'pr': float_range(244, 273)}),
+                                  ('2052-10', {'pr': float_range(274, 304)}),
+                                  ('2052-11', {'pr': float_range(305, 334)}),
+                                  ('2052-12', {'pr': float_range(335, 365)})])
+
     def test_quarterly_partitions(self):
-        partitioner = QuarterlyPartitioner(variables=['pr'])
-        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        partitioner = QuarterlyPartitioner()
+        data = [(2051, {'pr': float_range(0, 364)})]
         result = list(partitioner(data))
         self.assertEqual(result, [('2051-Q1', {'pr': float_range(0, 89)}),
                                   ('2051-Q2', {'pr': float_range(90, 180)}),
@@ -76,37 +64,36 @@ class PartitionTest(TestCase):
                                   ('2051-Q4', {'pr': float_range(273, 364)})])
 
     def test_offset_yearly_partition(self):
-        partitioner = OffsetYearlyPartitioner(variables=['pr'])
-        data = ClimateDataYear.objects.all()
+        partitioner = OffsetYearlyPartitioner()
+        data = [(2051, {'pr': float_range(0, 364)}),
+                (2052, {'pr': float_range(30000, 30365)})]
         result = list(partitioner(data))
         self.assertEqual(result, [('2051-2052',
                                   {'pr': float_range(180, 364) + float_range(30000, 30179)})])
 
     def test_custom_partition_single_day(self):
-        partitioner = CustomPartitioner(variables=['pr'], spans="6-1")
-        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        partitioner = CustomPartitioner(spans="6-1")
+        data = [(2051, {'pr': float_range(0, 364)})]
         result = list(partitioner(data))
         # June 1, 2051 is the 152nd day, and since values start at 0 it should have the 151 value
         self.assertEqual(result, [('2051-01', {'pr': [151.0]})])
 
     def test_custom_partition_single_day_leap_year(self):
-        partitioner = CustomPartitioner(variables=['pr'], spans="6-1")
-        data = ClimateDataYear.objects.filter(data_source__year=2052)
+        partitioner = CustomPartitioner(spans="6-1")
+        data = [(2052, {'pr': float_range(0, 365)})]
         result = list(partitioner(data))
         # June 1, 2052 is the 153rd day because it is a leap year
-        # pr values for 2052 start with 30000 to differentiate them from other years in case of a
-        # obscure collission bug.
-        self.assertEqual(result, [('2052-01', {'pr': [30152.0]})])
+        self.assertEqual(result, [('2052-01', {'pr': [152.0]})])
 
     def test_custom_partition_base(self):
-        partitioner = CustomPartitioner(variables=['pr'], spans="1-1:12-31")
-        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        partitioner = CustomPartitioner(spans="1-1:12-31")
+        data = [(2051, {'pr': float_range(0, 364)})]
         result = list(partitioner(data))
         self.assertEqual(result, [('2051-01', {'pr': float_range(0, 364)})])
 
     def test_custom_partition_complex(self):
-        partitioner = CustomPartitioner(variables=['pr'], spans="3-14:3-20,6-5:9-30")
-        data = ClimateDataYear.objects.filter(data_source__year=2051)
+        partitioner = CustomPartitioner(spans="3-14:3-20,6-5:9-30")
+        data = [(2051, {'pr': float_range(0, 364)})]
         result = list(partitioner(data))
         self.assertEqual(result,
                          # March 14, 2051 is day 73, March 20 is day 79 - less one for the index
@@ -115,19 +102,19 @@ class PartitionTest(TestCase):
                           ('2051-02', {'pr': float_range(155, 272)})])
 
     def test_custom_partition_invalid_date(self):
-        data = ClimateDataYear.objects.all()
+        data = [(2051, {'pr': float_range(0, 364)})]
         with self.assertRaises(AssertionError):
-            partitioner = CustomPartitioner(variables=['pr'], spans="3-91")
+            partitioner = CustomPartitioner(spans="3-91")
             list(partitioner(data))
 
     def test_custom_partition_backwards_timespan(self):
-        data = ClimateDataYear.objects.all()
+        data = [(2051, {'pr': float_range(0, 364)})]
         with self.assertRaises(AssertionError):
-            partitioner = CustomPartitioner(variables=['pr'], spans="3-15:2-17")
+            partitioner = CustomPartitioner(spans="3-15:2-17")
             list(partitioner(data))
 
     def test_custom_partition_zero_day_of_month(self):
-        data = ClimateDataYear.objects.all()
+        data = [(2051, {'pr': float_range(0, 364)})]
         with self.assertRaises(AssertionError):
-            partitioner = CustomPartitioner(variables=['pr'], spans="3-0:3-2")
+            partitioner = CustomPartitioner(spans="3-0:3-2")
             list(partitioner(data))

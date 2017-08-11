@@ -317,4 +317,28 @@ class HistoricAverageClimateData(models.Model):
         index_together = ('map_cell', 'day_of_year', 'historic_range')
 
     def natural_key(self):
-        return (self.city, self.month_day)
+        return (self.city, self.day_of_year)
+
+
+class HistoricAverageClimateDataYear(models.Model):
+    """Model storing computed averages for historic climate data for various historic ranges.
+
+    Used in computing the heat wave duration index (HWDI) and heat wave incidents indicators
+    http://www.vsamp.com/resume/publications/Frich_et_al.pdf
+
+    Derived from raw historic ClimateData and stored separately for performance and ease of access.
+    """
+
+    map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average_array')
+    historic_range = TinyForeignKey(HistoricDateRange, null=True)
+
+    tasmin = ArrayField(models.FloatField(),
+                        help_text='Historic Average Daily Minimum Near-Surface Air Temperature in Kelvin')  # NOQA: E501
+    tasmax = ArrayField(models.FloatField(),
+                        help_text='Historic Average Daily Maximum Near-Surface Air Temperature in Kelvin')  # NOQA: E501
+    pr = ArrayField(models.FloatField(),
+                    help_text='Historic Average Precipitation (mean of the daily precipitation rate) in kg/s/m^2')  # NOQA: E501
+
+    class Meta:
+        unique_together = ('map_cell', 'historic_range')
+        index_together = ('map_cell', 'historic_range')

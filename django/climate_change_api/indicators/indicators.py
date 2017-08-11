@@ -13,7 +13,8 @@ from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
                                   TemperatureThresholdIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
                                   YearlyMaxConsecutiveDaysIndicator,
-                                  YearlySequenceIndicator, ArrayBaselineIndicator)
+                                  YearlySequenceIndicator, ArrayBaselineIndicator,
+                                  ArrayPredicateIndicator, ArrayHistoricAverageIndicator)
 from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, ExtremeIndicatorParams,
                      HeatWaveIndicatorParams)
 from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
@@ -317,9 +318,10 @@ class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, Indicator):
 
 
 class DiurnalTemperatureRangeArray(ArrayStreakIndicator, DiurnalTemperatureRange):
-    def aggregate(self, bucket):
-        pairs = zip(bucket['tasmax'], bucket['tasmin'])
-        return np.mean([tasmax - tasmin for tasmax, tasmin in pairs])
+    def aggregate(self, daily_values):
+        # daily_values is an iterator of tuples ordered in the same order as self.variables,
+        # so for us each value is (tasmax_val, tasmin_val)
+        return np.mean([tasmax - tasmin for tasmax, tasmin in daily_values])
 
 
 class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
@@ -340,10 +342,10 @@ class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
 
 
 class HeatingDegreeDaysArray(ArrayIndicator, HeatingDegreeDays):
-    def aggregate(self, bucket):
-        pairs = zip(bucket['tasmax'], bucket['tasmin'])
-        # Get the average temperature to compare with
-        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+    def aggregate(self, daily_values):
+        # daily_values is an iterator of tuples ordered in the same order as self.variables
+        # Use that to get the day's average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in daily_values)
         # Only count days that are below the threshold temperature
         heating_days = (temp for temp in average_temp if temp < self.params.basetemp.value)
         # Sum the difference for all days below the threshold
@@ -368,10 +370,10 @@ class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indi
 
 
 class CoolingDegreeDaysArray(ArrayIndicator, CoolingDegreeDays):
-    def aggregate(self, bucket):
-        pairs = zip(bucket['tasmax'], bucket['tasmin'])
-        # Get the average temperature to compare with
-        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+    def aggregate(self, daily_values):
+        # daily_values is an iterator of tuples ordered in the same order as self.variables
+        # Use that to get the day's average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in daily_values)
         # Only count days that are above the threshold temperature
         cooling_days = (temp for temp in average_temp if temp > self.params.basetemp.value)
         # Sum the difference for all days above the threshold
@@ -409,10 +411,10 @@ class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
 
 
 class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegreeDays):
-    def aggregate(self, bucket):
-        pairs = zip(bucket['tasmax'], bucket['tasmin'])
-        # Get the average temperature to compare with
-        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in pairs)
+    def aggregate(self, daily_values):
+        # daily_values is an iterator of tuples ordered in the same order as self.variables
+        # Use that to get the day's average temperature to compare with
+        average_temp = ((tasmax + tasmin) / 2 for tasmax, tasmin in daily_values)
         # Get the difference of the average from freezing
         freezing_degree_days = (273.15 - temp for temp in average_temp)
 
@@ -446,6 +448,18 @@ class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
         return super(HeatWaveDurationIndex, self).aggregate()
 
 
+class HeatWaveDurationIndexArray(ArrayPredicateIndicator, ArrayHistoricAverageIndicator,
+                                 HeatWaveDurationIndex):
+    variables = ('tasmax', 'historical_tasmax')
+    agg_function = max
+
+    @staticmethod
+    def predicate(pair):
+        """Determine if a day is abnormally warm enough to constitute part of a heatwave."""
+        tasmax, historical = pair
+        return tasmax > historical + 5
+
+
 class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
     label = 'Heat Wave Incidents'
     description = ('Number of times daily high temperature exceeds 5C above historic norm for at '
@@ -471,6 +485,18 @@ class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
             num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
 
             yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
+
+
+class HeatWaveIncidentsArray(ArrayStreakIndicator, ArrayHistoricAverageIndicator,
+                             HeatWaveIncidents):
+    variables = ('tasmax', 'historical_tasmax')
+    min_streak = 5
+
+    @staticmethod
+    def predicate(pair):
+        """Determine if a day is abnormally warm enough to constitute part of a heatwave."""
+        tasmax, historical = pair
+        return tasmax > historical + 5
 
 
 def list_available_indicators():
