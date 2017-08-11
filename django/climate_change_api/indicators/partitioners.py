@@ -6,7 +6,6 @@ from itertools import groupby
 from .validators import CustomTimeParamValidator
 from .utils import sliding_window
 
-from django.db.models import F
 from django.conf import settings
 
 
@@ -19,34 +18,24 @@ CONVENTIONAL_YEAR_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 3
 class Partitioner(object):
     """Partition a sequence of ClimateDataYear array data into the desired time aggregation.
 
-    When invoked, takes a queryset filtered for the desired map cell, scenario, models and years,
-    and returns an iterable of tuples of the form (aggregation_key, {var: [data], ...})
-
-    Each tuple represents a single "bucket" of data, though multiple buckets may share the same
-    aggregation key - these will be aggregated together by the indicator's serializer
+    When invoked, takes a iterator of (year, values) tuples and returns an iterable of tuples of the
+    desired time aggregation in the form (aggregation_key, {var: [data], ...})
     """
 
-    variables = []
+    def __init__(self):
+        pass
 
-    def __init__(self, variables):
-        self.variables = variables
-
-    def __call__(self, queryset):
-        """Partition a queryset into a iterable of tuples representing desired time periods."""
-        queryset = queryset.values(*self.variables)
-        return self.partition(queryset)
-
-    def partition(self, queryset):
+    def __call__(self, it):
+        """Partition a iterable of (year, data) tuples into the desired time periods."""
         raise NotImplementedError()
 
 
 class YearlyPartitioner(Partitioner):
     """Partition results by year."""
 
-    def partition(self, queryset):
-        queryset = queryset.annotate(year=F('data_source__year'))
-        for row in queryset.iterator():
-            yield (row['year'], {var: row[var] for var in self.variables})
+    def __call__(self, it):
+        # Yearly data is already partitioned
+        return it
 
 
 class OffsetYearlyPartitioner(Partitioner):
@@ -67,36 +56,29 @@ class OffsetYearlyPartitioner(Partitioner):
 
         super(OffsetYearlyPartitioner, self).__init__(*args, **kwargs)
 
-    def partition(self, queryset):
-        """Process a queryset of ClimateDataYear into a sequence of dicts per time partition."""
+    def __call__(self, it):
+        """Process a  of ClimateDataYear into a sequence of dicts per time partition."""
         def group_consecutive_years(results):
-            """Group queryset results into chains of consecutive years of the same model."""
+            """Group iterator tuples into chains of consecutive years."""
             def match_function(obj):
                 index, row = obj
                 # Measure the offset of the year from the index... consecutive years will have
                 # consecutive indexes, giving them the same offset and so the same group
-                return (row['model'], index - row['year'])
+                return index - row[0]
             for _, group in groupby(enumerate(results), match_function):
                 # Remove the enumeration from each result in the group
                 yield map(itemgetter(1), group)
 
-        # We need to know year and model so we can make sure we don't accidentally merge unrelated
-        # years
-        queryset = queryset.annotate(
-            year=F('data_source__year'),
-            model=F('data_source__model_id'),
-            scenario=F('data_source__scenario_id')
-        ).order_by('data_source__model_id', 'data_source__year')
-        it = queryset.iterator()
-
-        # Group models and sequential years together so we don't accidentally have our algorithm
-        # compare years from different predictions or time periods.
+        # Group sequential years together so we don't accidentally merge data from unrelated years
+        # into the same partition
         for years_group in group_consecutive_years(it):
             # Use a sliding window of width 2 so we have both years we need for each data point
             for prev, cur in sliding_window(years_group, n=2):
-                agg_key = "{}-{}".format(cur['year'] - 1, cur['year'])
-                data = {var: prev[var][self.offset:] + cur[var][:self.offset]
-                        for var in self.variables}
+                prev_year, prev_data = prev
+                cur_year, cur_data = cur
+                agg_key = "{}-{}".format(prev_year, cur_year)
+                data = {var: prev_data[var][self.offset:] + cur_data[var][:self.offset]
+                        for var in cur_data.keys()}
                 yield (agg_key, data)
 
 
@@ -123,20 +105,18 @@ class IntervalPartitioner(Partitioner):
         """
         raise NotImplementedError()
 
-    def partition(self, queryset):
-        """Given a queryset of ClimateDataYear, return a sequence of tuples per time partition.
+    def __call__(self, it):
+        """Given a iterator of (year, values) tuples, return a sequence of tuples per time partition.
 
         This assumes that intervals existing entirely within years, and iterates across the interval
         sequence for each year in the result, producing a bucket for every interval for every year.
         """
-        queryset = queryset.annotate(year=F('data_source__year'))
-        for bucket in queryset.iterator():
-            year = bucket.pop('year')
+        for year, data in it:
             for period, interval in enumerate(self.intervals(year), start=1):
                 start, stop = interval
                 # This should never happen in production, but in testing we don't use full years
                 #  which means there will be periods with 0 data points and can cause exceptions
-                if any(start > len(bucket[var]) for var in bucket):
+                if any(start > len(data[var]) for var in data):
                     if not settings.DEBUG:
                         logger.warn("Variable in bucket (%d, %d) contained less than %d values",
                                     year, period, start)
@@ -144,7 +124,7 @@ class IntervalPartitioner(Partitioner):
 
                 yield (self.agg_key(year, period),
                        # use start and stop to choose the interval to output
-                       {var: value[start:stop] for var, value in bucket.items()})
+                       {var: values[start:stop] for var, values in data.items()})
 
 
 class LengthPartitioner(IntervalPartitioner):
