@@ -256,7 +256,7 @@ Once that backup has completed and you have the dump locally, Console into the `
 
 After the backup is loaded, decrease the size of the database by removing ClimateData for all cities but Phoenix, AZ, Philadelphia, PA, and Houston, TX. Additionally, ClimateUser, Session objects, Tokens, UserProfiles and Projects should be removed. From inside the VM, do:::
 
-    $ ./scripts/console django ./manage.py shell_plus
+    $ ./scripts/console django './manage.py shell_plus'
 
 And from the django console, do::
 
@@ -291,7 +291,7 @@ And from the django console, do::
 
 Once the database has been pruned, run ``pg_dump`` from inside of the postgres container to make a database dump of the current state. Console into the ``postgres`` container::
 
-    $ docker-compose exec -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
+    $ docker-compose exec postgres db_dump -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
 
 Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy the newest backup to S3.::
 
