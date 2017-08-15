@@ -147,19 +147,20 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
             data_source = ClimateDataSource.objects.create(model=model,
                                                            scenario=scenario,
                                                            year=int(year))
-        cdy = ClimateDataYear.objects.get_or_create(
+        cdy, created = ClimateDataYear.objects.get_or_create(
             map_cell=local_map_cell,
             data_source=data_source,
             defaults={
-                'tasmin': [],
-                'tasmax': [],
-                'pr': []
+                'tasmin': yeardata['tasmin'],
+                'tasmax': yeardata['tasmax'],
+                'pr': yeardata['pr']
             }
-        )[0]
-        cdy.tasmin = yeardata['tasmin']
-        cdy.tasmax = yeardata['tasmax']
-        cdy.pr = yeardata['pr']
-        cdy.save()
+        )
+        if not created:
+            cdy.tasmin = yeardata['tasmin']
+            cdy.tasmax = yeardata['tasmax']
+            cdy.pr = yeardata['pr']
+            cdy.save()
     # note that the job completed successfully
     data_source.import_completed = True
     data_source.save()
