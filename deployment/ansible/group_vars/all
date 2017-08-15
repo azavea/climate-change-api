@@ -2,6 +2,4 @@
 docker_version: "17.*"
 docker_compose_version: "1.15.0"
 
-terraform_version: "0.9.3"
-
 nodejs_version: "6.3.1"
