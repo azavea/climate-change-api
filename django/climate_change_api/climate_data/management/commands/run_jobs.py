@@ -50,6 +50,7 @@ def download_nc(rcp, model, year, var, dir):
     key = KEY_FORMAT.format(rcp=rcp.lower(), model=model, year=year, var=var)
     filename = os.path.join(dir, os.path.basename(key))
     s3 = boto3.resource('s3')
+    logger.debug('Downloading file: s3://{}/{}'.format(BUCKET, key))
     s3.meta.client.download_file(BUCKET, key, filename)
     return filename
 

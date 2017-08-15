@@ -26,11 +26,18 @@ class Nex2DB(object):
         return self.cities
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
+        """Return the year of the netcdf file as an int.
+
+        Raises ValueError if the time dimension contains more than a single year
+
+        """
         first_date = netCDF4.num2date(time_array[0], time_unit, calendar=netcdf_calendar)
         last_date = netCDF4.num2date(time_array[-1], time_unit, calendar=netcdf_calendar)
         if first_date.year == last_date.year:
-            return first_date.year
+            return int(first_date.year)
         else:
+            self.logger.debug("Mismatch in years: got %d-%d with calendar %s and units %s",
+                              first_date.year, last_date.year, netcdf_calendar, time_unit)
             raise ValueError("Expected netcdf2year time_array to only contain values " +
                              "for a single year")
 
@@ -49,7 +56,7 @@ class Nex2DB(object):
         """
         # data in the climate NetCDF files can be referenced as:
         # ds.variables[var name][day of year index][latitude index][longitude index]
-        self.logger.debug('processing NetCDF at %s', path)
+        self.logger.debug('processing NetCDF at %s for var %s', path, var_name)
         with netCDF4.Dataset(path, 'r') as ds:
             latarr = numpy.asarray(ds.variables['lat'])
             lonarr = numpy.asarray(ds.variables['lon'])
@@ -58,7 +65,8 @@ class Nex2DB(object):
             netcdf_calendar = ds.variables['time'].calendar
 
             year = self.netcdf2year(ds.variables['time'], time_unit, netcdf_calendar)
-            assert(year == data_source.year)
+            self.logger.debug("Got year %d ?= data_source.year %d", year, data_source.year)
+            assert(year == int(data_source.year))
 
             # read variable data into memory
             var_data = ds.variables[var_name]
@@ -102,6 +110,7 @@ class Nex2DB(object):
         @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
         assert(set(variable_paths) == ClimateDataYear.VARIABLE_CHOICES)
+        self.logger.debug("Using datasource: %s", data_source)
 
         variable_data = {label: self.get_var_data(label, path, data_source)
                          for label, path in variable_paths.items()}
@@ -133,7 +142,8 @@ class Nex2DB(object):
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
-                cell_model, created = ClimateDataCell.objects.get_or_create(lat=lat, lon=lon)
+                cell_model, created = ClimateDataCell.objects.get_or_create(lat=lat.item(),
+                                                                            lon=lon.item())
                 cell_models[coords] = cell_model
 
             climatedatayear_args = dict(map_cell=cell_model,
