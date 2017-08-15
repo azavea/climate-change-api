@@ -1,12 +1,46 @@
 # Change Log
 
+## [1.1.0](https://github.com/azavea/climate-change-api/tree/1.1.0) (2017-08-15)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.9...1.1.0)
+
+**Merged pull requests:**
+
+- Correct some commands in README.rst for producing db dumps [\#632](https://github.com/azavea/climate-change-api/pull/632)
+- Upgrade development environment to Docker 17 [\#625](https://github.com/azavea/climate-change-api/pull/625)
+- Remove deprecated setting [\#613](https://github.com/azavea/climate-change-api/pull/613)
+- Add unit to chart project schema [\#608](https://github.com/azavea/climate-change-api/pull/608)
+- Iterative ClimateDataYear migration [\#607](https://github.com/azavea/climate-change-api/pull/607)
+- Remove requirement for multiChartScrubber in user projects [\#606](https://github.com/azavea/climate-change-api/pull/606)
+- Feature/awf/integrate custom time partitioner validator [\#604](https://github.com/azavea/climate-change-api/pull/604)
+- Array historic data and heatwave indicators [\#602](https://github.com/azavea/climate-change-api/pull/602)
+- Add CustomTimeParamValidator and use for appropriate API param [\#598](https://github.com/azavea/climate-change-api/pull/598)
+- Add support for extreme meteorological event indicators [\#597](https://github.com/azavea/climate-change-api/pull/597)
+- Implement Accumulated Freezing Degree Days using Array Data [\#595](https://github.com/azavea/climate-change-api/pull/595)
+- Convert frost days to array indicator [\#592](https://github.com/azavea/climate-change-api/pull/592)
+- Add array data support for percentile indicators [\#591](https://github.com/azavea/climate-change-api/pull/591)
+- Remove time specification from year-specific indicator names [\#590](https://github.com/azavea/climate-change-api/pull/590)
+- Convert total precip indicator to array indicator [\#585](https://github.com/azavea/climate-change-api/pull/585)
+- Add ArrayIndicator version of YearlyMaxConsecutiveDryDays [\#584](https://github.com/azavea/climate-change-api/pull/584)
+- Custom time aggregation for array indicators [\#583](https://github.com/azavea/climate-change-api/pull/583)
+- Add StatsD companion container to management task definition [\#582](https://github.com/azavea/climate-change-api/pull/582)
+- Add cooling and heating degree days support for array data [\#580](https://github.com/azavea/climate-change-api/pull/580)
+- Feature/jf/new threshold indicators [\#579](https://github.com/azavea/climate-change-api/pull/579)
+- Add diurnal temperature range support for array data [\#576](https://github.com/azavea/climate-change-api/pull/576)
+- Feature/kak/raw climate data yearly\#537 [\#575](https://github.com/azavea/climate-change-api/pull/575)
+- Fix misnamed terraform variable assignment [\#573](https://github.com/azavea/climate-change-api/pull/573)
+- Add offset yearly time aggregation [\#557](https://github.com/azavea/climate-change-api/pull/557)
+
 ## [1.0.9](https://github.com/azavea/climate-change-api/tree/1.0.9) (2017-07-18)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.8...1.0.9)
 
 **Merged pull requests:**
 
+- Fix copy-and-paste error [\#569](https://github.com/azavea/climate-change-api/pull/569)
+- Set CC\_FF\_ARRAY\_DATA in development environments [\#568](https://github.com/azavea/climate-change-api/pull/568)
 - Avoid memory issues, batch process generate\_historic.py data in chunks [\#566](https://github.com/azavea/climate-change-api/pull/566)
 - Introduce feature flag for ClimateDataYear indicators [\#565](https://github.com/azavea/climate-change-api/pull/565)
+- Split ClimateDataYear data migration and schema migration [\#564](https://github.com/azavea/climate-change-api/pull/564)
+- Store and process ClimateData by year chunks [\#527](https://github.com/azavea/climate-change-api/pull/527)
 
 ## [1.0.8](https://github.com/azavea/climate-change-api/tree/1.0.8) (2017-07-17)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.7...1.0.8)
@@ -88,21 +122,19 @@
 - Release 1.0.1, update Changelog [\#432](https://github.com/azavea/climate-change-api/pull/432)
 
 ## [1.0.1](https://github.com/azavea/climate-change-api/tree/1.0.1) (2017-04-19)
-**Merged pull requests:**
-
-- Feature/jf/docs copy edit [\#431](https://github.com/azavea/climate-change-api/pull/431)
-- Copy edit documentation [\#430](https://github.com/azavea/climate-change-api/pull/430)
-- Convert ClimateData to use bigint for id [\#422](https://github.com/azavea/climate-change-api/pull/422)
-
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.0...1.0.1)
 
 ## [1.0.0](https://github.com/azavea/climate-change-api/tree/1.0.0) (2017-04-19)
 **Merged pull requests:**
 
+- Feature/jf/docs copy edit [\#431](https://github.com/azavea/climate-change-api/pull/431)
+- Copy edit documentation [\#430](https://github.com/azavea/climate-change-api/pull/430)
 - Remove localhost ref in SCSS url for climate logo [\#428](https://github.com/azavea/climate-change-api/pull/428)
 - Cleanup work toward a production deployment [\#427](https://github.com/azavea/climate-change-api/pull/427)
 - Add volume mount to `management` tasks. [\#426](https://github.com/azavea/climate-change-api/pull/426)
 - Require organization for registration [\#424](https://github.com/azavea/climate-change-api/pull/424)
 - Remove inconsitent historical year references and clarify Indicators docs copy [\#423](https://github.com/azavea/climate-change-api/pull/423)
+- Convert ClimateData to use bigint for id [\#422](https://github.com/azavea/climate-change-api/pull/422)
 - Add indicators descriptions 4/4 [\#417](https://github.com/azavea/climate-change-api/pull/417)
 - Account pages quality of life improvements [\#409](https://github.com/azavea/climate-change-api/pull/409)
 - Disable data health checks [\#406](https://github.com/azavea/climate-change-api/pull/406)
