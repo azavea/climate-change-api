@@ -9,6 +9,7 @@ from climate_data.models import (City,
                                  ClimateDataBaseline,
                                  ClimateDataCell,
                                  ClimateDataSource,
+                                 ClimateDataset,
                                  ClimateDataYear,
                                  ClimateModel,
                                  HistoricAverageClimateDataYear,
@@ -82,14 +83,26 @@ class ClimateDataSourceFactory(DjangoModelFactory):
         django_get_or_create = ('model', 'scenario', 'year',)
 
 
+class ClimateDatasetFactory(DjangoModelFactory):
+    name = 'NEX-GDDP'
+    label = ''
+    description = ''
+    url = ''
+
+    class Meta:
+        model = ClimateDataset
+        django_get_or_create = ('name',)
+
+
 class ClimateDataCellFactory(DjangoModelFactory):
 
     lat = 0
     lon = 0
+    dataset = ClimateDatasetFactory()
 
     class Meta:
         model = ClimateDataCell
-        django_get_or_create = ('lat', 'lon',)
+        django_get_or_create = ('lat', 'lon', 'dataset')
 
 
 class HistoricDateRangeFactory(DjangoModelFactory):
