@@ -28,6 +28,7 @@ services:
       - DJANGO_LOG_LEVEL=INFO
       - AWS_PROFILE=$AWS_PROFILE
       - AWS_CACHE_DURATION=31536000
+      - CC_FF_ARRAY_DATA=$CC_FF_ARRAY_DATA
       - COMMIT=
     volumes:
       - .:/opt

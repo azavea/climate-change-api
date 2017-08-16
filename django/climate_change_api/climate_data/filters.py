@@ -38,7 +38,13 @@ class ClimateDataFilterSet(filters.FilterSet):
     years = django_filters.CharFilter(method='filter_years')
 
     def __init__(self, *args, **kwargs):
+        # year_col specifies which Django ORM reference we should use to filter by year.
+        # For in-database cross-year aggregation this is overriden to specify a calculated year
         self.year_col = kwargs.pop('year_col', 'data_source__year')
+        # offset_end designates if we should allow an extra year after to the last year specified
+        # in a filter group. This is used by array-data cross-year aggregation to include data from
+        # a subsequent year that can be used to fill in for the edge-case year
+        self.offset_end = kwargs.pop('offset_end', False)
         super(ClimateDataFilterSet, self).__init__(*args, **kwargs)
 
     def filter_models(self, queryset, name, value):
@@ -68,6 +74,15 @@ class ClimateDataFilterSet(filters.FilterSet):
             year_filters = []
             for year_range_str in value.split(','):
                 year_range = year_range_str.split(':')
+
+                if self.offset_end:
+                    # In some cases we need to grab a year after our requested data
+                    if len(year_range) == 2:
+                        year_range[1] = int(year_range[1]) + 1
+                    elif len(year_range) == 1:
+                        end = int(year_range[0])
+                        year_range = [end, end + 1]
+
                 if len(year_range) == 2:
                     # Pair the two years with their comparators, gte and lte respectively
                     bounds = zip(['gte', 'lte'], year_range)

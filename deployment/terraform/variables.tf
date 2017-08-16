@@ -23,6 +23,7 @@ variable "r53_public_hosted_zone" {}
 
 # Scaling
 variable "container_instance_asg_desired_capacity" {}
+
 variable "container_instance_asg_min_size" {}
 variable "container_instance_asg_max_size" {}
 variable "container_instance_type" {}
@@ -32,11 +33,13 @@ variable "ecs_instance_ami_id" {}
 # ECS
 ## HTTP API server
 variable "cc_api_http_ecs_desired_count" {}
+
 variable "cc_api_http_ecs_deployment_min_percent" {}
 variable "cc_api_http_ecs_deployment_max_percent" {}
 
 ## HTTPS API server
 variable "cc_api_https_ecs_deployment_max_percent" {}
+
 variable "cc_api_https_ecs_desired_count" {}
 variable "cc_api_https_ecs_deployment_min_percent" {}
 
@@ -79,6 +82,7 @@ variable "git_commit" {}
 
 # RDS
 variable "rds_storage_size_gb" {}
+
 variable "rds_engine_version" {}
 variable "rds_instance_type" {}
 variable "rds_storage_type" {}
@@ -101,6 +105,7 @@ variable "rds_alarm_free_memory_threshold" {}
 
 # Cache
 variable "ec_memcached_desired_clusters" {}
+
 variable "ec_memcached_alarm_cpu_threshold" {}
 variable "ec_memcached_instance_type" {}
 variable "ec_memcached_engine_version" {}
@@ -119,16 +124,19 @@ variable "rollbar_server_side_access_token" {}
 
 # SQS
 variable "sqs_queue_name" {}
+
 variable "sqs_max_message_size" {}
 variable "sqs_receive_wait_time_seconds" {}
 variable "sqs_visibility_timeout_seconds" {}
 
 ## Librato
 variable "librato_climate_email" {}
+
 variable "librato_climate_token" {}
 
 # Static docs site
 variable "climate_docs_site_bucket" {}
+
 variable "climate_docs_logs_bucket" {}
 variable "ssl_certificate_arn" {}
 
@@ -141,4 +149,8 @@ variable "aws_cloudwatch_logs_policy_arn" {
 
 variable "cc_api_alb_ingress_cidr_block" {
   type = "list"
+}
+
+variable "feature_flag_array_data" {
+  default = "False"
 }

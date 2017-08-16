@@ -54,8 +54,7 @@
   },
   "additionalProperties": false,
   "required": ["name", "visibility", "city",
-               "scenario", "allModels", "models", "charts",
-               "multiChartScrubber"],
+               "scenario", "allModels", "models", "charts"],
   "definitions": {
     "chart": {
       "type": "object",
@@ -69,17 +68,10 @@
             "time_aggregation": {"type": "string"}
           }
         },
-        "showSettings": {"type": "boolean"},
-        "showTrendline": {"type": "boolean"},
-        "showMinimum": {"type": "boolean"},
-        "showMaximum": {"type": "boolean"},
-        "minimumValue": {"type": "number"},
-        "maximumValue": {"type": "number"}
+        "unit": {"type": "string"}
       },
       "additionalProperties": false,
-      "required": ["indicator", "showSettings", "showTrendline",
-                   "showMinimum", "showMaximum", "minimumValue",
-                   "maximumValue"]
+      "required": ["indicator", "unit"]
     },
     "model": {
       "type": "object",

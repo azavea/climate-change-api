@@ -2,3 +2,4 @@
 
 aws_profile: "climate"
 dev_user: "developer"
+feature_flag_array_data: "true"
