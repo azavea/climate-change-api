@@ -1,0 +1,19 @@
+[{
+    "model": "climate_data.ClimateDataset",
+    "pk": 1,
+    "fields": {
+        "name": "NEX-GDDP",
+        "label": "Nasa Earth Exchange Global Daily Downscaled Projections",
+        "description": "The NASA Earth Exchange (NEX) Global Daily Downscaled Projections (NEX-GDDP) dataset is comprised of downscaled climate scenarios that are derived from the General Circulation Model (GCM) runs conducted under the Coupled Model Intercomparison Project Phase 5 (CMIP5) [Taylor et al. 2012] and across the two of the four greenhouse gas emissions scenarios known as Representative Concentration Pathways (RCPs) [Meinshausen et al. 2011] developed for the Fifth Assessment Report of the Intergovernmental Panel on Climate Change (IPCC AR5). The dataset is an ensemble of projections from 21 different models and two RCPs (RCP 4.5 and RCP 8.5), and provides daily estimates of maximum and minimum temperatures and precipitation using a daily Bias-Correction - Spatial Disaggregation (BCSD) method (Thrasher, et al., 2012). The data spans the entire globe with a 0.25 degree (~25-kilometer) spatial resolution for the periods from 1950 through 2005 (Historical) and from 2006 to 2100 (Climate Projections).",
+        "url": "https://nex.nasa.gov/nex/projects/1356/"
+    }
+}, {
+    "model": "climate_data.ClimateDataset",
+    "pk": 2,
+    "fields": {
+        "name": "LOCA",
+        "label": "Localized Constructed Analogs Downscaled Projections",
+        "description": "The LOCA (Localized Constructed Analogs) dataset includes downscaled projections from 32 global climate models calculated for two Representative Concentration Pathways (RCP 4.5 and RCP 8.5). Each of the climate projections includes daily maximum temperature, minimum temperature, and precipitation for every 6x6km (1/16th degree resolution) for the conterminous US from 1950 to 2100. LOCA attempts to better preserve extreme hot days, heavy rain events and regional patterns of precipitation. The total dataset size is approximately 10 TB.",
+        "url": "http://loca.ucsd.edu/"
+    }
+}]

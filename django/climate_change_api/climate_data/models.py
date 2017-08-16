@@ -16,6 +16,22 @@ class TinyOneToOne(models.OneToOneField):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
+class ClimateDataset(models.Model):
+    """Model representing a particular climate projection dataset."""
+
+    name = models.CharField(max_length=48, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
+    description = models.CharField(max_length=4096, blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
+        return self.name
+
+    def natural_key(self):
+        return (self.name,)
+
+
 class ClimateModel(models.Model):
     """Model representing a climate model.
 
