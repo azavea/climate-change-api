@@ -118,21 +118,22 @@ class ClimateDataSource(models.Model):
 
 
 class ClimateDataCellManager(models.Manager):
-    def get_by_natural_key(self, lat, lon):
-        return self.get(lat=lat, lon=lon)
+    def get_by_natural_key(self, lat, lon, dataset):
+        return self.get(lat=lat, lon=lon, dataset=dataset)
 
 
 class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=6, decimal_places=3)
     lon = models.DecimalField(max_digits=6, decimal_places=3)
+    dataset = TinyForeignKey(ClimateDataset, null=False, related_name='map_cells')
 
     objects = ClimateDataCellManager()
 
     class Meta:
-        unique_together = ('lat', 'lon')
+        unique_together = ('lat', 'lon', 'dataset',)
 
     def natural_key(self):
-        return (self.lat, self.lon)
+        return (self.lat, self.lon, self.dataset)
 
     def __str__(self):
         """Override str for useful info in console."""
