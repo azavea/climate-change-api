@@ -5,9 +5,10 @@ from django.contrib.gis.geos import Point, Polygon
 from factory.django import DjangoModelFactory
 import factory
 
-from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
-                                 ClimateDataSource, Region, Scenario, ClimateDataCell,
-                                 HistoricAverageClimateData, HistoricDateRange, ClimateDataYear)
+from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataset,
+                                 ClimateDataBaseline, ClimateDataSource, Region, Scenario,
+                                 ClimateDataCell, HistoricAverageClimateData, HistoricDateRange,
+                                 ClimateDataYear)
 
 
 class RegionFactory(DjangoModelFactory):
@@ -75,14 +76,26 @@ class ClimateDataSourceFactory(DjangoModelFactory):
         django_get_or_create = ('model', 'scenario', 'year',)
 
 
+class ClimateDatasetFactory(DjangoModelFactory):
+    name = 'NEX-GDDP'
+    label = ''
+    description = ''
+    url = ''
+
+    class Meta:
+        model = ClimateDataset
+        django_get_or_create = ('name',)
+
+
 class ClimateDataCellFactory(DjangoModelFactory):
 
     lat = 0
     lon = 0
+    dataset = ClimateDatasetFactory()
 
     class Meta:
         model = ClimateDataCell
-        django_get_or_create = ('lat', 'lon',)
+        django_get_or_create = ('lat', 'lon', 'dataset')
 
 
 class ClimateDataFactory(DjangoModelFactory):
