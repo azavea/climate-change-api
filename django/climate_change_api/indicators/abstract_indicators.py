@@ -1,16 +1,23 @@
 from collections import OrderedDict, defaultdict
-from itertools import groupby
+from itertools import groupby, chain
 import re
 
+from django.core.exceptions import ValidationError
 from django.db.models import F, Case, When, FloatField, Sum
 from django.db import connection
 
-
-from climate_data.models import ClimateData
+from climate_data.models import (ClimateData, ClimateDataYear, ClimateDataBaseline,
+                                 HistoricAverageClimateDataYear)
+from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
 from .unit_converters import DaysUnitsMixin, TemperatureConverter, PrecipitationConverter
+from .partitioners import (YearlyPartitioner, MonthlyPartitioner, QuarterlyPartitioner,
+                           OffsetYearlyPartitioner, CustomPartitioner)
+from .utils import merge_dicts
 from . import queryset_generator
+
+HISTORICAL_VARIABLE_PREFIX = 'historical_'
 
 
 class Indicator(object):
@@ -320,3 +327,301 @@ class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
 
 class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
     params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
+
+
+class ArrayIndicator(Indicator):
+    """Dynamically calculate specific values for a location across time.
+
+    Indicators can be simple metrics such as hottest high temperature or average precipitation, or
+    more complicated concepts like Accumulated Freezing Degree Days which approximates the amount
+    of freezing an area would experience.
+
+    These are calculated for an area across a timespan, using a custom aggregation level such as
+    one data point per year, per quarter, or for every month ('yearly', 'monthly', and 'quarterly'
+    aggregation respectively)
+
+    This serves as the fundamental piece that indicators use to achieve their specific goals.
+    """
+
+    valid_aggregations = ('yearly', 'quarterly', 'monthly', 'offset_yearly', 'custom')
+
+    # Function to use to calculate the value for a bucket
+    # Takes a sequence of values as parameter. In some cases (like numpy methods) the staticmethod
+    # decorator may be needed to prevent the function from being bound and `self` being added as the
+    # first argument
+    agg_function = None
+
+    # Dictionary storing custom parameters to pass to self.queryset.filter()
+    filters = None
+
+    def get_queryset(self):
+        """Get the initial indicator queryset.
+
+        ClimateData initially filtered by city/scenario and optionally years/models as passed
+        by the constructor.
+        """
+        queryset = ClimateDataYear.objects.filter(
+            map_cell=self.city.map_cell,
+            data_source__scenario=self.scenario
+        )
+
+        filter_params = {}
+        if self.params.time_aggregation.value == 'offset_yearly':
+            # The offset_yearly aggregation needs an extra year before each requested year, so tell
+            # the filter to offset each points starting year
+            filter_params['offset_end'] = True
+
+        filterset = ClimateDataFilterSet(**filter_params)
+        queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
+        queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+
+        value_columns = ['data_source__year', 'data_source__model_id']
+        value_columns.extend(var for var in self.variables
+                             if not var.startswith(HISTORICAL_VARIABLE_PREFIX))
+        queryset = queryset.values(*value_columns)
+
+        return queryset
+
+    def get_partitioner(self):
+        partitioner_class = {
+            'yearly': YearlyPartitioner,
+            'monthly': MonthlyPartitioner,
+            'quarterly': QuarterlyPartitioner,
+            'offset_yearly': OffsetYearlyPartitioner,
+            'custom': CustomPartitioner
+        }[self.params.time_aggregation.value]
+
+        partitioner_params = {}
+
+        # The custom time aggregation allows a user-defined parameter to choose which dates to use
+        if self.params.custom_time_agg.value is not None:
+            # TODO: #600, 601 - Remove this check once it can be handled in the params
+            #                   validation framework
+            if self.params.time_aggregation.value != 'custom':
+                raise ValidationError('If custom_time_agg is provided, ' +
+                                      'param time_aggregation must equal "custom"')
+            partitioner_params['spans'] = self.params.custom_time_agg.value
+
+        # The partitioner will take an iterator of (key, values) tuples, and produce a sequence of
+        # tuples of the same format, with values resized to match the desired time aggregation
+        return partitioner_class(**partitioner_params)
+
+    def generate_model_segments(self):
+        """Return a sequence of tuple iterators form (year, data) from a queryset result set.
+
+        Each segment within the sequence shares a single data source model, to prevent
+        partioning from accidentally slicing between models.
+        """
+        queryset = self.queryset.order_by('data_source__model_id', 'data_source__year')
+        for model, yearly_data in groupby(queryset, lambda r: r.pop('data_source__model_id')):
+            yield ((row.pop('data_source__year'), row) for row in yearly_data)
+
+    def generate_partitions(self):
+        """Group raw data into buckets corresponding to the time aggregation.
+
+        By default data within a segment is in chunks that align with calendar years. For monthly,
+        quarterly, and other aggregations, we'll want to re-align the chunks to match the output
+        """
+        # Split data into segments according to model, so the partitioner doesn't need to worry
+        # about combining values between different prediction models
+        model_segments = self.generate_model_segments()
+
+        # Partition each segment individually, so there's no risk of accidentally connecting data
+        # from unconnected data sources
+        partitioner = self.get_partitioner()
+        partitioned_segments = (partitioner(yearly_data) for yearly_data in model_segments)
+
+        # Merge all of the segments into a string of tuples, all of the form (agg_key, payload)
+        return chain.from_iterable(partitioned_segments)
+
+    def calculate_value(self, data):
+        """Calculate the value for the indicator for a given bucket."""
+        for agg_key, variable_data in data:
+            # If we have more than one variable, combine the variable data into daily values
+            # This will be more useful for the indicators, and lets us filter unwanted data
+            # (For instance, missing Leap Year days) without affecting day-to-day matching
+            if len(self.variables) > 1:
+                variable_sequences = (variable_data[var] for var in self.variables)
+                paired_data = zip(*variable_sequences)
+                # Filter out any daily values that have a None data point
+                daily_values = (v for v in paired_data if all(val is not None for val in v))
+            else:
+                # Take the variable's data and convert it into a simple list, with no `None`s
+                variable = self.variables[0]
+                daily_values = (v for v in variable_data[variable] if v is not None)
+
+            # Yield a single value calculated from the raw data by the indicator's aggregate()
+            yield (agg_key, self.aggregate(daily_values))
+
+    def convert_units(self, aggregations):
+        """Convert aggregated results to the requested unit.
+
+        @param aggregations iterator of tuples containing aggregation keys and indicator values
+        @returns Tuples in same format as the aggregations parameter, with values converted
+                 to `self.params.units.value`
+        """
+        converter = self.getConverter(self.storage_units, self.params.units.value)
+        for agg_key, value in aggregations:
+            if value is not None:
+                value = converter(value)
+            yield (agg_key, value)
+
+    def collate_results(self, aggregations):
+        """Take results as a series of datapoints and collate them by key.
+
+        @param aggregations iterator of tuples containing aggregation key and indicator values
+        @returns Dict of list of values, keyed by the tuple's first aggregation key value
+        """
+        results = defaultdict(list)
+        for agg_key, value in aggregations:
+            results[agg_key].append(value)
+        return results
+
+    def aggregate(self, daily_values):
+        """Process an aggregation-aligned bucket of raw data into a single value.
+
+        For most indicators this can be done simply by taking the relevant variable's data and
+        passing it to a mathematical function like max or np.percentile, but for more complicated
+        indicators it may be necessary to overload this to define how to handle interactions
+        between variables
+        """
+        # numpy methods don't handle generators, so convert daily_values into a list just in case
+        values_list = list(daily_values)
+        return self.agg_function(values_list)
+
+    def calculate(self):
+        """Produce a dictionary of calculated numeric values in a list keyed by time aggregation.
+
+        Uses a sequence of steps that each use an iterator of tuples of the form (agg_key, payload).
+        Each step performs some transformation of the data, until we collate the iterator into a
+        single dictionary for representation to the user.
+        """
+        # Load and partition data into a series of tuples of the form (agg_key, raw_values)
+        data = self.generate_partitions()
+        # Process the tuple's raw values into a single calculated value defined by the indicator
+        data = self.calculate_value(data)
+        # Localize indicator output values into the requested units, if necessary
+        data = self.convert_units(data)
+
+        # Convert the sequence of tuples into a dictionary, collecting all values with a given
+        # aggregation key in a common list
+        results = self.collate_results(data)
+
+        # Serialize the keyed groups using the requested sub-aggregations
+        return self.serializer.to_representation(results,
+                                                 aggregations=self.params.agg.value.split(','))
+
+
+class ArrayPredicateIndicator(ArrayIndicator):
+    """Calculate a value based on if a criteria is met in groups of consecutive days."""
+
+    @classmethod
+    def predicate(cls, value):
+        """Return true if the value matches the condition of a streak."""
+        raise NotImplementedError()
+
+    @classmethod
+    def agg_function(cls, lengths):
+        """Calculate a value based on a sequence of streak lengths.
+
+        By default returns the number of days that matched the predicate.
+        """
+        return sum(l for l in lengths)
+
+    def aggregate(self, daily_values):
+        """Return number of times the predicate is met for at least min_streak consecutive days."""
+        # Use groupby to automatically divide the bucket into matches or non-matches
+        streak_groups = groupby(daily_values, self.predicate)
+        # Filter out all non-matching groups
+        matching_streaks = (values for matching, values in streak_groups if matching)
+        # Calculate the length of every matching group
+        streak_lengths = (sum(1 for v in values) for values in matching_streaks)
+
+        try:
+            # Pass the lengths sequence to the aggregation function to reduce to a single value
+            return self.agg_function(streak_lengths)
+        except ValueError:
+            return 0
+
+
+class ArrayThresholdIndicator(ArrayPredicateIndicator):
+    """Calculate the number of days a variable criteria ("threshold") is met."""
+
+    predicate = None
+
+    def __init__(self, *args, **kwargs):
+        super(ArrayThresholdIndicator, self).__init__(*args, **kwargs)
+
+        self.predicate = self.get_comparator()
+
+    def get_comparator(self):
+        """Helper method to translate an aliased string param to its mathematical operation."""
+        threshold = self.params_class.threshold.value
+        options = {'lt': lambda val: val < threshold,
+                   'lte': lambda val: val <= threshold,
+                   'gt': lambda val: val > threshold,
+                   'gte': lambda val: val >= threshold}
+        return options[self.params_class.threshold_comparator.value]
+
+
+class ArrayStreakIndicator(ArrayPredicateIndicator):
+    """Calculate the number of times a predicate is met in a minimum number of consecutive days."""
+
+    # How many consecutive days should the criteria be met to count as a streak
+    min_streak = 1
+
+    @classmethod
+    def agg_function(cls, lengths):
+        """Calculate the number of times a sequence is longer than min_streak."""
+        return sum(1 for l in lengths if l >= cls.min_streak)
+
+
+class ArrayBaselineIndicator(ArrayIndicator):
+    def calculate_value(self, *args, **kwargs):
+        self.baseline = ClimateDataBaseline.objects.get(
+            map_cell=self.city.map_cell,
+            historic_range_id=self.params.historic_range.value,
+            percentile=self.params.percentile.value
+        )
+
+        return super(ArrayBaselineIndicator, self).calculate_value(*args, **kwargs)
+
+
+class ArrayHistoricAverageIndicator(ArrayIndicator):
+    def get_historical_averages(self):
+        """Return a dictionary of historic values, keyed to use the historical_ prefix."""
+        # Only load historical averages for the historical columns
+        variables = [var for var in self.variables
+                     if var.startswith(HISTORICAL_VARIABLE_PREFIX)]
+
+        # Remove the prefix to get the raw database column names
+        raw_variables = [var[len(HISTORICAL_VARIABLE_PREFIX):] for var in variables]
+
+        # Load historical averages for our desired variables
+        averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
+                    .get(map_cell=self.city.map_cell,
+                         historic_range=self.params.historic_range.value))
+
+        # Label the dictionary keys so they don't conflict with yearly data
+        return {label: averages[var]
+                for label, var in zip(variables, raw_variables)}
+
+    def generate_model_segments(self):
+        """Inject historical yearly values into every year's data payload as if they were native.
+
+        This allows the partitioner to resize the chunks as needed, without needing to know too many
+        details or have esoteric database logic built-in.
+        """
+        def append_historical_values(it, addenda):
+            """Insert the addenda dictionary to every tuple's payload in the iterator."""
+            for year, data in it:
+                yield (year, merge_dicts(data, addenda))
+
+        # Load daily averages, with remapped keys
+        averages = self.get_historical_averages()
+
+        # Get the segments of yearly data we want to inject our historical averages into
+        segments = super(ArrayHistoricAverageIndicator, self).generate_model_segments()
+        # Pass them through, but with our historic averages added
+        for segment in segments:
+            yield append_historical_values(segment, averages)

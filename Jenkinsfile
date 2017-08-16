@@ -59,8 +59,8 @@ node {
         // Use `git` to get the primary repository's current commmit SHA and
         // set it as the value of the `GIT_COMMIT` environment variable.
         wrap([$class: 'AnsiColorBuildWrapper']) {
-          sh './scripts/infra plan'
-          sh './scripts/infra apply'
+          sh 'docker-compose -f docker-compose.ci.yml run --rm terraform ./scripts/infra plan'
+          sh 'docker-compose -f docker-compose.ci.yml run --rm terraform ./scripts/infra apply'
         }
       }
     }

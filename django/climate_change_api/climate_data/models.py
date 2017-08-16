@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields.array import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import CASCADE, SET_NULL
 
@@ -266,6 +267,29 @@ class ClimateData(models.Model):
         return (self.map_cell, self.data_source)
 
 
+class ClimateDataYear(models.Model):
+
+    VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
+
+    id = models.BigAutoField(primary_key=True)
+    map_cell = TinyForeignKey(ClimateDataCell)
+    data_source = TinyForeignKey(ClimateDataSource)
+
+    tasmin = ArrayField(models.FloatField(),
+                        help_text='Daily Minimum Near-Surface Air Temperature, Kelvin')
+    tasmax = ArrayField(models.FloatField(),
+                        help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
+    pr = ArrayField(models.FloatField(),
+                    help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')
+
+    class Meta:
+        unique_together = ('map_cell', 'data_source')
+        index_together = ('map_cell', 'data_source')
+
+    def natural_key(self):
+        return (self.map_cell, self.data_source)
+
+
 class HistoricAverageClimateData(models.Model):
     """Model storing computed averages for historic climate data from 1961-1990.
 
@@ -293,4 +317,28 @@ class HistoricAverageClimateData(models.Model):
         index_together = ('map_cell', 'day_of_year', 'historic_range')
 
     def natural_key(self):
-        return (self.city, self.month_day)
+        return (self.city, self.day_of_year)
+
+
+class HistoricAverageClimateDataYear(models.Model):
+    """Model storing computed averages for historic climate data for various historic ranges.
+
+    Used in computing the heat wave duration index (HWDI) and heat wave incidents indicators
+    http://www.vsamp.com/resume/publications/Frich_et_al.pdf
+
+    Derived from raw historic ClimateData and stored separately for performance and ease of access.
+    """
+
+    map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average_array')
+    historic_range = TinyForeignKey(HistoricDateRange, null=True)
+
+    tasmin = ArrayField(models.FloatField(),
+                        help_text='Historic Average Daily Minimum Near-Surface Air Temperature in Kelvin')  # NOQA: E501
+    tasmax = ArrayField(models.FloatField(),
+                        help_text='Historic Average Daily Maximum Near-Surface Air Temperature in Kelvin')  # NOQA: E501
+    pr = ArrayField(models.FloatField(),
+                    help_text='Historic Average Precipitation (mean of the daily precipitation rate) in kg/s/m^2')  # NOQA: E501
+
+    class Meta:
+        unique_together = ('map_cell', 'historic_range')
+        index_together = ('map_cell', 'historic_range')

@@ -4,7 +4,10 @@ from django.core.exceptions import ValidationError
 from climate_data.models import HistoricDateRange
 
 from .unit_converters import TemperatureConverter
-from .validators import ChoicesValidator, float_validator, percentile_range_validator
+from .validators import (ChoicesValidator,
+                         CustomTimeParamValidator,
+                         float_validator,
+                         percentile_range_validator)
 
 MODELS_PARAM_DOCSTRING = ("A list of comma separated model names to filter the indicator by. The "
                           "indicator values in the response will only use the selected models. If "
@@ -151,7 +154,7 @@ class IndicatorParams(object):
     custom_time_agg = IndicatorParam('custom_time_agg',
                                      description=CUSTOM_TIME_AGG_PARAM_DOCSTRING,
                                      required=False,
-                                     validators=None)
+                                     validators=[CustomTimeParamValidator()])
 
     def __init__(self, default_units, available_units, valid_aggregations):
         """Initialize additional params that are instance specific.

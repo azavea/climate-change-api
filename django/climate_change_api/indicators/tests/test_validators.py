@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from indicators.validators import ChoicesValidator, IntRangeValidator
+from indicators.validators import ChoicesValidator, CustomTimeParamValidator, IntRangeValidator
 
 
 class ValidatorTestCase(TestCase):
@@ -75,3 +75,47 @@ class ChoicesValidatorTestCase(ValidatorTestCase):
             v('b')
         with self.assertRaises(ValidationError):
             v(5)
+
+
+class CustomTimeParamValidatorTestCase(ValidatorTestCase):
+
+    def setUp(self):
+        self.validator = CustomTimeParamValidator()
+
+    def test_none(self):
+        self.should_succeed_with_value(self.validator, None)
+
+    def test_single_match(self):
+        self.should_succeed_with_value(self.validator, '6-1:7-1')
+        self.should_succeed_with_value(self.validator, '10-15:12-31')
+
+    def test_incomplete_date_range_pair(self):
+        with self.assertRaises(ValidationError):
+            self.validator('1-1')
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:1-31,2-1')
+
+    def test_too_many_date_ranges(self):
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:1-31:3-1,4-1:5-1')
+
+    def test_invalid_month_day_values(self):
+        with self.assertRaises(ValidationError):
+            self.validator('aa-1:2-1')
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:2-1,aa-1:6-1')
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:2-b,5-1:6-1')
+
+    def test_feb_twentynine_valid(self):
+        self.should_succeed_with_value(self.validator, '2-1:2-29')
+
+    def test_invalid_dates(self):
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:3-40')
+        with self.assertRaises(ValidationError):
+            self.validator('1-1:2-1,3-1:14-1')
+
+    def test_end_before_start(self):
+        with self.assertRaises(ValidationError):
+            self.validator('2-1:1-1')

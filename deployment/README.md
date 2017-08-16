@@ -201,8 +201,8 @@ $ export CC_S3STORAGE_BUCKET="climate-change-api-production"
 $ export CC_AWS_ECR_ENDPOINT="xxxxx.dkr.ecr.us-east-1.amazonaws.com"
 $ ./scripts/cibuild
 $ ./scripts/cipublish
-$ ./scripts/infra plan
-$ ./scripts/infra apply
+$ docker-compose -f docker-compose.ci.yml run --rm terraform ./scripts/infra plan
+$ docker-compose -f docker-compose.ci.yml run --rm terraform ./scripts/infra apply
 ```
 
 ## Repository Cleanup
