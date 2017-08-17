@@ -297,21 +297,21 @@ class ThresholdIndicatorMixin(object):
         self._set_threshold_values()
 
     def _set_threshold_values(self):
-            # Convert threshold value to appropriate format
-            value = self.params.threshold.value
-            unit = self.params.threshold_units.value
+        # Convert threshold value to appropriate format
+        value = self.params.threshold.value
+        unit = self.params.threshold_units.value
 
-            if self.variables[0] != 'pr':
-                default_unit = 'K'
-                converter_type = TemperatureConverter
-            else:
-                default_unit = 'kg/m^2'
-                converter_type = PrecipitationConverter
+        if self.variables[0] != 'pr':
+            default_unit = 'K'
+            converter_type = TemperatureConverter
+        else:
+            default_unit = 'kg/m^2'
+            converter_type = PrecipitationConverter
 
-            converter = converter_type.get(unit, default_unit)
+        converter = converter_type.get(unit, default_unit)
 
-            self.params.threshold.value = converter(float(value))
-            self.params.threshold_units.value = default_unit
+        self.params.threshold.value = converter(float(value))
+        self.params.threshold_units.value = default_unit
 
 
 class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
@@ -363,11 +363,6 @@ class ArrayThresholdIndicator(ArrayPredicateIndicator):
 
     predicate = None
 
-    def __init__(self, *args, **kwargs):
-        super(ArrayThresholdIndicator, self).__init__(*args, **kwargs)
-
-        self.predicate = self.get_comparator()
-
     def get_comparator(self):
         """Helper method to translate an aliased string param to its mathematical operation."""
         threshold = self.params_class.threshold.value
@@ -376,6 +371,13 @@ class ArrayThresholdIndicator(ArrayPredicateIndicator):
                    'gt': lambda val: val > threshold,
                    'gte': lambda val: val >= threshold}
         return options[self.params_class.threshold_comparator.value]
+
+    def aggregate(self, daily_values):
+        # Compute comparator only just before we need it, so that we avoid initialization order
+        # bugs that can occur if the adjusted threshold params values aren't ready in the __init__
+        # chain.
+        self.predicate = self.get_comparator()
+        return super(ArrayThresholdIndicator, self).aggregate(daily_values)
 
 
 class ArrayStreakIndicator(ArrayPredicateIndicator):
@@ -423,7 +425,7 @@ class ArrayHistoricAverageIndicator(ArrayIndicator):
         try:
             averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
                         .get(map_cell=self.city.map_cell,
-                            historic_range=self.params.historic_range.value))
+                             historic_range=self.params.historic_range.value))
 
             # Label the dictionary keys so they don't conflict with yearly data
             return {label: averages[var]
