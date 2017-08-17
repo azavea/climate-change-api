@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import logging
 
-from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
@@ -26,7 +25,6 @@ from climate_data.caching import (full_url_cache_key_func,
 from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
-                                 ClimateData,
                                  ClimateDataYear,
                                  ClimateModel,
                                  Region,
@@ -161,19 +159,11 @@ class ClimateDataView(APIView):
         """Retrieve all of the climate data for a given city and scenario."""
         def filter_variables_list(variables):
             if variables:
-                if settings.FEATURE_FLAGS['array_data']:
-                    valid_variables = set(ClimateDataYear.VARIABLE_CHOICES)
-                else:
-                    # TODO: remove this block and feature flag test with task #567
-                    valid_variables = set(ClimateData.VARIABLE_CHOICES)
+                valid_variables = set(ClimateDataYear.VARIABLE_CHOICES)
                 params_variables = set(variables.split(','))
                 return valid_variables.intersection(params_variables)
             else:
-                if settings.FEATURE_FLAGS['array_data']:
-                    return set(ClimateDataYear.VARIABLE_CHOICES)
-                else:
-                    # TODO: remove this block and feature flag test with task #567
-                    return set(ClimateData.VARIABLE_CHOICES)
+                return set(ClimateDataYear.VARIABLE_CHOICES)
 
         try:
             city = City.objects.get(id=kwargs['city'])
@@ -185,15 +175,10 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-        if settings.FEATURE_FLAGS['array_data']:
-            queryset = ClimateDataYear.objects.filter(
-                map_cell=city.map_cell,
-                data_source__scenario=scenario
-            )
-        else:
-            # TODO: remove this block and feature flag test with task #567
-            queryset = ClimateData.objects.filter(map_cell=city.map_cell,
-                                                  data_source__scenario=scenario)
+        queryset = ClimateDataYear.objects.filter(
+            map_cell=city.map_cell,
+            data_source__scenario=scenario
+        )
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)

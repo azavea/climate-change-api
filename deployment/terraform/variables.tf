@@ -152,5 +152,5 @@ variable "cc_api_alb_ingress_cidr_block" {
 }
 
 variable "feature_flag_array_data" {
-  default = "False"
+  default = "True"
 }
