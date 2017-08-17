@@ -3,7 +3,7 @@ from django.test import TestCase
 
 from climate_data.filters import ClimateDataFilterSet
 from climate_data.tests.mixins import ClimateDataSetupMixin
-from climate_data.models import ClimateData
+from climate_data.models import ClimateDataYear
 
 
 class ClimateDataFilterSetTestCase(ClimateDataSetupMixin, TestCase):
@@ -15,8 +15,8 @@ class ClimateDataFilterSetTestCase(ClimateDataSetupMixin, TestCase):
     def setUp(self):
 
         super(ClimateDataFilterSetTestCase, self).setUp()
-        self.queryset = (ClimateData.objects.filter(map_cell__city=self.city1)
-                                            .filter(data_source__scenario=self.rcp45))
+        self.queryset = (ClimateDataYear.objects.filter(map_cell__city=self.city1)
+                                                .filter(data_source__scenario=self.rcp45))
 
     def test_models_filter(self):
 
