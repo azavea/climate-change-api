@@ -2,8 +2,6 @@ from collections import OrderedDict
 from itertools import groupby
 import logging
 
-from django.conf import settings
-import django.db.models
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db import connection
@@ -99,11 +97,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     def __init__(self, instance=None, **kwargs):
         super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
-            if settings.FEATURE_FLAGS['array_data']:
-                self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
-            else:
-                # TODO: remove this block and feature flag test with task #567
-                self._context['variables'] = ClimateData.VARIABLE_CHOICES
+            self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
         if self._context.get('aggregation', None) is None:
             self._context['aggregation'] = 'avg'
 
@@ -119,54 +113,27 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
         aggregation = self._context['aggregation']
 
-        if settings.FEATURE_FLAGS['array_data']:
-            # default to averaging
-            aggregation_func = aggregation_map.get(aggregation, float_avg)
+        # default to averaging
+        aggregation_func = aggregation_map.get(aggregation, float_avg)
 
-            queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
-            queryset = queryset.order_by('year')
+        queryset = queryset.annotate(year=F('data_source__year'), model=F('data_source__model'))
+        queryset = queryset.order_by('year')
 
-            query = str(queryset.query)
-            cursor = connection.cursor()
-            cursor.execute(query)
+        query = str(queryset.query)
+        cursor = connection.cursor()
+        cursor.execute(query)
 
-            output = {}
-            columns = [col[0] for col in cursor.description]
-            results = (dict(zip(columns, row)) for row in cursor.fetchall())
-            for year, year_collection in groupby(results, lambda r: r['year']):
-                year_collection = list(year_collection)
-                output[year] = {var: [None] * 366 for var in self._context['variables']}
-                for variable in self._context['variables']:
-                    year_results = [r[variable] for r in year_collection]
-                    for day, var_day in enumerate(zip(*year_results)):
-                        values = [val for val in var_day if val is not None]
-                        output[year][variable][day] = aggregation_func(values)
-        else:
-            # TODO: remove this block and feature flag test with task #567
-            aggregation = self._context['aggregation']
-            aggregation_function = getattr(django.db.models, aggregation.capitalize())
-
-            aggregations = {variable: aggregation_function(variable)
-                            for variable in self._context['variables']}
-            queryset = queryset.values('data_source__year', 'day_of_year').annotate(**aggregations)
-
-            query = str(queryset.query)
-            cursor = connection.cursor()
-            cursor.execute(query)
-
-            output = {}
-            columns = [col[0] for col in cursor.description]
-            for row in cursor.fetchall():
-                result = dict(zip(columns, row))
-
-                year = result['year']
-                if year not in output:
-                    output[year] = {var: [None] * 366 for var in self._context['variables']}
-                year_data = output[year]
-                for variable in self._context['variables']:
-                    # Day of year starts at 1, so subtract 1 to get the array index
-                    day_index = result['day_of_year'] - 1
-                    year_data[variable][day_index] = result[variable]
+        output = {}
+        columns = [col[0] for col in cursor.description]
+        results = (dict(zip(columns, row)) for row in cursor.fetchall())
+        for year, year_collection in groupby(results, lambda r: r['year']):
+            year_collection = list(year_collection)
+            output[year] = {var: [None] * 366 for var in self._context['variables']}
+            for variable in self._context['variables']:
+                year_results = [r[variable] for r in year_collection]
+                for day, var_day in enumerate(zip(*year_results)):
+                    values = [val for val in var_day if val is not None]
+                    output[year][variable][day] = aggregation_func(values)
 
         return output
 

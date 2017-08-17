@@ -83,16 +83,7 @@ then
             run --rm --entrypoint "flake8" \
             django --output-file=violations.txt --exit-zero --tee
 
-        # TODO: remove second test run and feature flag set with task #567
-        echo "Running django tests with array data enabled"
-        export CC_FF_ARRAY_DATA=true
-        GIT_COMMIT="${GIT_COMMIT}" docker-compose \
-            ${DOCKER_COMPOSE_OPTS} \
-            run --rm --entrypoint "./manage.py" \
-            django test --noinput
-
-        echo "Running django tests without array data enabled"
-        unset CC_FF_ARRAY_DATA
+        echo "Running django tests"
         GIT_COMMIT="${GIT_COMMIT}" docker-compose \
             ${DOCKER_COMPOSE_OPTS} \
             run --rm --entrypoint "./manage.py" \

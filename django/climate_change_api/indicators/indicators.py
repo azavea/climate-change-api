@@ -4,7 +4,6 @@ from itertools import groupby
 import numpy as np
 
 from django.db.models import F, Sum, Avg, Max, Min
-from django.conf import settings
 from postgres_stats.aggregates import Percentile
 
 from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
@@ -521,12 +520,11 @@ def indicator_factory(indicator_name):
     if class_name_parts[0] == 'Yearly':
         class_name_parts = class_name_parts[1:]
 
-    if settings.FEATURE_FLAGS['array_data'] and class_name_parts[-1] != 'Array':
-        try:
-            # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
-            class_name = ''.join(class_name_parts + ['Array'])
-            return getattr(this_module, class_name)
-        except AttributeError:
-            pass
+    try:
+        # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
+        class_name = ''.join(class_name_parts + ['Array'])
+        return getattr(this_module, class_name)
+    except AttributeError:
+        pass
     class_name = ''.join(class_name_parts)
     return getattr(this_module, class_name, None)
