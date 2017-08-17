@@ -1,7 +1,6 @@
-from django.conf import settings
 from django.test import TestCase
 
-from climate_data.models import ClimateData, ClimateDataYear
+from climate_data.models import ClimateDataYear
 from climate_data.tests.mixins import ClimateDataSetupMixin
 from climate_data.serializers import ClimateCityScenarioDataSerializer
 
@@ -12,14 +11,9 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
     def setUp(self):
 
         super(ClimateCityScenarioDataSerializerTestCase, self).setUp()
-        if settings.FEATURE_FLAGS['array_data']:
-            # TODO: undo storing class in variable as part of task #567
-            self.ClimateDataClass = ClimateDataYear
-        else:
-            self.ClimateDataClass = ClimateData
-        self.VARIABLE_CHOICES = self.ClimateDataClass.VARIABLE_CHOICES
-        self.queryset = (self.ClimateDataClass.objects.filter(map_cell__city=self.city1)
-                                                      .filter(data_source__scenario=self.rcp45))
+        self.VARIABLE_CHOICES = ClimateDataYear.VARIABLE_CHOICES
+        self.queryset = (ClimateDataYear.objects.filter(map_cell__city=self.city1)
+                                                .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):
         """Helper to test the serialized python object.

@@ -32,9 +32,7 @@ if DEBUG == 'False' or DEBUG == 'false':
 
 ENVIRONMENT = os.getenv('CC_STACK_TYPE', 'Development')
 
-FEATURE_FLAGS = {
-    'array_data': os.getenv('CC_FF_ARRAY_DATA', 'False').lower() == 'true'
-}
+FEATURE_FLAGS = {}
 
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
     # prevent from running in production mode with default secret key
