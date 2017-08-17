@@ -6,12 +6,11 @@ from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           RegionFactory,
                                           ScenarioFactory,
-                                          ClimateDataFactory,
                                           ClimateDataYearFactory,
                                           ClimateDataSourceFactory,
                                           ClimateDataCellFactory,
                                           ClimateDataBaselineFactory,
-                                          HistoricAverageClimateDataFactory,
+                                          HistoricAverageClimateDataYearFactory,
                                           HistoricDateRangeFactory)
 
 
@@ -102,36 +101,34 @@ class ClimateDataSetupMixin(object):
                                                       year=2000)
 
         def add_climate_data(**kwargs):
-            ClimateDataFactory(**kwargs)
             # ClimateDataYear doesn't have a day_of_year attribute
-            kwargs.pop('day_of_year')
             for var in ClimateDataYear.VARIABLE_CHOICES:
                 # Convert variable data into arrays
                 kwargs[var] = [kwargs[var]]
             ClimateDataYearFactory(**kwargs)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2000, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2000,
                          tasmax=10, tasmin=10, pr=10)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2000, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2000,
                          tasmax=20, tasmin=20, pr=20)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2001, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2001,
                          tasmax=10, tasmin=10, pr=10)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2001, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m2_2001,
                          tasmax=20, tasmin=20, pr=20)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2002, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2002,
                          tasmax=10, tasmin=10, pr=10)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2003, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s1_m1_2003,
                          tasmax=10, tasmin=10, pr=0)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m1_2000, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m1_2000,
                          tasmax=30, tasmin=30, pr=30)
 
-        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m2_2000, day_of_year=1,
+        add_climate_data(map_cell=self.mapcell, data_source=self.ds_s2_m2_2000,
                          tasmax=40, tasmin=40, pr=40)
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=99,
@@ -142,9 +139,9 @@ class ClimateDataSetupMixin(object):
                                    tasmax=10, tasmin=15, pr=15,
                                    historic_range=self.historic_range_1)
 
-        HistoricAverageClimateDataFactory(map_cell=self.mapcell, day_of_year=1,
-                                          tasmax=0, tasmin=0, pr=0,
-                                          historic_range=self.historic_range_1)
+        HistoricAverageClimateDataYearFactory(map_cell=self.mapcell,
+                                              historic_range=self.historic_range_1,
+                                              tasmax=[0], tasmin=[0], pr=[0])
 
         self.city1 = CityFactory(name='city1', admin='city1', map_cell=self.mapcell)
         self.city2 = CityFactory(name='city2', admin='city2')

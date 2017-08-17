@@ -5,9 +5,16 @@ from django.contrib.gis.geos import Point, Polygon
 from factory.django import DjangoModelFactory
 import factory
 
-from climate_data.models import (ClimateModel, City, ClimateData, ClimateDataBaseline,
-                                 ClimateDataSource, Region, Scenario, ClimateDataCell,
-                                 HistoricAverageClimateData, HistoricDateRange, ClimateDataYear)
+from climate_data.models import (City,
+                                 ClimateDataBaseline,
+                                 ClimateDataCell,
+                                 ClimateDataSource,
+                                 ClimateDataYear,
+                                 ClimateModel,
+                                 HistoricAverageClimateDataYear,
+                                 HistoricDateRange,
+                                 Region,
+                                 Scenario)
 
 
 class RegionFactory(DjangoModelFactory):
@@ -85,20 +92,6 @@ class ClimateDataCellFactory(DjangoModelFactory):
         django_get_or_create = ('lat', 'lon',)
 
 
-class ClimateDataFactory(DjangoModelFactory):
-
-    map_cell = ClimateDataCellFactory()
-    data_source = ClimateDataSourceFactory()
-    day_of_year = 1
-    tasmin = 273
-    tasmax = 293
-    pr = 0.0001
-
-    class Meta:
-        model = ClimateData
-        django_get_or_create = ('map_cell', 'data_source', 'day_of_year',)
-
-
 class HistoricDateRangeFactory(DjangoModelFactory):
 
     start_year = 1951
@@ -136,15 +129,14 @@ class ClimateDataBaselineFactory(DjangoModelFactory):
         django_get_or_create = ('map_cell', 'percentile', 'historic_range')
 
 
-class HistoricAverageClimateDataFactory(DjangoModelFactory):
+class HistoricAverageClimateDataYearFactory(DjangoModelFactory):
 
     map_cell = ClimateDataCellFactory()
-    day_of_year = 1
-    tasmin = 0
-    tasmax = 0
-    pr = 0
+    tasmin = [0]
+    tasmax = [0]
+    pr = [0]
     historic_range = HistoricDateRangeFactory()
 
     class Meta:
-        model = HistoricAverageClimateData
-        django_get_or_create = ('map_cell', 'day_of_year', 'historic_range')
+        model = HistoricAverageClimateDataYear
+        django_get_or_create = ('map_cell', 'historic_range')
