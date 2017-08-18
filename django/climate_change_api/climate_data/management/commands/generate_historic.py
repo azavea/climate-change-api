@@ -11,7 +11,6 @@ from climate_data.models import (ClimateDataBaseline,
                                  HistoricDateRange,
                                  ClimateModel,
                                  ClimateDataYear)
-from django.db.models import Avg
 
 logger = logging.getLogger('climate_data')
 
@@ -142,7 +141,6 @@ class Command(BaseCommand):
                                   "of the ClimateData model. See azavea/climate-change-api#637")
 
         # historic_data = ClimateData.objects.filter(data_source__scenario__name='historical')
-        historic_data = []
         historic_year_data = ClimateDataYear.objects.filter(
             data_source__scenario__name='historical')
         map_cells = ClimateDataCell.objects.filter(id__in=historic_year_data.values('map_cell'))
