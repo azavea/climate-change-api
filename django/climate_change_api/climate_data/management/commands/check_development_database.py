@@ -8,7 +8,7 @@ from climate_data.models import (City,
                                  ClimateDataYear,
                                  Region,
                                  ClimateDataBaseline,
-                                 HistoricAverageClimateData)
+                                 HistoricAverageClimateDataYear)
 
 
 class Command(BaseCommand):
@@ -33,7 +33,7 @@ class Command(BaseCommand):
                           CityBoundary.objects.all().count(),
                           ClimateModel.objects.all().count(),
                           ClimateDataBaseline.objects.all().count(),
-                          HistoricAverageClimateData.objects.all().count())):
+                          HistoricAverageClimateDataYear.objects.all().count())):
                 self.stdout.write("Database is loaded.")
                 exit(0)
             else:
