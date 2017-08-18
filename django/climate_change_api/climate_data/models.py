@@ -266,36 +266,6 @@ class ClimateDataYear(models.Model):
         return (self.map_cell, self.data_source)
 
 
-class HistoricAverageClimateData(models.Model):
-    """Model storing computed averages for historic climate data from 1961-1990.
-
-    Used in computing the heat wave duration index (HWDI) and extreme precipitation (R95T).
-    http://www.vsamp.com/resume/publications/Frich_et_al.pdf
-
-    Derived from raw historic ClimateData, and stored separately partly for performance, and
-    partly for development environment convenience (averages can be loaded from a fixture,
-    whereas the raw data is too large to load practically in development.)
-    """
-
-    map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average')
-    day_of_year = models.PositiveSmallIntegerField()
-    historic_range = TinyForeignKey(HistoricDateRange, null=True)
-
-    tasmin = models.FloatField(null=True,
-                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
-    tasmax = models.FloatField(null=True,
-                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
-    pr = models.FloatField(null=True,
-                           help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA: E501
-
-    class Meta:
-        unique_together = ('map_cell', 'day_of_year', 'historic_range')
-        index_together = ('map_cell', 'day_of_year', 'historic_range')
-
-    def natural_key(self):
-        return (self.city, self.day_of_year)
-
-
 class HistoricAverageClimateDataYear(models.Model):
     """Model storing computed averages for historic climate data for various historic ranges.
 
