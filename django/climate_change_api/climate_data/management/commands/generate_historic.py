@@ -5,9 +5,12 @@ from itertools import islice
 from django.db import IntegrityError
 from django.core.management.base import BaseCommand
 
-from climate_data.models import (ClimateData, ClimateDataCell, HistoricAverageClimateData,
-                                 HistoricDateRange, ClimateDataBaseline, ClimateModel,
-                                 HistoricAverageClimateDataYear, ClimateDataYear)
+from climate_data.models import (ClimateDataBaseline,
+                                 ClimateDataCell,
+                                 HistoricAverageClimateDataYear,
+                                 HistoricDateRange,
+                                 ClimateModel,
+                                 ClimateDataYear)
 from django.db.models import Avg
 
 logger = logging.getLogger('climate_data')
@@ -92,28 +95,28 @@ def generate_baselines(mapcells, time_periods, queryset):
                     **insert_vals)
 
 
-def generate_averages(mapcells, time_periods, queryset):
-    for cell in mapcells.filter(historic_average=None):
-        logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
+# def generate_averages(mapcells, time_periods, queryset):
+#     for cell in mapcells.filter(historic_average=None):
+#         logger.info("Calculating averages for cell (%f,%f)", cell.lat, cell.lon)
 
-        for period in time_periods:
-            existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell,
-                                                                          historic_range=period)
-            averages = (queryset
-                        .filter(map_cell=cell,
-                                data_source__year__gte=period.start_year,
-                                data_source__year__lte=period.end_year)
-                        .values('day_of_year')
-                        .exclude(day_of_year__in=existing_averages.values('day_of_year'))
-                        .annotate(**{var: Avg(var) for var in VARIABLES}))
-            for row in averages:
-                # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add
-                # map_cell and historic_range then it's a complete image of what we want in
-                # HistoricAverageClimateData
-                yield HistoricAverageClimateData(
-                    map_cell=cell,
-                    historic_range=period,
-                    **row)
+#         for period in time_periods:
+#             existing_averages = HistoricAverageClimateData.objects.filter(map_cell=cell,
+#                                                                           historic_range=period)
+#             averages = (queryset
+#                         .filter(map_cell=cell,
+#                                 data_source__year__gte=period.start_year,
+#                                 data_source__year__lte=period.end_year)
+#                         .values('day_of_year')
+#                         .exclude(day_of_year__in=existing_averages.values('day_of_year'))
+#                         .annotate(**{var: Avg(var) for var in VARIABLES}))
+#             for row in averages:
+#                 # Each row is a dictionary with day_of_year, pr, tasmax, and tasmin. If we add
+#                 # map_cell and historic_range then it's a complete image of what we want in
+#                 # HistoricAverageClimateData
+#                 yield HistoricAverageClimateData(
+#                     map_cell=cell,
+#                     historic_range=period,
+#                     **row)
 
 
 def generate_year_averages(mapcells, time_periods, queryset):
@@ -158,27 +161,32 @@ class Command(BaseCommand):
     help = 'Calculates historic baselines and year-over-year averages from local raw data readings'
 
     def handle(self, *args, **options):
-        historic_data = ClimateData.objects.filter(data_source__scenario__name='historical')
-        historic_year_data = ClimateDataYear.objects.filter(
-            data_source__scenario__name='historical')
-        map_cells = ClimateDataCell.objects.filter(id__in=historic_data.values('map_cell'))
 
-        logger.info("Create historic year ranges")
-        generate_year_ranges(historic_data)
+        raise NotImplementedError("This command is currently disabled, due to the removal " +
+                                  "of the ClimateData model. See azavea/climate-change-api#637")
 
-        time_periods = HistoricDateRange.objects.all()
+        # historic_data = ClimateData.objects.filter(data_source__scenario__name='historical')
+        # historic_data = []
+        # historic_year_data = ClimateDataYear.objects.filter(
+        #     data_source__scenario__name='historical')
+        # map_cells = ClimateDataCell.objects.filter(id__in=historic_data.values('map_cell'))
 
-        logger.info("Importing averages")
-        averages = generate_averages(map_cells, time_periods, historic_data)
-        for chunk in chunk_sequence(averages, BATCH_SIZE):
-            HistoricAverageClimateData.objects.bulk_create(chunk)
+        # logger.info("Create historic year ranges")
+        # generate_year_ranges(historic_data)
 
-        logger.info("Importing yearly averages")
-        averages = generate_year_averages(map_cells, time_periods, historic_year_data)
-        for chunk in chunk_sequence(averages, BATCH_SIZE):
-            HistoricAverageClimateDataYear.objects.bulk_create(chunk)
+        # time_periods = HistoricDateRange.objects.all()
 
-        logger.info("Importing percentile baselines")
-        baselines = generate_baselines(map_cells, time_periods, historic_data)
-        for chunks in chunk_sequence(baselines, BATCH_SIZE):
-            ClimateDataBaseline.objects.bulk_create(baselines)
+        # logger.info("Importing averages")
+        # averages = generate_averages(map_cells, time_periods, historic_data)
+        # for chunk in chunk_sequence(averages, BATCH_SIZE):
+        #     HistoricAverageClimateData.objects.bulk_create(chunk)
+
+        # logger.info("Importing yearly averages")
+        # averages = generate_year_averages(map_cells, time_periods, historic_year_data)
+        # for chunk in chunk_sequence(averages, BATCH_SIZE):
+        #     HistoricAverageClimateDataYear.objects.bulk_create(chunk)
+
+        # logger.info("Importing percentile baselines")
+        # baselines = generate_baselines(map_cells, time_periods, historic_data)
+        # for chunks in chunk_sequence(baselines, BATCH_SIZE):
+        #     ClimateDataBaseline.objects.bulk_create(baselines)
