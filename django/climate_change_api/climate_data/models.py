@@ -251,30 +251,6 @@ class City(models.Model):
         super(City, self).save(*args, **kwargs)
 
 
-class ClimateData(models.Model):
-
-    VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
-
-    id = models.BigAutoField(primary_key=True)
-    map_cell = TinyForeignKey(ClimateDataCell)
-    data_source = TinyForeignKey(ClimateDataSource)
-    day_of_year = models.PositiveSmallIntegerField()
-
-    tasmin = models.FloatField(null=True,
-                               help_text='Daily Minimum Near-Surface Air Temperature, Kelvin')
-    tasmax = models.FloatField(null=True,
-                               help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
-    pr = models.FloatField(null=True,
-                           help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA: E501
-
-    class Meta:
-        unique_together = ('map_cell', 'data_source', 'day_of_year')
-        index_together = ('map_cell', 'data_source')
-
-    def natural_key(self):
-        return (self.map_cell, self.data_source)
-
-
 class ClimateDataYear(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))

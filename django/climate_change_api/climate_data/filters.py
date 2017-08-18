@@ -5,7 +5,7 @@ from django.db.models import Q
 import django_filters
 from rest_framework import filters
 
-from climate_data.models import City, ClimateData, ClimateModel
+from climate_data.models import City, ClimateDataYear, ClimateModel
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -100,5 +100,5 @@ class ClimateDataFilterSet(filters.FilterSet):
         return queryset
 
     class Meta:
-        model = ClimateData
+        model = ClimateDataYear
         fields = ['models', 'years']
