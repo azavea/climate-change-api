@@ -5,7 +5,7 @@ from climate_data.models import (City,
                                  CityBoundary,
                                  ClimateModel,
                                  Scenario,
-                                 ClimateData,
+                                 ClimateDataYear,
                                  Region,
                                  ClimateDataBaseline,
                                  HistoricAverageClimateData)
@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             climate_data_map_cells = \
-                ClimateData.objects.all().values_list(
+                ClimateDataYear.objects.all().values_list(
                     'map_cell_id', flat=True).distinct()
 
             # Development should contain:
@@ -29,7 +29,7 @@ class Command(BaseCommand):
             if (City.objects.filter(map_cell_id__in=climate_data_map_cells).count() >= 3 and  # NOQA E501
                 0 not in (Region.objects.all().count(),
                           Scenario.objects.all().count(),
-                          ClimateData.objects.all().count(),
+                          ClimateDataYear.objects.all().count(),
                           CityBoundary.objects.all().count(),
                           ClimateModel.objects.all().count(),
                           ClimateDataBaseline.objects.all().count(),
