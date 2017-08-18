@@ -8,7 +8,8 @@ import django.db.models.deletion
 
 
 def clear_climate_data(apps, schema_editor):
-    climate_data.models.HistoricAverageClimateData.objects.all().delete()
+    HistoricAverageClimateData = apps.get_model('climate_data', 'HistoricAverageClimateData')
+    HistoricAverageClimateData.objects.all().delete()
 
 
 class Migration(migrations.Migration):
