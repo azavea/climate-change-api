@@ -20,7 +20,7 @@ class ClimateModel(models.Model):
     """Model representing a climate model.
 
     We are storing a table of climate models as an alternative to storing the
-    climate model name in CharFields on the ClimateData django model in order
+    climate model name in CharFields on the ClimateDataYear django model in order
     to make sure that table, which will store a large amount of rows, stays
     as small as possible.
     """
@@ -126,7 +126,7 @@ class ClimateDataCell(models.Model):
 class HistoricDateRange(models.Model):
     """Helper table abstracting year ranges for historic data aggregations.
 
-    Applies to ClimateDataBaseline and HistoricaAverageClimateData.
+    Applies to ClimateDataBaseline and HistoricalAverageClimateDataYear.
     """
 
     start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period',

@@ -11,7 +11,6 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from climate_data.models import (City,
                                  CityBoundary,
-                                 ClimateData,
                                  ClimateDataCell,
                                  ClimateDataSource,
                                  ClimateDataYear,
@@ -69,19 +68,10 @@ class ClimateDataSourceSerializer(serializers.ModelSerializer):
         model = ClimateDataSource
 
 
-class ClimateDataSerializer(serializers.ModelSerializer):
-
-    city = serializers.HyperlinkedRelatedField(read_only=True, view_name='city-detail')
-    data_source = ClimateDataSourceSerializer(read_only=True)
-
-    class Meta:
-        model = ClimateData
-
-
 class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     """Read-only custom serializer to generate the data object for the ClimateDataList view.
 
-    Since we will be combining multiple ClimateData model instances into a single unified output,
+    Since we will be combining multiple ClimateDataYear instances into a single unified output,
     this serializer takes a ClimateDataYear queryset and does not use the many=True argument,
     but does require the serializer `context` kwarg with a key 'variables'.
 
