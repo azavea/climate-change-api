@@ -105,12 +105,13 @@ class ClimateDataSource(models.Model):
     scenario = models.ForeignKey(Scenario)
     year = models.PositiveSmallIntegerField()
     import_completed = models.BooleanField(default=False)
+    dataset = models.ForeignKey(ClimateDataset)
 
     class Meta:
-        unique_together = ('model', 'scenario', 'year')
+        unique_together = ('model', 'scenario', 'year', 'dataset')
 
     def natural_key(self):
-        return (self.model, self.scenario, self.year)
+        return (self.model, self.scenario, self.year, self.dataset)
 
     def __str__(self):
         """Override str for useful info in console."""
