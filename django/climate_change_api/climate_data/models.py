@@ -269,6 +269,16 @@ class City(models.Model):
         super(City, self).save(*args, **kwargs)
 
 
+class ClimateDataCityCell(models.Model):
+    city = models.ForeignKey(City, null=False)
+    cell = models.ForeignKey(ClimateDataCell, null=False)
+    dataset = TinyForeignKey(ClimateDataset, null=False)
+
+    class Meta:
+        # A city can only have one map cell for each dataset
+        unique_together = ('city', 'dataset',)
+
+
 class ClimateDataYear(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
