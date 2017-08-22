@@ -7,9 +7,18 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    def populate_climatedatasource_dataset(apps, schema_editor):
+        ClimateDataSource = apps.get_model('climate_data', 'ClimateDataSource')
+        ClimateDataset = apps.get_model('climate_data', 'ClimateDataset')
+
+        gddp = ClimateDataset.objects.get(name='NEX-GDDP')
+
+        ClimateDataSource.objects.filter(dataset__isnull=True).update(dataset=gddp)
+
     dependencies = [
         ('climate_data', '0049_auto_20170822_2031'),
     ]
 
     operations = [
+        migrations.RunPython(populate_climatedatasource_dataset, migrations.RunPython.noop)
     ]
