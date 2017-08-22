@@ -241,8 +241,6 @@ class City(models.Model):
     geom = models.PointField()
     _geog = models.PointField(geography=True)
 
-    map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
-
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
 
