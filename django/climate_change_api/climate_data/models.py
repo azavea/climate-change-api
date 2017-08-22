@@ -126,15 +126,14 @@ class ClimateDataCellManager(models.Manager):
 class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=6, decimal_places=3)
     lon = models.DecimalField(max_digits=6, decimal_places=3)
-    dataset = TinyForeignKey(ClimateDataset, null=False, related_name='map_cells')
 
     objects = ClimateDataCellManager()
 
     class Meta:
-        unique_together = ('lat', 'lon', 'dataset',)
+        unique_together = ('lat', 'lon',)
 
     def natural_key(self):
-        return (self.lat, self.lon, self.dataset)
+        return (self.lat, self.lon)
 
     def __str__(self):
         """Override str for useful info in console."""
