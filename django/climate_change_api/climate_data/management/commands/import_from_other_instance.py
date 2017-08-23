@@ -98,8 +98,8 @@ def import_city(citydata, dataset):
             name=citydata['properties']['name'],
             admin=citydata['properties']['admin'],
         )
-        if not city.cell_set.filter(dataset=dataset).exists():
-            city.cell_set.add(
+        if not city.map_cell_set.filter(dataset=dataset).exists():
+            city.map_cell_set.add(
                 cell=import_map_cell(citydata['properties']['map_cell']),
                 dataset=dataset)
         return city
@@ -115,7 +115,7 @@ def import_city(citydata, dataset):
             geom=Point(*city_coordinates),
             _geog=Point(*city_coordinates)
         )
-        city.cell_set.add(
+        city.map_cell_set.add(
             cell=map_cell,
             dataset=dataset
         )
