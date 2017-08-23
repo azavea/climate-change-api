@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
         # one-to-many map cell foreign key
         city_cell_objects = (ClimateDataCityCell(
             city_id=row['id'],
-            map_cell_id=row['map_cell_id'],
-            datasource=gddp
+            cell_id=row['map_cell_id'],
+            dataset=gddp
         ) for row in city_data)
 
         city_cell_chunks = chunk_sequence(city_cell_objects, 200)
