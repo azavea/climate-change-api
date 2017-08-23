@@ -8,6 +8,7 @@ import factory
 from climate_data.models import (City,
                                  ClimateDataBaseline,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataSource,
                                  ClimateDataset,
                                  ClimateDataYear,
@@ -42,13 +43,15 @@ class CityFactory(DjangoModelFactory):
         django_get_or_create = ('name', 'admin',)
 
     @factory.post_generation
-    def map_cells(self, create, extracted, **kwargs):
+    def map_cell_set(self, create, extracted, **kwargs):
         if not create:
             return
 
+        dataset = ClimateDatasetFactory()
         if extracted:
             for map_cell in extracted:
-                self.map_cells.add(map_cell)
+                self.map_cell_set.add(ClimateDataCityCellFactory(city=self, map_cell=map_cell,
+                                                                 dataset=dataset))
 
 
 class ScenarioFactory(DjangoModelFactory):
@@ -72,17 +75,6 @@ class ClimateModelFactory(DjangoModelFactory):
         django_get_or_create = ('name',)
 
 
-class ClimateDataSourceFactory(DjangoModelFactory):
-
-    model = ClimateModelFactory()
-    scenario = ScenarioFactory()
-    year = 2000
-
-    class Meta:
-        model = ClimateDataSource
-        django_get_or_create = ('model', 'scenario', 'year',)
-
-
 class ClimateDatasetFactory(DjangoModelFactory):
     name = 'NEX-GDDP'
     label = ''
@@ -94,15 +86,36 @@ class ClimateDatasetFactory(DjangoModelFactory):
         django_get_or_create = ('name',)
 
 
+class ClimateDataSourceFactory(DjangoModelFactory):
+
+    model = ClimateModelFactory()
+    scenario = ScenarioFactory()
+    dataset = ClimateDatasetFactory()
+    year = 2000
+
+    class Meta:
+        model = ClimateDataSource
+        django_get_or_create = ('model', 'scenario', 'year',)
+
+
 class ClimateDataCellFactory(DjangoModelFactory):
 
     lat = 0
     lon = 0
-    dataset = ClimateDatasetFactory()
 
     class Meta:
         model = ClimateDataCell
-        django_get_or_create = ('lat', 'lon', 'dataset')
+        django_get_or_create = ('lat', 'lon')
+
+
+class ClimateDataCityCellFactory(DjangoModelFactory):
+    city = CityFactory()
+    map_cell = ClimateDataCellFactory()
+    dataset = ClimateDatasetFactory()
+
+    class Meta:
+        model = ClimateDataCityCell
+        django_get_or_create = ('city', 'map_cell', 'dataset')
 
 
 class HistoricDateRangeFactory(DjangoModelFactory):
