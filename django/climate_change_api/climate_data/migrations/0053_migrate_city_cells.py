@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             ClimateDataCityCell.objects.bulk_create(chunk)
 
     dependencies = [
-        ('climate_data', '0052_auto_20170822_2036'),
+        ('climate_data', '0052_add_climatedatacitycell'),
     ]
 
     operations = [

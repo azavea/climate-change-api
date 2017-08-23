@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ClimateDataSource.objects.filter(dataset__isnull=True).update(dataset=gddp)
 
     dependencies = [
-        ('climate_data', '0049_auto_20170822_2031'),
+        ('climate_data', '0049_add_dataset_to_datasource'),
     ]
 
     operations = [
