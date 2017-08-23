@@ -195,7 +195,7 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
-        gddp = ClimateDataset.objects.get(name='NEX-GDDP')
+        dataset = ClimateDataset.objects.get(name='NEX-GDDP')
 
         logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
@@ -204,8 +204,9 @@ class Command(BaseCommand):
                         city['properties']['name'],
                         city['properties']['admin'])
 
-            created_city = import_city(city, gddp)
-            coordinates = (created_city.map_cell.lat, created_city.map_cell.lon)
+            created_city = import_city(city, dataset)
+            map_cell = created_city.map_cell_set.get(dataset=dataset).map_cell
+            coordinates = (map_cell.lat, map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
                     logger.info('Skipping %s, data already imported', model.name)
@@ -214,7 +215,7 @@ class Command(BaseCommand):
                 if ClimateDataYear.objects.filter(
                         data_source__model=model,
                         data_source__scenario=scenario,
-                        map_cell=created_city.map_cell).exists():
+                        map_cell=map_cell).exists():
                     logger.info('Skipping %s, data already imported', model.name)
                 else:
                     logger.info('Importing %s', model)
@@ -223,7 +224,7 @@ class Command(BaseCommand):
                             domain=options['domain'],
                             token=options['token'],
                             remote_city_id=city['id'],
-                            local_map_cell=created_city.map_cell,
+                            local_map_cell=map_cell,
                             scenario=scenario,
                             model=model)
                         imported_grid_cells[model.name].append(coordinates)
@@ -233,7 +234,7 @@ class Command(BaseCommand):
                         ClimateDataYear.objects.filter(
                             data_source__model=model,
                             data_source__scenario=scenario,
-                            map_cell=created_city.map_cell).delete()
+                            map_cell=map_cell).delete()
                         failure_logger.warn('Import failed for model %s scenario %s city %s %s, %s',
                                             model.name,
                                             scenario.name,
