@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     def migrate_restore_city_cell_foreign_key(apps, schema_editor):
         """If we reverse this migration, set City.map_cell to the city's NEX-GDDP cell."""
         City = apps.get_model('climate_data', 'City')
-        city_data = (City.objects.all().values('id', 'cell_set__cell_id')
+        city_data = (City.objects.all().values_list('id', 'cell_set__cell_id')
                      .filter(cell_set__dataset__name='NEX-GDDP'))
 
         for id, cell_id in city_data:
