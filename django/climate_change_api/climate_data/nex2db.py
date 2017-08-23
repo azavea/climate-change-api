@@ -167,8 +167,8 @@ class Nex2DB(object):
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
-            if city.map_cell:
-                assert(city.map_cell == cell_model)
+            if city.map_cell_set.exists():
+                assert(city.map_cell_set.filter(map_cell=cell_model).count() == 1)
             else:
                 city.map_cell = cell_model
                 city.save()
