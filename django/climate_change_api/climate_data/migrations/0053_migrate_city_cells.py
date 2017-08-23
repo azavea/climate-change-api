@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         # one-to-many map cell foreign key
         city_cell_objects = (ClimateDataCityCell(
             city_id=row['id'],
-            cell_id=row['map_cell_id'],
+            map_cell_id=row['map_cell_id'],
             dataset=gddp
         ) for row in city_data)
 

@@ -267,8 +267,8 @@ class City(models.Model):
 
 
 class ClimateDataCityCell(models.Model):
-    city = models.ForeignKey(City, null=False, related_name="cell_set")
-    cell = models.ForeignKey(ClimateDataCell, null=False, related_name="city_set")
+    city = models.ForeignKey(City, null=False, related_name='map_cell_set')
+    map_cell = models.ForeignKey(ClimateDataCell, null=False, related_name='city_set')
     dataset = TinyForeignKey(ClimateDataset, null=False)
 
     class Meta:
