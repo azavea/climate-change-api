@@ -26,7 +26,7 @@ class Command(BaseCommand):
             # City Boundaries
             # Climate Models
             # Scenarios
-            if (City.objects.filter(cell_set__cell_id__in=climate_data_map_cells).count() >= 3 and  # NOQA E501
+            if (City.objects.filter(map_cell_set__map_cell_id__in=climate_data_map_cells).count() >= 3 and  # NOQA E501
                 0 not in (Region.objects.all().count(),
                           Scenario.objects.all().count(),
                           ClimateDataYear.objects.all().count(),

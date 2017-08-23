@@ -18,8 +18,8 @@ class Migration(migrations.Migration):
             name='ClimateDataCityCell',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cell', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='city_set', to='climate_data.ClimateDataCell')),
-                ('city', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cell_set', to='climate_data.City')),
+                ('map_cell', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='city_set', to='climate_data.ClimateDataCell')),
+                ('city', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='map_cell_set', to='climate_data.City')),
                 ('dataset', climate_data.models.TinyForeignKey(on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset')),
             ],
         ),
