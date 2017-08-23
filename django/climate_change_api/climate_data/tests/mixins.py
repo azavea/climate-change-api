@@ -143,5 +143,6 @@ class ClimateDataSetupMixin(object):
                                               historic_range=self.historic_range_1,
                                               tasmax=[0], tasmin=[0], pr=[0])
 
-        self.city1 = CityFactory(name='city1', admin='city1', map_cell=self.mapcell)
-        self.city2 = CityFactory(name='city2', admin='city2')
+        self.city1 = CityFactory(name='city1', admin='city1', map_cell_set=[self.mapcell])
+        self.city2 = CityFactory(name='city2', admin='city2',
+                                 map_cell_set=[ClimateDataCellFactory(lat=1, lon=1)])
