@@ -29,6 +29,7 @@ from climate_data.models import (City,
                                  ClimateModel,
                                  Region,
                                  Scenario,
+                                 ClimateDataset,
                                  HistoricDateRange)
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
@@ -70,7 +71,7 @@ def climate_data_cache_control(func):
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     """Returns a paginated GeoJSON object of the available cities."""
 
-    queryset = City.objects.all().select_related('map_cell')
+    queryset = City.objects.all()
     serializer_class = CitySerializer
     filter_backends = (InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = CityFilterSet
@@ -175,8 +176,14 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
+        try:
+            dataset = ClimateDataset.objects.get(name=kwargs['dataset'])
+        except (KeyError, Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
+            dataset = ClimateDataset.objects.first()
+
+        map_cell = city.map_cell_set.get(dataset=dataset).map_cell
         queryset = ClimateDataYear.objects.filter(
-            map_cell=city.map_cell,
+            map_cell=map_cell,
             data_source__scenario=scenario
         )
 
