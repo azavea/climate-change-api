@@ -97,7 +97,7 @@ class Nex2DB(object):
                 #   If we're woking with a calendar that doesn't consider leap years on a leap year,
                 #   insert None for Feb 29
                 if calendar.isleap(year) and len(values) == 365:
-                    values = values[:DAY_OF_YEAR_FEB_29] + [None] + values[DAY_OF_YEAR_FEB_29:]
+                    values.insert(DAY_OF_YEAR_FEB_29, None)
                 cell_data[(latarr[latidx], lonarr[lonidx])] = values
 
         return {'cities': city_to_coords, 'cells': cell_data}
