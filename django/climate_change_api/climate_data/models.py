@@ -96,6 +96,10 @@ class ClimateDataSource(models.Model):
     def natural_key(self):
         return (self.model, self.scenario, self.year)
 
+    def __str__(self):
+        """Override str for useful info in console."""
+        return '{}, {}, {}'.format(self.scenario, self.model, self.year)
+
 
 class ClimateDataCellManager(models.Manager):
     def get_by_natural_key(self, lat, lon):
@@ -113,6 +117,10 @@ class ClimateDataCell(models.Model):
 
     def natural_key(self):
         return (self.lat, self.lon)
+
+    def __str__(self):
+        """Override str for useful info in console."""
+        return '{}, {}'.format(self.lat, self.lon)
 
 
 class HistoricDateRange(models.Model):
