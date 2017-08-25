@@ -110,7 +110,12 @@
         "properties": {
           "type": "object",
           "properties": {
-            "map_cell": {"$ref": "#/definitions/pointgeom"},
+            "map_cells": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/pointgeom"
+              }
+            },
             "name": {
               "type": "string"
             },
@@ -119,7 +124,7 @@
             }
           },
           "additionalProperties": true,
-          "required": ["map_cell", "name", "admin"]
+          "required": ["map_cells", "name", "admin"]
         }
       },
       "additionalProperties": false,
