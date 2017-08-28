@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             City.objects.filter(id=id).update(map_cell=cell_id)
 
     dependencies = [
-        ('climate_data', '0053_migrate_city_cells'),
+        ('climate_data', '0055_migrate_city_cells'),
     ]
 
     operations = [

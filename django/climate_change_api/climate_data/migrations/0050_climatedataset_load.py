@@ -32,7 +32,7 @@ def reverse(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('climate_data', '0047_climatedataset'),
+        ('climate_data', '0049_climatedataset'),
     ]
 
     operations = [
