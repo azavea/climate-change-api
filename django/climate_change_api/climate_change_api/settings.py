@@ -32,8 +32,6 @@ if DEBUG == 'False' or DEBUG == 'false':
 
 ENVIRONMENT = os.getenv('CC_STACK_TYPE', 'Development')
 
-FEATURE_FLAGS = {}
-
 if not DEBUG and SECRET_KEY.startswith('SECRET_KEY'):
     # prevent from running in production mode with default secret key
     raise Exception('Default SECRET_KEY in production mode')
