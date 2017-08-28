@@ -150,7 +150,3 @@ variable "aws_cloudwatch_logs_policy_arn" {
 variable "cc_api_alb_ingress_cidr_block" {
   type = "list"
 }
-
-variable "feature_flag_array_data" {
-  default = "False"
-}

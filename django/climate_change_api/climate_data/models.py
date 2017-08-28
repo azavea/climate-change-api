@@ -20,7 +20,7 @@ class ClimateModel(models.Model):
     """Model representing a climate model.
 
     We are storing a table of climate models as an alternative to storing the
-    climate model name in CharFields on the ClimateData django model in order
+    climate model name in CharFields on the ClimateDataYear django model in order
     to make sure that table, which will store a large amount of rows, stays
     as small as possible.
     """
@@ -126,7 +126,7 @@ class ClimateDataCell(models.Model):
 class HistoricDateRange(models.Model):
     """Helper table abstracting year ranges for historic data aggregations.
 
-    Applies to ClimateDataBaseline and HistoricaAverageClimateData.
+    Applies to ClimateDataBaseline and HistoricalAverageClimateDataYear.
     """
 
     start_year = models.PositiveSmallIntegerField(help_text='Inclusive start year of the period',
@@ -251,30 +251,6 @@ class City(models.Model):
         super(City, self).save(*args, **kwargs)
 
 
-class ClimateData(models.Model):
-
-    VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
-
-    id = models.BigAutoField(primary_key=True)
-    map_cell = TinyForeignKey(ClimateDataCell)
-    data_source = TinyForeignKey(ClimateDataSource)
-    day_of_year = models.PositiveSmallIntegerField()
-
-    tasmin = models.FloatField(null=True,
-                               help_text='Daily Minimum Near-Surface Air Temperature, Kelvin')
-    tasmax = models.FloatField(null=True,
-                               help_text='Daily Maximum Near-Surface Air Temperature, Kelvin')
-    pr = models.FloatField(null=True,
-                           help_text='Precipitation (mean of the daily precipitation rate), kg m-2 s-1')  # NOQA: E501
-
-    class Meta:
-        unique_together = ('map_cell', 'data_source', 'day_of_year')
-        index_together = ('map_cell', 'data_source')
-
-    def natural_key(self):
-        return (self.map_cell, self.data_source)
-
-
 class ClimateDataYear(models.Model):
 
     VARIABLE_CHOICES = set(('tasmax', 'tasmin', 'pr',))
@@ -296,36 +272,6 @@ class ClimateDataYear(models.Model):
 
     def natural_key(self):
         return (self.map_cell, self.data_source)
-
-
-class HistoricAverageClimateData(models.Model):
-    """Model storing computed averages for historic climate data from 1961-1990.
-
-    Used in computing the heat wave duration index (HWDI) and extreme precipitation (R95T).
-    http://www.vsamp.com/resume/publications/Frich_et_al.pdf
-
-    Derived from raw historic ClimateData, and stored separately partly for performance, and
-    partly for development environment convenience (averages can be loaded from a fixture,
-    whereas the raw data is too large to load practically in development.)
-    """
-
-    map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average')
-    day_of_year = models.PositiveSmallIntegerField()
-    historic_range = TinyForeignKey(HistoricDateRange, null=True)
-
-    tasmin = models.FloatField(null=True,
-                               help_text='Historic Average Daily Minimum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
-    tasmax = models.FloatField(null=True,
-                               help_text='Historic Average Daily Maximum Near-Surface Air Temperature 1961-1990, Kelvin')  # NOQA: E501
-    pr = models.FloatField(null=True,
-                           help_text='Historic Average Precipitation (mean of the daily precipitation rate) 1961-1990, kg m-2 s-1')  # NOQA: E501
-
-    class Meta:
-        unique_together = ('map_cell', 'day_of_year', 'historic_range')
-        index_together = ('map_cell', 'day_of_year', 'historic_range')
-
-    def natural_key(self):
-        return (self.city, self.day_of_year)
 
 
 class HistoricAverageClimateDataYear(models.Model):

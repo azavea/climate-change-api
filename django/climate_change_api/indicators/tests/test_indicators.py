@@ -95,8 +95,8 @@ class YearlyAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
 
 
 class CrossYearAverageHighTemperatureTestCase(TemperatureIndicatorTests, TestCase):
-    indicator_class = indicators.AverageHighTemperatureArray
-    indicator_name = 'average_high_temperature_array'
+    indicator_class = indicators.AverageHighTemperature
+    indicator_name = 'average_high_temperature'
     time_aggregation = 'offset_yearly'
     units = 'K'
     test_indicator_rcp45_equals = {'2000-2001': {'max': 20.0, 'avg': 15.0, 'min': 10.0},
@@ -453,27 +453,28 @@ class YearlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):
         'basetemp': '-265.85',  # 7.3K
         'basetemp_units': 'C'
     }
-    test_indicator_rcp85_equals = {2000: {'avg': 49.86, 'min': 40.86, 'max': 58.86000000000001}}
-    test_indicator_rcp45_equals = {2000: {'avg': 13.860000000000046, 'min': 4.86000000000009,
-                                          'max': 22.86},
-                                   2001: {'avg': 13.860000000000046, 'min': 4.86000000000009,
-                                          'max': 22.86},
-                                   2002: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                          'max': 4.86000000000009},
-                                   2003: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                          'max': 4.86000000000009}}
-    test_years_filter_equals = {2001: {'avg': 13.860000000000046, 'min': 4.86000000000009,
-                                       'max': 22.86},
-                                2002: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                       'max': 4.86000000000009}}
-    test_models_filter_equals = {2000: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                        'max': 4.86000000000009},
-                                 2001: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                        'max': 4.86000000000009},
-                                 2002: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                        'max': 4.86000000000009},
-                                 2003: {'avg': 4.86000000000009, 'min': 4.86000000000009,
-                                        'max': 4.86000000000009}}
+    test_indicator_rcp85_equals = {2000: {'avg': 49.860000000000085, 'max': 58.860000000000085,
+                                          'min': 40.860000000000085}}
+    test_indicator_rcp45_equals = {2000: {'avg': 13.860000000000081, 'max': 22.86000000000008,
+                                          'min': 4.860000000000082},
+                                   2001: {'avg': 13.860000000000081, 'max': 22.86000000000008,
+                                          'min': 4.860000000000082},
+                                   2002: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                          'min': 4.860000000000082},
+                                   2003: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                          'min': 4.860000000000082}}
+    test_years_filter_equals = {2001: {'min': 4.860000000000082, 'avg': 13.860000000000081,
+                                       'max': 22.86000000000008},
+                                2002: {'min': 4.860000000000082, 'avg': 4.860000000000082,
+                                       'max': 4.860000000000082}}
+    test_models_filter_equals = {2000: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                        'min': 4.860000000000082},
+                                 2001: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                        'min': 4.860000000000082},
+                                 2002: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                        'min': 4.860000000000082},
+                                 2003: {'avg': 4.860000000000082, 'max': 4.860000000000082,
+                                        'min': 4.860000000000082}}
 
 
 class CrossYearlyAccumulatedFreezingDegreeDaysTestCase(IndicatorTests, TestCase):
@@ -481,7 +482,8 @@ class CrossYearlyAccumulatedFreezingDegreeDaysTestCase(IndicatorTests, TestCase)
     indicator_name = 'accumulated_freezing_degree_days'
     time_aggregation = 'offset_yearly'
     test_indicator_rcp85_equals = {}
-    test_indicator_rcp45_equals = {'2000-2001': {'avg': 464.66999999999996, 'min': 455.67,
+    test_indicator_rcp45_equals = {'2000-2001': {'avg': 464.66999999999996,
+                                                 'min': 455.66999999999996,
                                                  'max': 473.66999999999996},
                                    '2001-2002': {'avg': 473.66999999999996,
                                                  'max': 473.66999999999996,
@@ -489,6 +491,7 @@ class CrossYearlyAccumulatedFreezingDegreeDaysTestCase(IndicatorTests, TestCase)
                                    '2002-2003': {'avg': 473.66999999999996,
                                                  'max': 473.66999999999996,
                                                  'min': 473.66999999999996}}
+
     # Years are filtered by the starting year, so years=2001,2002 gives data for 2001-2002
     # and 2002-2003
     test_years_filter_equals = {'2001-2002': {'avg': 473.66999999999996, 'max': 473.66999999999996,
@@ -677,18 +680,28 @@ class MonthlyHeatingDegreeDaysTestCase(IndicatorTests, TestCase):
     extra_params = {
         'basetemp': '-384.07'
     }
-    test_indicator_rcp85_equals = {'2000-01': {'avg': 12.60000000000001,
-                                               'min': 3.6000000000000183, 'max': 21.6}}
-    test_indicator_rcp45_equals = {'2000-01': {'avg': 48.6, 'min': 39.6, 'max': 57.6},
-                                   '2001-01': {'avg': 48.6, 'min': 39.6, 'max': 57.6},
-                                   '2002-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6},
-                                   '2003-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6}}
-    test_years_filter_equals = {'2001-01': {'avg': 48.6, 'min': 39.6, 'max': 57.6},
-                                '2002-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6}}
-    test_models_filter_equals = {'2000-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6},
-                                 '2001-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6},
-                                 '2002-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6},
-                                 '2003-01': {'avg': 57.6, 'min': 57.6, 'max': 57.6}}
+    test_indicator_rcp85_equals = {'2000-01': {'max': 21.600000000000026, 'avg': 12.600000000000026,
+                                               'min': 3.600000000000026}}
+    test_indicator_rcp45_equals = {'2000-01': {'avg': 48.60000000000003, 'min': 39.60000000000003,
+                                               'max': 57.60000000000003},
+                                   '2001-01': {'avg': 48.60000000000003, 'min': 39.60000000000003,
+                                               'max': 57.60000000000003},
+                                   '2002-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                               'max': 57.60000000000003},
+                                   '2003-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                               'max': 57.60000000000003}}
+    test_years_filter_equals = {'2001-01': {'avg': 48.60000000000003, 'min': 39.60000000000003,
+                                            'max': 57.60000000000003},
+                                '2002-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                            'max': 57.60000000000003}}
+    test_models_filter_equals = {'2000-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                             'max': 57.60000000000003},
+                                 '2001-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                             'max': 57.60000000000003},
+                                 '2002-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                             'max': 57.60000000000003},
+                                 '2003-01': {'avg': 57.60000000000003, 'min': 57.60000000000003,
+                                             'max': 57.60000000000003}}
 
 
 class MonthlyCoolingDegreeDaysTestCase(IndicatorTests, TestCase):

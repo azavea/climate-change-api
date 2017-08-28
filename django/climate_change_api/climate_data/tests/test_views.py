@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from climate_data.models import CityBoundary, ClimateData, ClimateModel
+from climate_data.models import CityBoundary, ClimateDataYear, ClimateModel
 from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
 from climate_data.tests.factories import (ClimateModelFactory,
                                           ScenarioFactory)
@@ -22,7 +22,7 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
-        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
                          ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 4)
@@ -35,7 +35,7 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp85.name)
-        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
                          ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 1)
@@ -48,7 +48,7 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city2.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
-        self.assertEqual(response.data['variables'], ClimateData.VARIABLE_CHOICES)
+        self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
                          ClimateModel.objects.all()])
         self.assertEqual(len(response.data['data']), 0)
