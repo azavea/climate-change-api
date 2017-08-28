@@ -257,6 +257,12 @@ class City(models.Model):
     class Meta:
         unique_together = ('name', 'admin')
 
+    def get_map_cell(self, dataset):
+        try:
+            return self.map_cell_set.get(dataset=dataset).map_cell
+        except self.model.DoesNotExist:
+            return None
+
     def natural_key(self):
         return (self.name, self.admin)
 
