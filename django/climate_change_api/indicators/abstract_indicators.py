@@ -78,7 +78,7 @@ class Indicator(object):
         self.city = city
         self.scenario = scenario
         self.dataset = dataset
-        self.map_cell = self.city.map_cell_set.get(dataset=self.dataset).map_cell
+        self.map_cell = self.city.get_map_cell(self.dataset)
 
         self.params = self.init_params_class()
         self.params.validate(parameters)

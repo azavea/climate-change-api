@@ -181,9 +181,8 @@ class ClimateDataView(APIView):
         except (KeyError, Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             dataset = ClimateDataset.objects.first()
 
-        map_cell = city.map_cell_set.get(dataset=dataset).map_cell
         queryset = ClimateDataYear.objects.filter(
-            map_cell=map_cell,
+            map_cell=city.get_map_cell(dataset),
             data_source__scenario=scenario
         )
 
