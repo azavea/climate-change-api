@@ -56,9 +56,16 @@ def generate_year_ranges(queryset):
 
 
 def generate_baselines(mapcells, time_periods, queryset):
-    """Build baselines for cells represented by the queryset but have no baselines of their own."""
-    for cell in mapcells.filter(baseline__isnull=True):
+    """Build baselines for cells that are represented by the queryset but are missing baselines."""
+    for cell in mapcells:
+        if cell.baseline.count() == (time_periods.count() * len(PERCENTILES)):
+            # Skip cells if they already have the right number of baselines
+            continue
+
         logger.info("Importing baselines for cell (%f,%f)", cell.lat, cell.lon)
+
+        # Since we're going to recalculate all baselines for a cell, delete any that currently exist
+        cell.baseline.all().delete()
 
         for period in time_periods:
             period_model_values = [queryset.filter(map_cell=cell,
@@ -67,7 +74,8 @@ def generate_baselines(mapcells, time_periods, queryset):
                                                    data_source__year__lte=period.end_year)
                                    .values(*VARIABLES)
                                    for model in MODELS]
-            variable_values = {var: [[mv[var] for mv in values] for values in period_model_values]
+            variable_values = {var: [[v for mv in models for v in mv[var] if v is not None]
+                                     for models in period_model_values]
                                for var in VARIABLES}
 
             # For precipitation we only want records for days that had rainfall
@@ -136,31 +144,21 @@ class Command(BaseCommand):
     help = 'Calculates historic baselines and year-over-year averages from local raw data readings'
 
     def handle(self, *args, **options):
-
-        raise NotImplementedError("This command is currently disabled, due to the removal " +
-                                  "of the ClimateData model. See azavea/climate-change-api#637")
-
-        # historic_data = ClimateData.objects.filter(data_source__scenario__name='historical')
         historic_year_data = ClimateDataYear.objects.filter(
             data_source__scenario__name='historical')
         map_cells = ClimateDataCell.objects.filter(id__in=historic_year_data.values('map_cell'))
 
-        # logger.info("Create historic year ranges")
-        # generate_year_ranges(historic_data)
+        logger.info("Create historic year ranges")
+        generate_year_ranges(historic_year_data)
 
         time_periods = HistoricDateRange.objects.all()
-
-        # logger.info("Importing averages")
-        # averages = generate_averages(map_cells, time_periods, historic_data)
-        # for chunk in chunk_sequence(averages, BATCH_SIZE):
-        #     HistoricAverageClimateData.objects.bulk_create(chunk)
 
         logger.info("Importing yearly averages")
         averages = generate_year_averages(map_cells, time_periods, historic_year_data)
         for chunk in chunk_sequence(averages, BATCH_SIZE):
             HistoricAverageClimateDataYear.objects.bulk_create(chunk)
 
-        # logger.info("Importing percentile baselines")
-        # baselines = generate_baselines(map_cells, time_periods, historic_data)
-        # for chunks in chunk_sequence(baselines, BATCH_SIZE):
-        #     ClimateDataBaseline.objects.bulk_create(baselines)
+        logger.info("Importing percentile baselines")
+        baselines = generate_baselines(map_cells, time_periods, historic_year_data)
+        for chunk in chunk_sequence(baselines, BATCH_SIZE):
+            ClimateDataBaseline.objects.bulk_create(chunk)
