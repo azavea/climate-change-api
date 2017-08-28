@@ -16,6 +16,22 @@ class TinyOneToOne(models.OneToOneField):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
+class ClimateDataset(models.Model):
+    """Model representing a particular climate projection dataset."""
+
+    name = models.CharField(max_length=48, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
+    description = models.CharField(max_length=4096, blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
+        return self.name
+
+    def natural_key(self):
+        return (self.name,)
+
+
 class ClimateModel(models.Model):
     """Model representing a climate model.
 
@@ -102,21 +118,22 @@ class ClimateDataSource(models.Model):
 
 
 class ClimateDataCellManager(models.Manager):
-    def get_by_natural_key(self, lat, lon):
-        return self.get(lat=lat, lon=lon)
+    def get_by_natural_key(self, lat, lon, dataset):
+        return self.get(lat=lat, lon=lon, dataset=dataset)
 
 
 class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=6, decimal_places=3)
     lon = models.DecimalField(max_digits=6, decimal_places=3)
+    dataset = TinyForeignKey(ClimateDataset, null=False, related_name='map_cells')
 
     objects = ClimateDataCellManager()
 
     class Meta:
-        unique_together = ('lat', 'lon')
+        unique_together = ('lat', 'lon', 'dataset',)
 
     def natural_key(self):
-        return (self.lat, self.lon)
+        return (self.lat, self.lon, self.dataset)
 
     def __str__(self):
         """Override str for useful info in console."""
