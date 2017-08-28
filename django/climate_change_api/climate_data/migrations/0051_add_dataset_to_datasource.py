@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('climate_data', '0048_climatedataset_load'),
+        ('climate_data', '0050_climatedataset_load'),
     ]
 
     operations = [
