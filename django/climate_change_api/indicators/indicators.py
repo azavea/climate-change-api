@@ -3,117 +3,95 @@ import sys
 from itertools import groupby
 import numpy as np
 
-from django.db.models import F, Sum, Avg, Max, Min
-from django.conf import settings
-from postgres_stats.aggregates import Percentile
-
-from .abstract_indicators import (Indicator, ArrayIndicator, CountIndicator,
-                                  BasetempIndicatorMixin, ArrayStreakIndicator,
+from .abstract_indicators import (ArrayBaselineIndicator,
+                                  ArrayHistoricAverageIndicator,
+                                  ArrayIndicator,
+                                  ArrayPredicateIndicator,
+                                  ArrayStreakIndicator,
                                   ArrayThresholdIndicator,
-                                  TemperatureThresholdIndicatorMixin,
+                                  BasetempIndicatorMixin,
                                   PrecipitationThresholdIndicatorMixin,
-                                  YearlyMaxConsecutiveDaysIndicator,
-                                  YearlySequenceIndicator, ArrayBaselineIndicator,
-                                  ArrayPredicateIndicator, ArrayHistoricAverageIndicator)
-from .params import (DegreeDayIndicatorParams, PercentileIndicatorParams, ExtremeIndicatorParams,
-                     HeatWaveIndicatorParams)
-from .unit_converters import (TemperatureUnitsMixin, PrecipUnitsMixin, DaysUnitsMixin,
-                              CountUnitsMixin, TemperatureDeltaUnitsMixin, SECONDS_PER_DAY)
+                                  TemperatureThresholdIndicatorMixin)
+from .params import (DegreeDayIndicatorParams,
+                     ExtremeIndicatorParams,
+                     HeatWaveIndicatorParams,
+                     PercentileIndicatorParams)
+from .unit_converters import (CountUnitsMixin,
+                              DaysUnitsMixin,
+                              PrecipUnitsMixin,
+                              TemperatureDeltaUnitsMixin,
+                              TemperatureUnitsMixin,
+                              SECONDS_PER_DAY)
 from .utils import running_total
 
 
 ##########################
 # Aggregated indicators
 
-class MaxTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
+class MaxTemperatureThreshold(DaysUnitsMixin,
+                              TemperatureThresholdIndicatorMixin,
+                              ArrayThresholdIndicator):
     label = 'Max Temperature Threshold'
     description = ('Number of days where high temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmax',)
 
 
-class MaxTemperatureThresholdArray(ArrayThresholdIndicator, MaxTemperatureThreshold):
-    pass
-    # variables = ('tasmax',)  # Instantiate upon final array indicator conversion
-
-
-class MinTemperatureThreshold(DaysUnitsMixin, TemperatureThresholdIndicatorMixin, CountIndicator):
+class MinTemperatureThreshold(DaysUnitsMixin,
+                              TemperatureThresholdIndicatorMixin,
+                              ArrayThresholdIndicator):
     label = 'Min Temperature Threshold'
     description = ('Number of days where min temperature, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('tasmin',)
 
 
-class MinTemperatureThresholdArray(ArrayThresholdIndicator, MinTemperatureThreshold):
-    pass
-    # variables = ('tasmin',)  # Instantiate upon final array indicator conversion
-
-
-class PrecipitationThreshold(DaysUnitsMixin, PrecipitationThresholdIndicatorMixin, CountIndicator):
+class PrecipitationThreshold(DaysUnitsMixin,
+                             PrecipitationThresholdIndicatorMixin,
+                             ArrayThresholdIndicator):
     label = 'Precipitation Threshold'
     description = ('Number of days where precipitation, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('pr',)
 
 
-class PrecipitationThresholdArray(ArrayThresholdIndicator, PrecipitationThreshold):
-    pass
-    # variables = ('pr',)  # Instantiate upon final array indicator conversion
-
-
-class AverageHighTemperature(TemperatureUnitsMixin, Indicator):
+class AverageHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Average High Temperature'
     description = ('Aggregated average high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
-    agg_function = Avg
-
-
-class AverageHighTemperatureArray(ArrayIndicator, AverageHighTemperature):
     # Use the staticmethod decorated to prevent the function from being bound and  `self` from
     # being added as the first argument
     agg_function = staticmethod(np.mean)
 
 
-class AverageLowTemperature(TemperatureUnitsMixin, Indicator):
+class AverageLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Average Low Temperature'
     description = ('Aggregated average low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
-    agg_function = Avg
-
-
-class AverageLowTemperatureArray(ArrayIndicator, AverageLowTemperature):
     # Use the staticmethod decorated to prevent the function from being bound and  `self` from
     # being added as the first argument
     agg_function = staticmethod(np.mean)
 
 
-class MaxHighTemperature(TemperatureUnitsMixin, Indicator):
+class MaxHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Maximum High Temperature'
     description = ('Maximum high temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmax',)
-    agg_function = Max
-
-
-class MaxHighTemperatureArray(ArrayIndicator, MaxHighTemperature):
     agg_function = max
 
 
-class MinLowTemperature(TemperatureUnitsMixin, Indicator):
+class MinLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Minimum Low Temperature'
     description = ('Minimum low temperature, generated from daily data ' +
                    'using all requested models')
     variables = ('tasmin',)
-    agg_function = Min
-
-
-class MinLowTemperatureArray(ArrayIndicator, MinLowTemperature):
     agg_function = min
 
 
-class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
+class PercentileHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Percentile High Temperature'
     description = ('The specified percentile of high temperature for each timespan. '
                    'Defaults to 50th percentile (Median)')
@@ -121,17 +99,12 @@ class PercentileHighTemperature(TemperatureUnitsMixin, Indicator):
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 50}
 
-    def agg_function(self, expression):
-        return Percentile(expression, int(self.params.percentile.value) / 100.0)
-
-
-class PercentileHighTemperatureArray(ArrayIndicator, PercentileHighTemperature):
     def agg_function(self, values):
         percentile = self.params.percentile.value
         return np.percentile(values, percentile)
 
 
-class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
+class PercentileLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     label = 'Percentile Low Temperature'
     description = ('The specified percentile of low temperature for each timespan. '
                    'Defaults to 50th percentile (Median)')
@@ -139,28 +112,15 @@ class PercentileLowTemperature(TemperatureUnitsMixin, Indicator):
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 50}
 
-    def agg_function(self, expression):
-        return Percentile(expression, int(self.params.percentile.value) / 100.0)
-
-
-class PercentileLowTemperatureArray(ArrayIndicator, PercentileLowTemperature):
     def agg_function(self, values):
         percentile = self.params.percentile.value
         return np.percentile(values, percentile)
 
 
-class TotalPrecipitation(PrecipUnitsMixin, Indicator):
+class TotalPrecipitation(PrecipUnitsMixin, ArrayIndicator):
     label = 'Total Precipitation'
     description = 'Total precipitation'
     variables = ('pr',)
-    # Precipitation is stored per-second, and we want a total for all days in the aggregation,
-    # so we need to multiple each day's value by 86400 to get the total for that day and then
-    # sum the results
-    expression = F('pr') * SECONDS_PER_DAY
-    agg_function = Sum
-
-
-class TotalPrecipitationArray(ArrayIndicator, TotalPrecipitation):
 
     @staticmethod
     def agg_function(values):
@@ -172,7 +132,7 @@ class TotalPrecipitationArray(ArrayIndicator, TotalPrecipitation):
         return sum(values) * SECONDS_PER_DAY
 
 
-class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
+class PercentilePrecipitation(PrecipUnitsMixin, ArrayIndicator):
     label = 'Percentile Precipitation'
     description = ('The specified percentile of precipitation for each timespan. '
                    'Defaults to 50th percentile (Median)')
@@ -180,32 +140,29 @@ class PercentilePrecipitation(PrecipUnitsMixin, Indicator):
     params_class = PercentileIndicatorParams
     params_class_kwargs = {'percentile': 50}
 
-    def agg_function(self, expression):
-        return Percentile(expression, int(self.params.percentile.value) / 100.0) * SECONDS_PER_DAY
-
-
-class PercentilePrecipitationArray(ArrayIndicator, PercentilePrecipitation):
     def agg_function(self, values):
         percentile = self.params.percentile.value
         return np.percentile(values, percentile) * SECONDS_PER_DAY
 
 
-class FrostDays(DaysUnitsMixin, CountIndicator):
+class FrostDays(DaysUnitsMixin, ArrayIndicator):
     label = 'Frost Days'
     description = ('Number of days per period in which the daily low temperature is ' +
                    'below the freezing point of water')
     variables = ('tasmin',)
-    conditions = {'tasmin__lt': 273.15}
+
+    @classmethod
+    def agg_function(cls, bucket):
+        comparator = (lambda a: a <= 273.15)
+        count = sum(1 for value in bucket if comparator(value))
+        return count
 
 
-class MaxConsecutiveDryDays(YearlyMaxConsecutiveDaysIndicator):
+class MaxConsecutiveDryDays(DaysUnitsMixin, ArrayIndicator):
     label = 'Max Consecutive Dry Days'
     description = ('Maximum number of consecutive days with no precipitation')
     variables = ('pr',)
-    raw_condition = 'pr = 0'
 
-
-class MaxConsecutiveDryDaysArray(ArrayIndicator, MaxConsecutiveDryDays):
     @staticmethod
     def agg_function(precipitation):
         # Combine all days into groups of consective days based on if there is rain that day or not
@@ -222,31 +179,16 @@ class MaxConsecutiveDryDaysArray(ArrayIndicator, MaxConsecutiveDryDays):
             return 0
 
 
-class DrySpells(CountUnitsMixin, YearlySequenceIndicator):
+class DrySpells(CountUnitsMixin, ArrayStreakIndicator):
     label = 'Dry Spells'
     description = ('Total number of times per period that there are 5 or more consecutive ' +
                    'days without precipitation')
     variables = ('pr',)
-    raw_condition = 'pr = 0'
-
-    def aggregate(self):
-        """Call get_streaks to get all sequences of zero or non-zero precip.
-
-        Then counts the zero-precip ones that are at least 5 days long.
-        """
-        sequences = self.get_streaks()
-        for key_vals, streaks in groupby(sequences, self.row_group_key):
-            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
-
-            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
-
-
-class DrySpellsArray(ArrayStreakIndicator, DrySpells):
     predicate = staticmethod(lambda pr: pr == 0)
     min_streak = 5
 
 
-class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
+class ExtremePrecipitationEvents(CountUnitsMixin, ArrayBaselineIndicator):
     label = 'Extreme Precipitation Events'
     description = ('Total number of times per period daily precipitation exceeds the specified '
                    'percentile of historic observations')
@@ -254,20 +196,11 @@ class ExtremePrecipitationEvents(CountUnitsMixin, CountIndicator):
     params_class_kwargs = {'percentile': 99}
     variables = ('pr',)
 
-    conditions = {'pr__gt': F('map_cell__baseline__pr')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
-                'map_cell__baseline__percentile': self.params.percentile.value}
-
-
-class ExtremePrecipitationEventsArray(ArrayBaselineIndicator, ExtremePrecipitationEvents):
     def agg_function(self, values):
-        return sum(1 for v in values if v > self.baseline.pr)
+        return sum(1 for v in values if self.baseline and v > self.baseline.pr)
 
 
-class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
+class ExtremeHeatEvents(CountUnitsMixin, ArrayBaselineIndicator):
     label = 'Extreme Heat Events'
     description = ('Total number of times per period daily maximum temperature exceeds the '
                    'specified percentile of historic observations')
@@ -275,20 +208,11 @@ class ExtremeHeatEvents(CountUnitsMixin, CountIndicator):
     params_class_kwargs = {'percentile': 99}
     variables = ('tasmax',)
 
-    conditions = {'tasmax__gt': F('map_cell__baseline__tasmax')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
-                'map_cell__baseline__percentile': self.params.percentile.value}
-
-
-class ExtremeHeatEventsArray(ArrayBaselineIndicator, ExtremeHeatEvents):
     def agg_function(self, values):
-        return sum(1 for v in values if v > self.baseline.tasmax)
+        return sum(1 for v in values if self.baseline and v > self.baseline.tasmax)
 
 
-class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
+class ExtremeColdEvents(CountUnitsMixin, ArrayBaselineIndicator):
     label = 'Extreme Cold Events'
     description = ('Total number of times per period daily minimum temperature is below the '
                    'specified percentile of historic observations')
@@ -296,52 +220,30 @@ class ExtremeColdEvents(CountUnitsMixin, CountIndicator):
     params_class_kwargs = {'percentile': 1}
     variables = ('tasmin',)
 
-    conditions = {'tasmin__lt': F('map_cell__baseline__tasmin')}
-
-    @property
-    def filters(self):
-        return {'map_cell__baseline__historic_range__pk': int(self.params.historic_range.value),
-                'map_cell__baseline__percentile': self.params.percentile.value}
-
-
-class ExtremeColdEventsArray(ArrayBaselineIndicator, ExtremeColdEvents):
     def agg_function(self, values):
-        return sum(1 for v in values if v < self.baseline.tasmin)
+        return sum(1 for v in values if self.baseline and v < self.baseline.tasmin)
 
 
-class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, Indicator):
+class DiurnalTemperatureRange(TemperatureDeltaUnitsMixin, ArrayStreakIndicator):
     label = 'Diurnal Temperature Range'
     description = ('Average difference between daily max and daily min temperature')
     variables = ('tasmax', 'tasmin',)
-    agg_function = Avg
-    expression = (F('tasmax') - F('tasmin'))
 
-
-class DiurnalTemperatureRangeArray(ArrayStreakIndicator, DiurnalTemperatureRange):
     def aggregate(self, daily_values):
         # daily_values is an iterator of tuples ordered in the same order as self.variables,
         # so for us each value is (tasmax_val, tasmin_val)
         return np.mean([tasmax - tasmin for tasmax, tasmin in daily_values])
 
 
-class HeatingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+class HeatingDegreeDays(TemperatureDeltaUnitsMixin,
+                        BasetempIndicatorMixin,
+                        ArrayIndicator):
     label = 'Heating Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature'
     variables = ('tasmax', 'tasmin',)
-    agg_function = Sum
+    agg_function = sum
     params_class = DegreeDayIndicatorParams
 
-    @property
-    def conditions(self):
-        # (A+B)/2 <= C translates to A <= 2C - B
-        return {'tasmin__lte': (2 * self.params.basetemp.value) - F('tasmax')}
-
-    @property
-    def expression(self):
-        return self.params.basetemp.value - (F('tasmax') + F('tasmin')) / 2
-
-
-class HeatingDegreeDaysArray(ArrayIndicator, HeatingDegreeDays):
     def aggregate(self, daily_values):
         # daily_values is an iterator of tuples ordered in the same order as self.variables
         # Use that to get the day's average temperature to compare with
@@ -352,24 +254,15 @@ class HeatingDegreeDaysArray(ArrayIndicator, HeatingDegreeDays):
         return sum(self.params.basetemp.value - temp for temp in heating_days)
 
 
-class CoolingDegreeDays(TemperatureDeltaUnitsMixin, BasetempIndicatorMixin, Indicator):
+class CoolingDegreeDays(TemperatureDeltaUnitsMixin,
+                        BasetempIndicatorMixin,
+                        ArrayIndicator):
     label = 'Cooling Degree Days'
     description = 'Total difference of daily average temperature to a reference base temperature '
     variables = ('tasmax', 'tasmin',)
-    agg_function = Sum
+    agg_function = sum
     params_class = DegreeDayIndicatorParams
 
-    @property
-    def conditions(self):
-        # (A+B)/2 >= C translates to A >= 2C - B
-        return {'tasmax__gte': (2 * self.params.basetemp.value) - F('tasmin')}
-
-    @property
-    def expression(self):
-        return (F('tasmax') + F('tasmin')) / 2 - self.params.basetemp.value
-
-
-class CoolingDegreeDaysArray(ArrayIndicator, CoolingDegreeDays):
     def aggregate(self, daily_values):
         # daily_values is an iterator of tuples ordered in the same order as self.variables
         # Use that to get the day's average temperature to compare with
@@ -380,37 +273,13 @@ class CoolingDegreeDaysArray(ArrayIndicator, CoolingDegreeDays):
         return sum(temp - self.params.basetemp.value for temp in cooling_days)
 
 
-class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin, Indicator):
+class AccumulatedFreezingDegreeDays(TemperatureDeltaUnitsMixin,
+                                    ArrayIndicator):
     label = 'Accumulated Freezing Degree Days'
     description = ('Maximum cumulative total of differences in average daily temperature and '
                    'freezing for consecutive days across the aggregation period.')
     variables = ('tasmax', 'tasmin')
 
-    @property
-    def expression(self):
-        return 273.15 - (F('tasmax') + F('tasmin')) / 2
-
-    def aggregate(self):
-        # Loop over all data points in each aggregation period and track the maximum total
-        self.queryset = (self.queryset.values(*self.aggregate_keys).annotate(value=self.expression)
-                         .order_by('data_source__model', 'agg_key', 'data_source__year',
-                                   'day_of_year'))
-
-        for key_vals, days in groupby(self.queryset, self.row_group_key):
-            total = 0
-            max_total = 0
-            for day in days:
-                total += day['value']
-                if total < 0:
-                    # Total cannot go below 0
-                    total = 0
-                elif total > max_total:
-                    max_total = total
-
-            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', max_total)])
-
-
-class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegreeDays):
     def aggregate(self, daily_values):
         # daily_values is an iterator of tuples ordered in the same order as self.variables
         # Use that to get the day's average temperature to compare with
@@ -429,28 +298,12 @@ class AccumulatedFreezingDegreeDaysArray(ArrayIndicator, AccumulatedFreezingDegr
             return 0
 
 
-class HeatWaveDurationIndex(YearlyMaxConsecutiveDaysIndicator):
+class HeatWaveDurationIndex(DaysUnitsMixin, ArrayPredicateIndicator, ArrayHistoricAverageIndicator):
     label = 'Heat Wave Duration Index'
     description = ('Maximum period of consecutive days with daily high temperature greater than '
                    '5C above historic norm')
-    variables = ('tasmax',)
-    raw_condition = 'tasmax > avg_tasmax + 5'
-    params_class = HeatWaveIndicatorParams
-
-    @property
-    def filters(self):
-        return {'day_of_year': F('map_cell__historic_average__day_of_year'),
-                'map_cell__historic_average__historic_range__pk':
-                    int(self.params.historic_range.value)}
-
-    def aggregate(self):
-        self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
-        return super(HeatWaveDurationIndex, self).aggregate()
-
-
-class HeatWaveDurationIndexArray(ArrayPredicateIndicator, ArrayHistoricAverageIndicator,
-                                 HeatWaveDurationIndex):
     variables = ('tasmax', 'historical_tasmax')
+    params_class = HeatWaveIndicatorParams
     agg_function = max
 
     @staticmethod
@@ -460,36 +313,14 @@ class HeatWaveDurationIndexArray(ArrayPredicateIndicator, ArrayHistoricAverageIn
         return tasmax > historical + 5
 
 
-class HeatWaveIncidents(CountUnitsMixin, YearlySequenceIndicator):
+class HeatWaveIncidents(CountUnitsMixin,
+                        ArrayStreakIndicator,
+                        ArrayHistoricAverageIndicator):
     label = 'Heat Wave Incidents'
     description = ('Number of times daily high temperature exceeds 5C above historic norm for at '
                    'least 5 consecutive days')
-    variables = ('tasmax',)
-    raw_condition = 'tasmax > avg_tasmax + 5'
-    params_class = HeatWaveIndicatorParams
-
-    @property
-    def filters(self):
-        return {'day_of_year': F('map_cell__historic_average__day_of_year'),
-                'map_cell__historic_average__historic_range__pk':
-                    int(self.params.historic_range.value)}
-
-    def aggregate(self):
-        """Call get_streaks to get all sequences of abnormally hot days.
-
-        Counts the number that are at least 5 days long.
-        """
-        self.queryset = self.queryset.annotate(avg_tasmax=F('map_cell__historic_average__tasmax'))
-        sequences = self.get_streaks()
-        for key_vals, streaks in groupby(sequences, self.row_group_key):
-            num_dry_spells = sum(1 for seq in streaks if seq['match'] == 1 and seq['length'] >= 5)
-
-            yield dict(list(zip(self.aggregate_keys, key_vals)) + [('value', num_dry_spells)])
-
-
-class HeatWaveIncidentsArray(ArrayStreakIndicator, ArrayHistoricAverageIndicator,
-                             HeatWaveIncidents):
     variables = ('tasmax', 'historical_tasmax')
+    params_class = HeatWaveIndicatorParams
     min_streak = 5
 
     @staticmethod
@@ -502,8 +333,7 @@ class HeatWaveIncidentsArray(ArrayStreakIndicator, ArrayHistoricAverageIndicator
 def list_available_indicators():
     """List the defined class members of this module as the available indicators."""
     class_members = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-    indicators = [member[1] for member in class_members if member[1].__module__ == __name__ and
-                  not member[1].__name__.endswith('Array')]
+    indicators = [member[1] for member in class_members if member[1].__module__ == __name__]
     return [i.to_dict() for i in indicators]
 
 
@@ -511,7 +341,7 @@ def indicator_factory(indicator_name):
     """Return a valid indicator class based on the string provided.
 
     Given a lower case, underscore separated indicator name, return the class associated
-    with it. e.g. frost_days -> indicators.models.FrostDays
+    with it. e.g. frost_days -> indicators.indicators.FrostDays
     If no match found, return None.
     """
     this_module = sys.modules[__name__]
@@ -520,13 +350,5 @@ def indicator_factory(indicator_name):
     # Strip any Yearly prefix to maintain historical compatability, for example YearlyDrySpells
     if class_name_parts[0] == 'Yearly':
         class_name_parts = class_name_parts[1:]
-
-    if settings.FEATURE_FLAGS['array_data'] and class_name_parts[-1] != 'Array':
-        try:
-            # If the Array Data feature flag (FF) is set, automatically prefer [...]Array indicators
-            class_name = ''.join(class_name_parts + ['Array'])
-            return getattr(this_module, class_name)
-        except AttributeError:
-            pass
     class_name = ''.join(class_name_parts)
     return getattr(this_module, class_name, None)

@@ -67,6 +67,7 @@ class ClimateRequestLoggingMiddleware(object):
         if request.user.is_authenticated:
             request._tags['user'] = request.user.id
             request._tags['organization'] = request.user.userprofile.organization
+            request._tags['name'] = '{} {}'.format(request.user.first_name, request.user.last_name)
 
     def _construct_librato_metric(self, metric, tags=None):
         if tags is not None:

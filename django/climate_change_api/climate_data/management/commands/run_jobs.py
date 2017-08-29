@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 from boto_helpers.sqs import get_queue
-from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateData
+from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateDataYear
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
@@ -50,6 +50,7 @@ def download_nc(rcp, model, year, var, dir):
     key = KEY_FORMAT.format(rcp=rcp.lower(), model=model, year=year, var=var)
     filename = os.path.join(dir, os.path.basename(key))
     s3 = boto3.resource('s3')
+    logger.debug('Downloading file: s3://{}/{}'.format(BUCKET, key))
     s3.meta.client.download_file(BUCKET, key, filename)
     return filename
 
@@ -86,7 +87,7 @@ def process_message(message, queue):
     tmpdir = tempfile.mkdtemp()
     # get .nc file
     variables = {var: download_nc(scenario.name, model.name, year, var, tmpdir)
-                 for var in ClimateData.VARIABLE_CHOICES}
+                 for var in ClimateDataYear.VARIABLE_CHOICES}
     assert(all(variables))
 
     # pass to nex2db
