@@ -1,6 +1,18 @@
 # Change Log
 
-## [1.1.0](https://github.com/azavea/climate-change-api/tree/1.1.0) (2017-08-15)
+## [1.2.0](https://github.com/azavea/climate-change-api/tree/1.2.0) (2017-08-29)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.1.0...1.2.0)
+
+**Merged pull requests:**
+
+- Convert generate\_historic to array data [\#646](https://github.com/azavea/climate-change-api/pull/646)
+- Send user's name as librato tag [\#645](https://github.com/azavea/climate-change-api/pull/645)
+- Remove ClimateData model [\#639](https://github.com/azavea/climate-change-api/pull/639)
+- ADR 0008: Repository Split for ICLEI app [\#635](https://github.com/azavea/climate-change-api/pull/635)
+- Change import\_from\_other\_instance to use ClimateDataYear [\#631](https://github.com/azavea/climate-change-api/pull/631)
+- Migrate run\_jobs.py to use ClimateDataYear [\#610](https://github.com/azavea/climate-change-api/pull/610)
+
+## [1.1.0](https://github.com/azavea/climate-change-api/tree/1.1.0) (2017-08-16)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.9...1.1.0)
 
 **Merged pull requests:**
