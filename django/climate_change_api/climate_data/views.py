@@ -25,6 +25,7 @@ from climate_data.caching import (full_url_cache_key_func,
 from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
+                                 ClimateDataset,
                                  ClimateDataYear,
                                  ClimateModel,
                                  Region,
@@ -33,6 +34,7 @@ from climate_data.models import (City,
                                  HistoricDateRange)
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
+                                      ClimateDatasetSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
@@ -125,6 +127,16 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
+
+    queryset = ClimateDataset.objects.all()
+    serializer_class = ClimateDatasetSerializer
+    pagination_class = None
+    lookup_field = 'name'
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('name',)
+    ordering_fields = ('name',)
 
 
 class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):

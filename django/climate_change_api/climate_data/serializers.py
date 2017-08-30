@@ -74,6 +74,13 @@ class CityBoundarySerializer(GeoFeatureModelSerializer):
         exclude = ('id', 'city',)
 
 
+class ClimateDatasetSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ClimateDataset
+        fields = ('name', 'label', 'description', 'url',)
+
+
 class ClimateDataSourceSerializer(serializers.ModelSerializer):
 
     class Meta:
