@@ -113,7 +113,7 @@
         "properties": {
           "type": "object",
           "properties": {
-            "map_cell": { "$ref": "#/definitions/pointgeom" },
+            "map_cell": {"$ref": "#/definitions/pointgeom"},
             "name": {
               "type": "string"
             },
