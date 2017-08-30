@@ -2,6 +2,7 @@ from collections import OrderedDict
 from itertools import groupby
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db import connection
@@ -11,7 +12,8 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from climate_data.models import (City,
                                  CityBoundary,
-                                 ClimateDataCityCell,
+                                 ClimateDataCell,
+                                 ClimateDataset,
                                  ClimateDataSource,
                                  ClimateDataYear,
                                  ClimateModel,
@@ -31,21 +33,31 @@ class HistoricDateRangeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ClimateDataCityCellSerializer(serializers.ModelSerializer):
+class ClimateDataCellSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Point"),
-            ("coordinates", [obj.map_cell.lon, obj.map_cell.lat])
+            ("coordinates", [obj.lon, obj.lat])
         ])
 
     class Meta:
-        model = ClimateDataCityCell
+        model = ClimateDataCell
 
 
 class CitySerializer(GeoFeatureModelSerializer):
 
-    map_cells = ClimateDataCityCellSerializer(source='map_cell_set', many=True)
+    map_cell = serializers.SerializerMethodField()
+
+    def get_map_cell(self, obj):
+        try:
+            nex_gddp = ClimateDataset.objects.get(name='LOCA')
+            city_cell = obj.map_cell_set.get(dataset=nex_gddp)
+            serializer = ClimateDataCellSerializer(city_cell.map_cell)
+            return serializer.data
+        except (ObjectDoesNotExist, ClimateDataCell.MultipleObjectsReturned):
+            logger.warning("No valid NEX-GDDP map cell for city <%s - %s>", obj.id, obj.name)
+            return None
 
     class Meta:
         model = City
