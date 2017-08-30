@@ -50,11 +50,14 @@
     },
     "multiChartScrubber": {
       "type": "boolean"
+    },
+    "extraParams": {
+      "type": "object"
     }
   },
   "additionalProperties": false,
-  "required": ["name", "visibility", "city",
-               "scenario", "allModels", "models", "charts"],
+  "required": ["name", "city",
+               "scenario", "models", "charts"],
   "definitions": {
     "chart": {
       "type": "object",
