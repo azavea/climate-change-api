@@ -12,7 +12,7 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
 
         super(ClimateCityScenarioDataSerializerTestCase, self).setUp()
         self.VARIABLE_CHOICES = ClimateDataYear.VARIABLE_CHOICES
-        self.queryset = (ClimateDataYear.objects.filter(map_cell__city=self.city1)
+        self.queryset = (ClimateDataYear.objects.filter(map_cell__city_set__city=self.city1)
                                                 .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):

@@ -16,6 +16,31 @@ class TinyOneToOne(models.OneToOneField):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
+class ClimateDataset(models.Model):
+    """Model representing a particular climate projection dataset."""
+
+    name = models.CharField(max_length=48, unique=True)
+    label = models.CharField(max_length=128, blank=True, null=True)
+    description = models.CharField(max_length=4096, blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
+
+    _DATASETS = None
+
+    @classmethod
+    def datasets(cls):
+        """Return iterable of valid dataset names."""
+        if cls._DATASETS is None:
+            cls._DATASETS = [c.name for c in ClimateDataset.objects.all()]
+        return cls._DATASETS
+
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
+        return self.name
+
+    def natural_key(self):
+        return (self.name,)
+
+
 class ClimateModel(models.Model):
     """Model representing a climate model.
 
@@ -89,12 +114,13 @@ class ClimateDataSource(models.Model):
     scenario = models.ForeignKey(Scenario)
     year = models.PositiveSmallIntegerField()
     import_completed = models.BooleanField(default=False)
+    dataset = models.ForeignKey(ClimateDataset)
 
     class Meta:
-        unique_together = ('model', 'scenario', 'year')
+        unique_together = ('model', 'scenario', 'year', 'dataset')
 
     def natural_key(self):
-        return (self.model, self.scenario, self.year)
+        return (self.model, self.scenario, self.year, self.dataset)
 
     def __str__(self):
         """Override str for useful info in console."""
@@ -102,8 +128,8 @@ class ClimateDataSource(models.Model):
 
 
 class ClimateDataCellManager(models.Manager):
-    def get_by_natural_key(self, lat, lon):
-        return self.get(lat=lat, lon=lon)
+    def get_by_natural_key(self, lat, lon, dataset):
+        return self.get(lat=lat, lon=lon, dataset=dataset)
 
 
 class ClimateDataCell(models.Model):
@@ -113,7 +139,7 @@ class ClimateDataCell(models.Model):
     objects = ClimateDataCellManager()
 
     class Meta:
-        unique_together = ('lat', 'lon')
+        unique_together = ('lat', 'lon',)
 
     def natural_key(self):
         return (self.lat, self.lon)
@@ -224,8 +250,6 @@ class City(models.Model):
     geom = models.PointField()
     _geog = models.PointField(geography=True)
 
-    map_cell = TinyForeignKey(ClimateDataCell, on_delete=SET_NULL, null=True)
-
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
 
@@ -242,6 +266,15 @@ class City(models.Model):
     class Meta:
         unique_together = ('name', 'admin')
 
+    def get_map_cell(self, dataset):
+        """Get the map cell for a given dataset for a given city.
+
+        This method will raise ClimateDataCell.DoesNotExist if no map cell exists for the dataset,
+        and ClimateDataCell.MultipleObjectsReturned if too many -- there should only ever be one.
+
+        """
+        return ClimateDataCell.objects.get(city_set__city=self, city_set__dataset=dataset)
+
     def natural_key(self):
         return (self.name, self.admin)
 
@@ -249,6 +282,16 @@ class City(models.Model):
         """Override save to keep the geography field up to date."""
         self._geog = self.geom
         super(City, self).save(*args, **kwargs)
+
+
+class ClimateDataCityCell(models.Model):
+    city = models.ForeignKey(City, null=False, related_name='map_cell_set')
+    map_cell = models.ForeignKey(ClimateDataCell, null=False, related_name='city_set')
+    dataset = TinyForeignKey(ClimateDataset, null=False)
+
+    class Meta:
+        # A city can only have one map cell for each dataset
+        unique_together = ('city', 'dataset',)
 
 
 class ClimateDataYear(models.Model):

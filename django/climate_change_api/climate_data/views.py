@@ -25,13 +25,16 @@ from climate_data.caching import (full_url_cache_key_func,
 from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
+                                 ClimateDataset,
+                                 ClimateDataCell,
                                  ClimateDataYear,
                                  ClimateModel,
+                                 HistoricDateRange,
                                  Region,
-                                 Scenario,
-                                 HistoricDateRange)
+                                 Scenario)
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
+                                      ClimateDatasetSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
@@ -70,7 +73,7 @@ def climate_data_cache_control(func):
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     """Returns a paginated GeoJSON object of the available cities."""
 
-    queryset = City.objects.all().select_related('map_cell')
+    queryset = City.objects.all()
     serializer_class = CitySerializer
     filter_backends = (InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_class = CityFilterSet
@@ -126,6 +129,17 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 
+class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
+
+    queryset = ClimateDataset.objects.all()
+    serializer_class = ClimateDatasetSerializer
+    pagination_class = None
+    lookup_field = 'name'
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('name',)
+    ordering_fields = ('name',)
+
+
 class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = ClimateModel.objects.all()
@@ -175,11 +189,6 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-        queryset = ClimateDataYear.objects.filter(
-            map_cell=city.map_cell,
-            data_source__scenario=scenario
-        )
-
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
         model_list = ClimateModel.objects.all().only('name')
@@ -194,6 +203,25 @@ class ClimateDataView(APIView):
         AGGREGATION_CHOICES = ('avg', 'min', 'max',)
         aggregation = request.query_params.get('agg', 'avg')
         aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
+
+        # Get dataset param
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
+        if dataset_param not in DATASET_CHOICES:
+            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
+                                      .format(dataset_param, DATASET_CHOICES)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        dataset = ClimateDataset.objects.get(name=dataset_param)
+
+        try:
+            queryset = ClimateDataYear.objects.filter(
+                map_cell=city.get_map_cell(dataset),
+                data_source__scenario=scenario
+            )
+        except ClimateDataCell.DoesNotExist:
+            return Response({'error': 'No data available for {} dataset at this location'
+                                      .format(dataset_param)},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Filter on the ClimateData filter set
         data_filter = ClimateDataFilterSet(request.query_params, queryset)
