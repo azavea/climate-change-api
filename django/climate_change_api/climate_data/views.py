@@ -29,10 +29,9 @@ from climate_data.models import (City,
                                  ClimateDataCell,
                                  ClimateDataYear,
                                  ClimateModel,
+                                 HistoricDateRange,
                                  Region,
-                                 Scenario,
-                                 ClimateDataset,
-                                 HistoricDateRange)
+                                 Scenario)
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
@@ -128,6 +127,7 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
+
 
 class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
 

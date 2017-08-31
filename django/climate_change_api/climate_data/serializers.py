@@ -2,7 +2,6 @@ from collections import OrderedDict
 from itertools import groupby
 import logging
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db import connection
