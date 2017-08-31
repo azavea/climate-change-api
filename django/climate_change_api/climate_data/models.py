@@ -24,6 +24,15 @@ class ClimateDataset(models.Model):
     description = models.CharField(max_length=4096, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
 
+    _DATASETS = None
+
+    @classmethod
+    def datasets(cls):
+        """Return iterable of valid dataset names."""
+        if cls._DATASETS is None:
+            cls._DATASETS = [c.name for c in ClimateDataset.objects.all()]
+        return cls._DATASETS
+
     def __str__(self):
         """Return pretty string representation of model, used by Django for field labels."""
         return self.name
