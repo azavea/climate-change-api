@@ -26,6 +26,7 @@ from climate_data.filters import CityFilterSet, ClimateDataFilterSet
 from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateDataset,
+                                 ClimateDataCell,
                                  ClimateDataYear,
                                  ClimateModel,
                                  Region,
@@ -188,16 +189,6 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-        try:
-            dataset = ClimateDataset.objects.get(name=kwargs['dataset'])
-        except (KeyError, Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
-            dataset = ClimateDataset.objects.first()
-
-        queryset = ClimateDataYear.objects.filter(
-            map_cell=city.get_map_cell(dataset),
-            data_source__scenario=scenario
-        )
-
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
         model_list = ClimateModel.objects.all().only('name')
@@ -212,6 +203,25 @@ class ClimateDataView(APIView):
         AGGREGATION_CHOICES = ('avg', 'min', 'max',)
         aggregation = request.query_params.get('agg', 'avg')
         aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
+
+        # Get dataset param
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
+        if dataset_param not in DATASET_CHOICES:
+            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
+                                      .format(dataset_param, DATASET_CHOICES)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        dataset = ClimateDataset.objects.get(name=dataset_param)
+
+        try:
+            queryset = ClimateDataYear.objects.filter(
+                map_cell=city.get_map_cell(dataset),
+                data_source__scenario=scenario
+            )
+        except ClimateDataCell.DoesNotExist:
+            return Response({'error': 'No data available for {} dataset at this location'
+                                      .format(dataset_param)},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Filter on the ClimateData filter set
         data_filter = ClimateDataFilterSet(request.query_params, queryset)
