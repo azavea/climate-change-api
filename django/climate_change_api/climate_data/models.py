@@ -273,12 +273,7 @@ class City(models.Model):
         and ClimateDataCell.MultipleObjectsReturned if too many -- there should only ever be one.
 
         """
-        try:
-            return self.map_cell_set.get(dataset=dataset).map_cell
-        except ClimateDataCityCell.DoesNotExist:
-            raise ClimateDataCell.DoesNotExist
-        except ClimateDataCityCell.MultipleObjectsReturned:
-            raise ClimateDataCell.MultipleObjectsReturned
+        return ClimateDataCell.objects.get(city_set__city=self, city_set__dataset=dataset)
 
     def natural_key(self):
         return (self.name, self.admin)
