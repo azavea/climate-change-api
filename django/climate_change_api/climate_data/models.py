@@ -258,10 +258,18 @@ class City(models.Model):
         unique_together = ('name', 'admin')
 
     def get_map_cell(self, dataset):
+        """Get the map cell for a given dataset for a given city.
+
+        This method will raise ClimateDataCell.DoesNotExist if no map cell exists for the dataset,
+        and ClimateDataCell.MultipleObjectsReturned if too many -- there should only ever be one.
+
+        """
         try:
             return self.map_cell_set.get(dataset=dataset).map_cell
-        except self.model.DoesNotExist:
-            return None
+        except ClimateDataCityCell.DoesNotExist:
+            raise ClimateDataCell.DoesNotExist
+        except ClimateDataCityCell.MultipleObjectsReturned:
+            raise ClimateDataCell.MultipleObjectsReturned
 
     def natural_key(self):
         return (self.name, self.admin)
