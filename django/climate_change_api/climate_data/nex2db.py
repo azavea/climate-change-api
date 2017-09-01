@@ -5,7 +5,7 @@ import collections
 import numpy
 import netCDF4
 
-from .models import City, ClimateDataYear, ClimateDataCell
+from .models import City, ClimateDataCell, ClimateDataCityCell, ClimateDataYear
 from django.db import IntegrityError
 
 DAY_OF_YEAR_FEB_29 = 60
@@ -142,7 +142,7 @@ class Nex2DB(object):
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
-                cell_model, created = ClimateDataCell.objects.get_or_create(lat=lat.item(),
+                cell_model, _ = ClimateDataCell.objects.get_or_create(lat=lat.item(),
                                                                             lon=lon.item())
                 cell_models[coords] = cell_model
 
@@ -162,16 +162,23 @@ class Nex2DB(object):
                                  cell_model)
                 ClimateDataYear.objects.create(**climatedatayear_args)
 
-        # Go through all the cities and set their map_cell to the appropriate model
+        # Go through all the cities and update their ClimateDataCityCell representations
+        # Ensuring only one entry exists for a given city and dataset
         self.logger.debug('Updating cities')
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
-            if city.map_cell_set.exists():
-                assert(city.map_cell_set.filter(map_cell=cell_model).count() == 1)
-            else:
-                city.map_cell = cell_model
-                city.save()
+            try:
+                ClimateDataCityCell.objects.create(city=city,
+                                                   dataset=data_source.dataset,
+                                                   map_cell=cell_model)
+                self.logger.debug('Created new ClimateDataCityCell for '
+                                  'city %s dataset %s map_cell %s',
+                                  city.id, data_source.dataset.name, str(cell_model))
+            except IntegrityError:
+                # No need to create if it already exists
+                pass
+            assert(city.map_cell_set.filter(dataset=data_source.dataset).count() == 1)
 
         # note job completed successfully
         data_source.import_completed = True
