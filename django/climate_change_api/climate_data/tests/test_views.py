@@ -1,5 +1,6 @@
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.urls import reverse
+from django.utils.http import urlencode
 
 from rest_framework import status
 
@@ -65,6 +66,19 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_400_if_dataset_invalid(self):
+        url = u'%s?%s' % (
+            reverse('climatedata-list',
+                    kwargs={'scenario': self.rcp45.name,
+                            'city': self.city1.id}),
+            urlencode({
+                'dataset': 'BADDATASET'
+            })
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class IndicatorDetailViewTestCase(CCAPITestCase):
 
@@ -107,6 +121,20 @@ class IndicatorDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_400_if_dataset_invalid(self):
+        url = u'%s?%s' % (
+            reverse('climateindicator-get',
+                    kwargs={'scenario': self.rcp45.name,
+                            'city': self.city1.id,
+                            'indicator': 'frost_days'}),
+            urlencode({
+                'dataset': 'BADDATASET'
+            })
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class ClimateModelViewSetTestCase(CCAPITestCase):
