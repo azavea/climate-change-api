@@ -133,8 +133,8 @@ class ClimateDataCellManager(models.Manager):
 
 
 class ClimateDataCell(models.Model):
-    lat = models.DecimalField(max_digits=6, decimal_places=3)
-    lon = models.DecimalField(max_digits=6, decimal_places=3)
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
 
     objects = ClimateDataCellManager()
 
