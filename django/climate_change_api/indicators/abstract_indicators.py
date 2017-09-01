@@ -73,15 +73,15 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
-        dataset = ClimateDataset.objects.first()
-
-        self.city = city
-        self.scenario = scenario
-        self.dataset = dataset
-        self.map_cell = self.city.get_map_cell(self.dataset)
 
         self.params = self.init_params_class()
         self.params.validate(parameters)
+
+        self.city = city
+        self.scenario = scenario
+
+        self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
+        self.map_cell = self.city.get_map_cell(self.dataset)
 
         self.queryset = self.get_queryset()
 
@@ -126,7 +126,8 @@ class Indicator(object):
         """
         queryset = ClimateDataYear.objects.filter(
             map_cell=self.map_cell,
-            data_source__scenario=self.scenario
+            data_source__scenario=self.scenario,
+            data_source__dataset=self.dataset
         )
 
         filter_params = {}
