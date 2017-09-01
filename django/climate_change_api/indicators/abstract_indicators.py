@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
                                  HistoricAverageClimateDataYear,
-                                 ClimateDataset)
+                                 ClimateDataset, ClimateDataCell)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -79,9 +79,13 @@ class Indicator(object):
 
         self.city = city
         self.scenario = scenario
-
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
-        self.map_cell = self.city.get_map_cell(self.dataset)
+
+        try:
+            self.map_cell = self.city.get_map_cell(self.dataset)
+        except ClimateDataCell.DoesNotExist:
+            raise ValidationError('No data available for %s dataset at this location'
+                                  % (self.dataset.name))
 
         self.queryset = self.get_queryset()
 
