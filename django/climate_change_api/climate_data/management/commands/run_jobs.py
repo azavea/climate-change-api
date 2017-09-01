@@ -10,7 +10,11 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 from boto_helpers.sqs import get_queue
-from climate_data.models import ClimateModel, Scenario, ClimateDataSource, ClimateDataYear
+from climate_data.models import (ClimateDataset,
+                                 ClimateDataSource,
+                                 ClimateDataYear,
+                                 ClimateModel,
+                                 Scenario)
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
@@ -24,10 +28,10 @@ def get_key_format_for_dataset(dataset_name):
         return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
                 '{var}_day_BCSD_{rcp}_r1i1p1_{model}_{year}.nc')
     elif dataset_name == 'LOCA':
-        return ('/LOCA/{model}/16th/{rcp}/r1i1p1/DTR/'
-                'DTR_day_{model}_{rcp}_r1i1p1_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
+        return ('LOCA/{model}/16th/{rcp}/r1i1p1/{var}/'
+                '{var}_day_{model}_{rcp}_r1i1p1_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
     else:
-        raise ValueError('Unsupported dataset {}'.format(dataset))
+        raise ValueError('Unsupported dataset {}'.format(dataset_name))
 
 
 def handle_failing_message(message, failures):
@@ -55,8 +59,8 @@ def handle_failing_message(message, failures):
         message.change_visibility(VisibilityTimeout=0)
 
 
-def download_nc(dataset, rcp, model, year, var, dir):
-    key_format = get_key_format_for_dataset(dataset.name)
+def download_nc(dataset_name, rcp, model, year, var, dir):
+    key_format = get_key_format_for_dataset(dataset_name)
     key = key_format.format(rcp=rcp.lower(), model=model, year=year, var=var)
     filename = os.path.join(dir, os.path.basename(key))
     s3 = boto3.resource('s3')
