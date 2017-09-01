@@ -143,7 +143,7 @@ class Nex2DB(object):
             except KeyError:
                 # This cell is not in the database, we should create it
                 cell_model, _ = ClimateDataCell.objects.get_or_create(lat=lat.item(),
-                                                                            lon=lon.item())
+                                                                      lon=lon.item())
                 cell_models[coords] = cell_model
 
             climatedatayear_args = dict(map_cell=cell_model,
