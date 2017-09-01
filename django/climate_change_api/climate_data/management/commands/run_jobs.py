@@ -26,13 +26,34 @@ BUCKET = 'nasanex'
 def get_key_format_for_dataset(dataset_name):
 
     if dataset_name == 'NEX-GDDP':
-        return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/r1i1p1/v1.0/'
-                '{var}_day_BCSD_{rcp}_r1i1p1_{model}_{year}.nc')
+        return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/{ensemble}/v1.0/'
+                '{var}_day_BCSD_{rcp}_{ensemble}_{model}_{year}.nc')
     elif dataset_name == 'LOCA':
-        return ('LOCA/{model}/16th/{rcp}/r1i1p1/{var}/'
-                '{var}_day_{model}_{rcp}_r1i1p1_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
+        return ('LOCA/{model}/16th/{rcp}/{ensemble}/{var}/'
+                '{var}_day_{model}_{rcp}_{ensemble}_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
     else:
         raise ValueError('Unsupported dataset {}'.format(dataset_name))
+
+
+def get_gddp_model_ensemble(model_name):
+    return 'r1i1p1'
+
+
+def get_loca_model_ensemble(model_name):
+    # TODO azavea/climate-change-api#651: Add other LOCA specific models here
+    if model_name == 'CCSM4':
+        return 'r6i1p1'
+    else:
+        return 'r1i1p1'
+
+
+def get_dataset_model_ensemble(dataset_name, model_name):
+    # TODO: azavea/climate-change-api#651: Consider moving this mapping directly into the
+    #   database representation of Scenarios/Datasets/Models
+    return {
+        'LOCA': get_loca_model_ensemble,
+        'NEX-GDDP': get_gddp_model_ensemble
+    }[dataset_name](model_name)
 
 
 def handle_failing_message(message, failures):
@@ -61,11 +82,12 @@ def handle_failing_message(message, failures):
 
 
 def download_nc(dataset_name, rcp, model, year, var, dir):
+    ensemble = get_dataset_model_ensemble(dataset_name, model)
     key_format = get_key_format_for_dataset(dataset_name)
-    key = key_format.format(rcp=rcp.lower(), model=model, year=year, var=var)
+    key = key_format.format(rcp=rcp.lower(), model=model, year=year, var=var, ensemble=ensemble)
     filename = os.path.join(dir, os.path.basename(key))
     s3 = boto3.resource('s3')
-    logger.debug('Downloading file: s3://{}/{}'.format(BUCKET, key))
+    logger.warning('Downloading file: s3://{}/{}'.format(BUCKET, key))
     s3.meta.client.download_file(BUCKET, key, filename)
     return filename
 
@@ -109,13 +131,13 @@ def process_message(message, queue):
 
     # download files
     tmpdir = tempfile.mkdtemp()
-    # get .nc file
-    variables = {var: download_nc(dataset.name, scenario.name, model.name, year, var, tmpdir)
-                 for var in ClimateDataYear.VARIABLE_CHOICES}
-    assert(all(variables))
-
-    # pass to nex2db
     try:
+        # get .nc file
+        variables = {var: download_nc(dataset.name, scenario.name, model.name, year, var, tmpdir)
+                     for var in ClimateDataYear.VARIABLE_CHOICES}
+        assert(all(variables))
+
+        # pass to nex2db
         Nex2DB(logger=logger).nex2db(variables, datasource)
     except:
         logger.exception('Failed to process data for dataset %s model %s scenario %s year %s',
