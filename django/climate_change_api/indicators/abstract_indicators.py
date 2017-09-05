@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
                                  HistoricAverageClimateDataYear,
-                                 ClimateDataset, ClimateDataCell)
+                                 ClimateDataset,
+                                 ClimateDataCell)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
