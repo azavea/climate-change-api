@@ -168,16 +168,17 @@ class Nex2DB(object):
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
-            try:
-                ClimateDataCityCell.objects.create(city=city,
-                                                   dataset=data_source.dataset,
-                                                   map_cell=cell_model)
+            city_cell, created = ClimateDataCityCell.objects.get_or_create(
+                city=city,
+                dataset=data_source.dataset,
+                map_cell=cell_model
+            )
+            if created:
                 self.logger.debug('Created new ClimateDataCityCell for '
                                   'city %s dataset %s map_cell %s',
                                   city.id, data_source.dataset.name, str(cell_model))
-            except IntegrityError:
-                # No need to create if it already exists
-                pass
+            else:
+                assert(city_cell.map_cell.id == cell_model.id)
             assert(city.map_cell_set.filter(dataset=data_source.dataset).count() == 1)
 
         # note job completed successfully
