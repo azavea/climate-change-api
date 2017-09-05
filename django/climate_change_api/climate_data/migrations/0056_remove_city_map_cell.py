@@ -21,9 +21,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL('SET CONSTRAINTS ALL IMMEDIATE', reverse_sql=migrations.RunSQL.noop),
         migrations.RunPython(migrations.RunPython.noop, migrate_restore_city_cell_foreign_key),
         migrations.RemoveField(
             model_name='city',
             name='map_cell',
         ),
+        migrations.RunSQL(migrations.RunSQL.noop, reverse_sql='SET CONSTRAINTS ALL IMMEDIATE'),
     ]
