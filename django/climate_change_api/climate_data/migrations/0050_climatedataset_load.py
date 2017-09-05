@@ -24,11 +24,6 @@ def populate_climatedataset(apps, schema_editor):
         ClimateDataset.objects.create(**dataset)
 
 
-def reverse(apps, schema_editor):
-    """Reverse operation allowed, and is a no-op."""
-    pass
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -36,5 +31,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(populate_climatedataset, reverse)
+        migrations.RunPython(populate_climatedataset, migrations.RunPython.noop)
     ]
