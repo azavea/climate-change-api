@@ -76,7 +76,7 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a scenario instance')
 
         self.params = self.init_params_class()
-        self.params.validate(parameters)
+        self.params.set_parameters(parameters)
 
         self.city = city
         self.scenario = scenario
@@ -87,6 +87,8 @@ class Indicator(object):
         except ClimateDataCell.DoesNotExist:
             raise ValidationError('No data available for %s dataset at this location'
                                   % (self.dataset.name))
+        self.params = self.init_params_class()
+        self.params.set_parameters(parameters)
 
         self.queryset = self.get_queryset()
 
