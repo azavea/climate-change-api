@@ -62,7 +62,7 @@ class IndicatorParamsTestCase(TestCase):
                                  {'models': 'CCSM4', 'years': '2050:2060', 'units': 'K',
                                   'agg': 'avg', 'time_aggregation': 'monthly'})
         indicator_params = self._get_params_class()
-        indicator_params.validate(parameters)
+        indicator_params.set_parameters(parameters)
         self.assertEqual(indicator_params.models.value, ['CCSM4'])
         self.assertEqual(indicator_params.years.value, ['2050:2060'])
         self.assertEqual(indicator_params.units.value, 'K')
@@ -77,7 +77,7 @@ class IndicatorParamsTestCase(TestCase):
                                   'units': 'K',
                                   'agg': 'avg'})
         indicator_params = self._get_params_class()
-        indicator_params.validate(parameters)
+        indicator_params.set_parameters(parameters)
         with self.assertRaises(AttributeError):
             indicator_params.doesnotexist
 
@@ -93,7 +93,7 @@ class IndicatorParamsTestCase(TestCase):
         for parameters in parameters_sets:
             p = merge_dicts(self.default_parameters, parameters)
             indicator_params = self._get_params_class()
-            indicator_params.validate(p)
+            indicator_params.set_parameters(p)
             self.assertEqual(indicator_params.years.value, [])
             self.assertEqual(indicator_params.models.value, [])
             self.assertEqual(indicator_params.agg.serialized_value, indicator_params.agg.default)
@@ -140,7 +140,7 @@ class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
         """Use a default value if required param is missing."""
         parameters = {'percentile': None}
         indicator_params = self._get_params_class()
-        indicator_params.validate(parameters)
+        indicator_params.set_parameters(parameters)
         self.assertEqual(indicator_params.percentile.value, 99)
 
     def test_validate_percentile_out_of_bounds(self):
@@ -148,12 +148,12 @@ class PercentileIndicatorParamsTestCase(IndicatorParamsTestCase):
         parameters = merge_dicts(self.default_parameters, {'percentile': '-1'})
         indicator_params = self._get_params_class()
         with self.assertRaises(ValidationError):
-            indicator_params.validate(parameters)
+            indicator_params.set_parameters(parameters)
 
         parameters = merge_dicts(self.default_parameters, {'percentile': '101'})
         indicator_params = self._get_params_class()
         with self.assertRaises(ValidationError):
-            indicator_params.validate(parameters)
+            indicator_params.set_parameters(parameters)
 
 
 class HeatWaveIndicatorParamsTestCase(IndicatorParamsTestCase):
@@ -172,4 +172,4 @@ class HeatWaveIndicatorParamsTestCase(IndicatorParamsTestCase):
             parameters = merge_dicts(self.default_parameters, {'historic_range': '2010'})
             indicator_params = self._get_params_class()
             with self.assertRaises(ValidationError):
-                indicator_params.validate(parameters)
+                indicator_params.set_parameters(parameters)

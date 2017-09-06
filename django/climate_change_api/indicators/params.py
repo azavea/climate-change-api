@@ -203,8 +203,8 @@ class IndicatorParams(object):
                                       default='NEX-GDDP',
                                       validators=[ChoicesValidator(ClimateDataset.datasets())])
 
-    def validate(self, parameters):
-        """Validate all parameters."""
+    def set_parameters(self, parameters):
+        """Set all parameters."""
         for param_class in self._get_params_classes():
             value = parameters.get(param_class.name, None)
             param_class.set_value(value)
