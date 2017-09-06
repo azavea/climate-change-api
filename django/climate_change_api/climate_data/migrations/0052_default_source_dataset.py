@@ -5,20 +5,35 @@ from __future__ import unicode_literals
 from django.db import migrations
 
 
+def populate_climatedatasource_dataset(apps, schema_editor):
+    ClimateDataSource = apps.get_model('climate_data', 'ClimateDataSource')
+    ClimateDataset = apps.get_model('climate_data', 'ClimateDataset')
+
+    gddp = ClimateDataset.objects.get(name='NEX-GDDP')
+
+    ClimateDataSource.objects.filter(dataset__isnull=True).update(dataset=gddp)
+
+
+def delete_nondefault_datasets(apps, schema_editor):
+    """Delete non-GDDP ClimateDataSource objects.
+
+    So that we don't end up with duplicate ClimateDataSource objects later when
+    the unique together reverts to model+scenario+year
+
+    """
+    ClimateDataSource = apps.get_model('climate_data', 'ClimateDataSource')
+    ClimateDataset = apps.get_model('climate_data', 'ClimateDataset')
+
+    gddp = ClimateDataset.objects.get(name='NEX-GDDP')
+    ClimateDataSource.objects.exclude(dataset=gddp).delete()
+
+
 class Migration(migrations.Migration):
-
-    def populate_climatedatasource_dataset(apps, schema_editor):
-        ClimateDataSource = apps.get_model('climate_data', 'ClimateDataSource')
-        ClimateDataset = apps.get_model('climate_data', 'ClimateDataset')
-
-        gddp = ClimateDataset.objects.get(name='NEX-GDDP')
-
-        ClimateDataSource.objects.filter(dataset__isnull=True).update(dataset=gddp)
 
     dependencies = [
         ('climate_data', '0051_add_dataset_to_datasource'),
     ]
 
     operations = [
-        migrations.RunPython(populate_climatedatasource_dataset, migrations.RunPython.noop)
+        migrations.RunPython(populate_climatedatasource_dataset, delete_nondefault_datasets)
     ]
