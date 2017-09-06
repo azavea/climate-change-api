@@ -143,11 +143,6 @@ class IndicatorParams(object):
                             required=False,
                             default='all',
                             validators=None)
-    dataset = IndicatorParam('dataset',
-                             description=DATASET_PARAM_DOCSTRING,
-                             required=False,
-                             default='NEX-GDDP',
-                             validators=[ChoicesValidator(ClimateDataset.datasets())])
     years = IndicatorParam('years',
                            description=YEARS_PARAM_DOCSTRING,
                            required=False,
@@ -158,7 +153,6 @@ class IndicatorParams(object):
                          required=False,
                          default='min,max,avg',
                          validators=None)
-
     custom_time_agg = IndicatorParam('custom_time_agg',
                                      description=CUSTOM_TIME_AGG_PARAM_DOCSTRING,
                                      required=False,
@@ -183,6 +177,11 @@ class IndicatorParams(object):
                                                required=False,
                                                default='yearly',
                                                validators=[valid_aggregations_validator])
+        self.dataset = IndicatorParam('dataset',
+                                      description=DATASET_PARAM_DOCSTRING,
+                                      required=False,
+                                      default='NEX-GDDP',
+                                      validators=[ChoicesValidator(ClimateDataset.datasets())])
 
     def validate(self, parameters):
         """Validate all parameters."""
