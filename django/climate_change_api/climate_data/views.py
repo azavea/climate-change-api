@@ -27,6 +27,7 @@ from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateDataset,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataYear,
                                  ClimateModel,
                                  HistoricDateRange,
@@ -35,6 +36,7 @@ from climate_data.models import (City,
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
+                                      ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
@@ -127,6 +129,18 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+    @detail_route(methods=['GET'])
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def map_cell(self, request, pk=None):
+        """Return the map cells associated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        city = self.get_object()
+        map_cells = ClimateDataCityCell.objects.filter(city=city)
+        L = map(lambda x: ClimateDataCityCellSerializer(x).data, map_cells)
+        return Response(L, status=status.HTTP_200_OK)
 
 
 class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
