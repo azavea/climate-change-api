@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from climate_data.models import (City, Scenario, ClimateModel,
                                  ClimateDataSource, ClimateDataCell,
-                                 ClimateDataYear)
+                                 ClimateDataYear, ClimateDataset)
 
 import requests
 
@@ -88,7 +88,7 @@ def create_models(models):
     return dbmodels
 
 
-def import_city(citydata):
+def import_city(citydata, dataset):
     """Create a city and if not already created, its grid cell from the city dict.
 
     City dict was downloaded from another instance.
@@ -98,9 +98,10 @@ def import_city(citydata):
             name=citydata['properties']['name'],
             admin=citydata['properties']['admin'],
         )
-        if not city.map_cell:
-            city.map_cell = import_map_cell(citydata['properties']['map_cell'])
-            city.save()
+        if not city.map_cell_set.filter(dataset=dataset).exists():
+            city.map_cell_set.add(
+                cell=import_map_cell(citydata['properties']['map_cell']),
+                dataset=dataset)
         return city
     except ObjectDoesNotExist:
         logger.info('City does not exist, creating city')
@@ -108,13 +109,17 @@ def import_city(citydata):
         map_cell = import_map_cell(citydata['properties']['map_cell'])
 
         city_coordinates = citydata['geometry']['coordinates']
-        return City.objects.create(
+        city = City.objects.create(
             name=citydata['properties']['name'],
             admin=citydata['properties']['admin'],
             geom=Point(*city_coordinates),
-            _geog=Point(*city_coordinates),
-            map_cell=map_cell,
+            _geog=Point(*city_coordinates)
         )
+        city.map_cell_set.add(
+            cell=map_cell,
+            dataset=dataset
+        )
+        return city
 
 
 def import_map_cell(mapcelldata):
@@ -190,6 +195,8 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
+        dataset = ClimateDataset.objects.get(name='NEX-GDDP')
+
         logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
         for city in islice(remote_cities, options['num_cities']):
@@ -197,8 +204,9 @@ class Command(BaseCommand):
                         city['properties']['name'],
                         city['properties']['admin'])
 
-            created_city = import_city(city)
-            coordinates = (created_city.map_cell.lat, created_city.map_cell.lon)
+            created_city = import_city(city, dataset)
+            map_cell = created_city.map_cell_set.get(dataset=dataset).map_cell
+            coordinates = (map_cell.lat, map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
                     logger.info('Skipping %s, data already imported', model.name)
@@ -207,7 +215,7 @@ class Command(BaseCommand):
                 if ClimateDataYear.objects.filter(
                         data_source__model=model,
                         data_source__scenario=scenario,
-                        map_cell=created_city.map_cell).exists():
+                        map_cell=map_cell).exists():
                     logger.info('Skipping %s, data already imported', model.name)
                 else:
                     logger.info('Importing %s', model)
@@ -216,7 +224,7 @@ class Command(BaseCommand):
                             domain=options['domain'],
                             token=options['token'],
                             remote_city_id=city['id'],
-                            local_map_cell=created_city.map_cell,
+                            local_map_cell=map_cell,
                             scenario=scenario,
                             model=model)
                         imported_grid_cells[model.name].append(coordinates)
@@ -226,7 +234,7 @@ class Command(BaseCommand):
                         ClimateDataYear.objects.filter(
                             data_source__model=model,
                             data_source__scenario=scenario,
-                            map_cell=created_city.map_cell).delete()
+                            map_cell=map_cell).delete()
                         failure_logger.warn('Import failed for model %s scenario %s city %s %s, %s',
                                             model.name,
                                             scenario.name,

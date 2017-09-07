@@ -7,7 +7,8 @@ from django.core.exceptions import ValidationError
 
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
-                                 HistoricAverageClimateDataYear)
+                                 HistoricAverageClimateDataYear,
+                                 ClimateDataset)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -72,9 +73,12 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
+        dataset = ClimateDataset.objects.first()
 
         self.city = city
         self.scenario = scenario
+        self.dataset = dataset
+        self.map_cell = self.city.get_map_cell(self.dataset)
 
         self.params = self.init_params_class()
         self.params.validate(parameters)
@@ -121,7 +125,7 @@ class Indicator(object):
         by the constructor.
         """
         queryset = ClimateDataYear.objects.filter(
-            map_cell=self.city.map_cell,
+            map_cell=self.map_cell,
             data_source__scenario=self.scenario
         )
 
@@ -396,14 +400,14 @@ class ArrayBaselineIndicator(ArrayIndicator):
     def calculate_value(self, *args, **kwargs):
         try:
             self.baseline = ClimateDataBaseline.objects.get(
-                map_cell=self.city.map_cell,
+                map_cell=self.map_cell,
                 historic_range_id=self.params.historic_range.value,
                 percentile=self.params.percentile.value
             )
         except ClimateDataBaseline.DoesNotExist:
             logger.warning("No ClimateDataBaseline for " +
                            "<map_cell: {}, historic_range: {}, percentile: {}>"
-                           .format(self.city.map_cell,
+                           .format(self.map_cell,
                                    self.params.historic_range.value,
                                    self.params.percentile.value))
             self.baseline = None
@@ -424,7 +428,7 @@ class ArrayHistoricAverageIndicator(ArrayIndicator):
         # Load historical averages for our desired variables
         try:
             averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
-                        .get(map_cell=self.city.map_cell,
+                        .get(map_cell=self.map_cell,
                              historic_range=self.params.historic_range.value))
 
             # Label the dictionary keys so they don't conflict with yearly data
@@ -433,7 +437,7 @@ class ArrayHistoricAverageIndicator(ArrayIndicator):
         except HistoricAverageClimateDataYear.DoesNotExist:
             logger.warning("No HistoricAverageClimateDataYear for " +
                            "<map_cell: {}, historic_range: {}>"
-                           .format(self.city.map_cell, self.params.historic_range.value))
+                           .format(self.map_cell, self.params.historic_range.value))
             return {}
 
     def generate_model_segments(self):
