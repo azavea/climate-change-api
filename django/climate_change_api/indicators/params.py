@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from django.core.exceptions import ValidationError
-from climate_data.models import HistoricDateRange
+from climate_data.models import HistoricDateRange, ClimateDataset
 
 from .unit_converters import TemperatureConverter
 from .validators import (ChoicesValidator,
@@ -12,6 +12,9 @@ from .validators import (ChoicesValidator,
 MODELS_PARAM_DOCSTRING = ("A list of comma separated model names to filter the indicator by. The "
                           "indicator values in the response will only use the selected models. If "
                           "not provided, defaults to all models.")
+
+DATASET_PARAM_DOCSTRING = ("A single value defining which provider to use for raw climate data. "
+                           "If not provided, defaults to NEX-GDDP.")
 
 YEARS_PARAM_DOCSTRING = ("A list of comma separated year ranges to filter the response by. "
                          "Defaults to all years available. A year range is of the form "
@@ -49,7 +52,7 @@ PERCENTILE_PARAM_DOCSTRING = ("The percentile threshold used to determine the ap
 HISTORIC_RANGE_PARAM_DOCSTRING = ("The 30 year range of past years used to define the historic "
                                   "norm. Get the available options by querying the "
                                   "historic ranges endpoint. Defaults to the most recent "
-                                  "period in the historical dataset.")
+                                  "period in the historical data.")
 
 BASETEMP_PARAM_DOCSTRING = ("The base temperature used to calculate the daily difference for degree"
                             " days summations. Defaults to 65. See the 'basetemp_units' for a "
@@ -150,7 +153,6 @@ class IndicatorParams(object):
                          required=False,
                          default='min,max,avg',
                          validators=None)
-
     custom_time_agg = IndicatorParam('custom_time_agg',
                                      description=CUSTOM_TIME_AGG_PARAM_DOCSTRING,
                                      required=False,
@@ -175,6 +177,11 @@ class IndicatorParams(object):
                                                required=False,
                                                default='yearly',
                                                validators=[valid_aggregations_validator])
+        self.dataset = IndicatorParam('dataset',
+                                      description=DATASET_PARAM_DOCSTRING,
+                                      required=False,
+                                      default='NEX-GDDP',
+                                      validators=[ChoicesValidator(ClimateDataset.datasets())])
 
     def validate(self, parameters):
         """Validate all parameters."""

@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
                                  HistoricAverageClimateDataYear,
-                                 ClimateDataset)
+                                 ClimateDataset,
+                                 ClimateDataCell)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -73,15 +74,19 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
-        dataset = ClimateDataset.objects.first()
-
-        self.city = city
-        self.scenario = scenario
-        self.dataset = dataset
-        self.map_cell = self.city.get_map_cell(self.dataset)
 
         self.params = self.init_params_class()
         self.params.validate(parameters)
+
+        self.city = city
+        self.scenario = scenario
+        self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
+
+        try:
+            self.map_cell = self.city.get_map_cell(self.dataset)
+        except ClimateDataCell.DoesNotExist:
+            raise ValidationError('No data available for %s dataset at this location'
+                                  % (self.dataset.name))
 
         self.queryset = self.get_queryset()
 
@@ -126,7 +131,8 @@ class Indicator(object):
         """
         queryset = ClimateDataYear.objects.filter(
             map_cell=self.map_cell,
-            data_source__scenario=self.scenario
+            data_source__scenario=self.scenario,
+            data_source__dataset=self.dataset
         )
 
         filter_params = {}

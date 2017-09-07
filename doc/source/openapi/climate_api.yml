@@ -297,6 +297,13 @@ paths:
           type: string
           required: false
           x-example: avg,min
+        - name: dataset
+          description: |
+            Choose which provider to use for climate projection data. Defaults to NEX-GDDP
+          in: query
+          type: string
+          required: false
+          x-example: NEX-GDDP,LOCA
       responses:
         "200":
           description: |
