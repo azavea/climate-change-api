@@ -12,6 +12,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from climate_data.models import (City,
                                  CityBoundary,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataset,
                                  ClimateDataSource,
                                  ClimateDataYear,
@@ -44,6 +45,21 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
         model = ClimateDataCell
 
 
+class ClimateDataCityCellSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Feature"),
+            ("geometry", ClimateDataCellSerializer(obj.map_cell).data),
+            ("properties", {
+                "dataset": obj.dataset.name
+            })
+        ])
+
+    class Meta:
+        model = ClimateDataCityCell
+
+
 class CitySerializer(GeoFeatureModelSerializer):
 
     map_cell = serializers.SerializerMethodField()
@@ -60,11 +76,10 @@ class CitySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog',)
+        exclude = ('_geog', 'map_cell')
 
 
 class CityBoundarySerializer(GeoFeatureModelSerializer):
-
     class Meta:
         model = CityBoundary
         id_field = False
