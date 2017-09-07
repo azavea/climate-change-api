@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.2.1](https://github.com/azavea/climate-change-api/tree/1.2.1) (2017-09-07)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.2.0...1.2.1)
+
+**Merged pull requests:**
+
+- Feature/awf/fix latest django migrations [\#657](https://github.com/azavea/climate-change-api/pull/657)
+- Livin la vida LOCA [\#653](https://github.com/azavea/climate-change-api/pull/653)
+- Add extra params field to project schema [\#649](https://github.com/azavea/climate-change-api/pull/649)
+- Add ClimateDataset model and make City\<-\>Cell many-to-many [\#644](https://github.com/azavea/climate-change-api/pull/644)
+
 ## [1.2.0](https://github.com/azavea/climate-change-api/tree/1.2.0) (2017-08-29)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.1.0...1.2.0)
 
