@@ -1,7 +1,6 @@
 [
     {
         "model": "climate_data.climatemodel",
-        "pk": 1,
         "fields": {
             "name": "ACCESS1-0",
             "label": "ACCESS1-0",
@@ -10,7 +9,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 2,
         "fields": {
             "name": "BNU-ESM",
             "label": "BNU-ESM",
@@ -19,7 +17,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 3,
         "fields": {
             "name": "CCSM4",
             "label": "CCSM4",
@@ -28,7 +25,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 4,
         "fields": {
             "name": "CESM1-BGC",
             "label": "CESM1-BGC",
@@ -37,7 +33,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 5,
         "fields": {
             "name": "CNRM-CM5",
             "label": "CNRM-CM5",
@@ -46,7 +41,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 6,
         "fields": {
             "name": "CSIRO-Mk3-6-0",
             "label": "CSIRO-Mk3-6-0",
@@ -55,7 +49,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 7,
         "fields": {
             "name": "CanESM2",
             "label": "CanESM2",
@@ -64,7 +57,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 8,
         "fields": {
             "name": "GFDL-CM3",
             "label": "GFDL-CM3",
@@ -73,7 +65,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 9,
         "fields": {
             "name": "GFDL-ESM2G",
             "label": "GFDL-ESM2G",
@@ -82,7 +73,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 10,
         "fields": {
             "name": "GFDL-ESM2M",
             "label": "GFDL-ESM2M",
@@ -91,7 +81,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 11,
         "fields": {
             "name": "IPSL-CM5A-LR",
             "label": "IPSL-CM5A-LR",
@@ -100,7 +89,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 12,
         "fields": {
             "name": "IPSL-CM5A-MR",
             "label": "IPSL-CM5A-MR",
@@ -109,7 +97,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 13,
         "fields": {
             "name": "MIROC-ESM-CHEM",
             "label": "MIROC-ESM-CHEM",
@@ -118,7 +105,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 14,
         "fields": {
             "name": "MIROC-ESM",
             "label": "MIROC-ESM",
@@ -127,7 +113,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 15,
         "fields": {
             "name": "MIROC5",
             "label": "MIROC5",
@@ -136,7 +121,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 16,
         "fields": {
             "name": "MPI-ESM-LR",
             "label": "MPI-ESM-LR",
@@ -145,7 +129,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 17,
         "fields": {
             "name": "MPI-ESM-MR",
             "label": "MPI-ESM-MR",
@@ -154,7 +137,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 18,
         "fields": {
             "name": "MRI-CGCM3",
             "label": "MRI-CGCM3",
@@ -163,7 +145,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 19,
         "fields": {
             "name": "NorESM1-M",
             "label": "NorESM1-M",
@@ -172,7 +153,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 20,
         "fields": {
             "name": "bcc-csm1-1",
             "label": "bcc-csm1-1",
@@ -181,7 +161,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 21,
         "fields": {
             "name": "inmcm4",
             "label": "inmcm4",
@@ -190,7 +169,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 23,
         "fields": {
             "name": "GISS-E2-H",
             "label": "GISS-E2-H",
@@ -199,7 +177,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 24,
         "fields": {
             "name": "bcc-csm1-1-m",
             "label": "bcc-csm1-1-m",
@@ -208,7 +185,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 25,
         "fields": {
             "name": "CMCC-CM",
             "label": "CMCC-CM",
@@ -217,7 +193,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 26,
         "fields": {
             "name": "CESM1-CAM5",
             "label": "CESM1-CAM5",
@@ -226,7 +201,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 27,
         "fields": {
             "name": "HadGEM2-CC",
             "label": "HadGEM2-CC",
@@ -235,7 +209,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 28,
         "fields": {
             "name": "EC-EARTH",
             "label": "EC-EARTH",
@@ -244,7 +217,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 29,
         "fields": {
             "name": "CMCC-CMS",
             "label": "CMCC-CMS",
@@ -253,7 +225,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 30,
         "fields": {
             "name": "CMCC-CM5",
             "label": "CMCC-CM5",
@@ -262,7 +233,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 31,
         "fields": {
             "name": "ACCESS1-3",
             "label": "ACCESS1-3",
@@ -271,7 +241,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 32,
         "fields": {
             "name": "HadGEM2-AO",
             "label": "HadGEM2-AO",
@@ -280,7 +249,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 33,
         "fields": {
             "name": "HadGEM2-ES",
             "label": "HadGEM2-ES",
@@ -289,7 +257,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 34,
         "fields": {
             "name": "GISS-E2-R",
             "label": "GISS-E2-R",
@@ -298,7 +265,6 @@
     },
     {
         "model": "climate_data.climatemodel",
-        "pk": 35,
         "fields": {
             "name": "FGOALS-g2",
             "label": "FGOALS-g2",
