@@ -59,6 +59,9 @@ class ClimateModel(models.Model):
         """Return pretty string representation of model, used by Django for field labels."""
         return self.name
 
+    def natural_key(self):
+        return (self.name,)
+
 
 class Scenario(models.Model):
     """Model representing a particular climate emissions scenario.
