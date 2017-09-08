@@ -187,6 +187,15 @@ class ClimateDataView(APIView):
         except (City.DoesNotExist, City.MultipleObjectsReturned):
             raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
 
+        # Get dataset param
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
+        if dataset_param not in DATASET_CHOICES:
+            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
+                                      .format(dataset_param, DATASET_CHOICES)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        dataset = ClimateDataset.objects.get(name=dataset_param)
+
         try:
             scenario = Scenario.objects.get(name=kwargs['scenario'])
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
@@ -194,7 +203,7 @@ class ClimateDataView(APIView):
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
-        model_list = ClimateModel.objects.all().only('name')
+        model_list = dataset.models.all().only('name')
         if models_param:
             model_list = model_list.filter(name__in=models_param.split(','))
 
@@ -206,15 +215,6 @@ class ClimateDataView(APIView):
         AGGREGATION_CHOICES = ('avg', 'min', 'max',)
         aggregation = request.query_params.get('agg', 'avg')
         aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
-
-        # Get dataset param
-        DATASET_CHOICES = set(ClimateDataset.datasets())
-        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
-        if dataset_param not in DATASET_CHOICES:
-            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
-                                      .format(dataset_param, DATASET_CHOICES)},
-                            status=status.HTTP_400_BAD_REQUEST)
-        dataset = ClimateDataset.objects.get(name=dataset_param)
 
         try:
             queryset = ClimateDataYear.objects.filter(
@@ -282,12 +282,20 @@ class IndicatorDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
+        if dataset_param not in DATASET_CHOICES:
+            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
+                                      .format(dataset_param, DATASET_CHOICES)},
+                            status=status.HTTP_400_BAD_REQUEST)
+        dataset = ClimateDataset.objects.get(name=dataset_param)
+
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
         if models_param:
-            model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
+            model_list = dataset.models.filter(name__in=models_param.split(','))
         else:
-            model_list = ClimateModel.objects.all()
+            model_list = dataset.models.all()
 
         indicator_key = kwargs['indicator']
         IndicatorClass = indicator_factory(indicator_key)
