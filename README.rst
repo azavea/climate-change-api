@@ -155,6 +155,7 @@ Load scenario and climate model data::
 
     ./scripts/console django './manage.py loaddata scenarios'
     ./scripts/console django './manage.py loaddata climate-models'
+    ./scripts/console django './manage.py loaddata climate-datasets'
 
 
 Load cities::
