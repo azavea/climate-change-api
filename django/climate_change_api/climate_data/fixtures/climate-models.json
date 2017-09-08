@@ -1,169 +1,308 @@
-[{
-    "model": "climate_data.ClimateModel",
-    "pk": 1,
-    "fields": {
-        "name": "ACCESS1-0",
-        "label": "ACCESS1-0",
-        "base_time": null
+[
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 1,
+        "fields": {
+            "name": "ACCESS1-0",
+            "label": "ACCESS1-0",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 2,
+        "fields": {
+            "name": "BNU-ESM",
+            "label": "BNU-ESM",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 3,
+        "fields": {
+            "name": "CCSM4",
+            "label": "CCSM4",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 4,
+        "fields": {
+            "name": "CESM1-BGC",
+            "label": "CESM1-BGC",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 5,
+        "fields": {
+            "name": "CNRM-CM5",
+            "label": "CNRM-CM5",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 6,
+        "fields": {
+            "name": "CSIRO-Mk3-6-0",
+            "label": "CSIRO-Mk3-6-0",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 7,
+        "fields": {
+            "name": "CanESM2",
+            "label": "CanESM2",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 8,
+        "fields": {
+            "name": "GFDL-CM3",
+            "label": "GFDL-CM3",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 9,
+        "fields": {
+            "name": "GFDL-ESM2G",
+            "label": "GFDL-ESM2G",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 10,
+        "fields": {
+            "name": "GFDL-ESM2M",
+            "label": "GFDL-ESM2M",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 11,
+        "fields": {
+            "name": "IPSL-CM5A-LR",
+            "label": "IPSL-CM5A-LR",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 12,
+        "fields": {
+            "name": "IPSL-CM5A-MR",
+            "label": "IPSL-CM5A-MR",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 13,
+        "fields": {
+            "name": "MIROC-ESM-CHEM",
+            "label": "MIROC-ESM-CHEM",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 14,
+        "fields": {
+            "name": "MIROC-ESM",
+            "label": "MIROC-ESM",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 15,
+        "fields": {
+            "name": "MIROC5",
+            "label": "MIROC5",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 16,
+        "fields": {
+            "name": "MPI-ESM-LR",
+            "label": "MPI-ESM-LR",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 17,
+        "fields": {
+            "name": "MPI-ESM-MR",
+            "label": "MPI-ESM-MR",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 18,
+        "fields": {
+            "name": "MRI-CGCM3",
+            "label": "MRI-CGCM3",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 19,
+        "fields": {
+            "name": "NorESM1-M",
+            "label": "NorESM1-M",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 20,
+        "fields": {
+            "name": "bcc-csm1-1",
+            "label": "bcc-csm1-1",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 21,
+        "fields": {
+            "name": "inmcm4",
+            "label": "inmcm4",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 23,
+        "fields": {
+            "name": "GISS-E2-H",
+            "label": "GISS-E2-H",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 24,
+        "fields": {
+            "name": "bcc-csm1-1-m",
+            "label": "bcc-csm1-1-m",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 25,
+        "fields": {
+            "name": "CMCC-CM",
+            "label": "CMCC-CM",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 26,
+        "fields": {
+            "name": "CESM1-CAM5",
+            "label": "CESM1-CAM5",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 27,
+        "fields": {
+            "name": "HadGEM2-CC",
+            "label": "HadGEM2-CC",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 28,
+        "fields": {
+            "name": "EC-EARTH",
+            "label": "EC-EARTH",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 29,
+        "fields": {
+            "name": "CMCC-CMS",
+            "label": "CMCC-CMS",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 30,
+        "fields": {
+            "name": "CMCC-CM5",
+            "label": "CMCC-CM5",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 31,
+        "fields": {
+            "name": "ACCESS1-3",
+            "label": "ACCESS1-3",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 32,
+        "fields": {
+            "name": "HadGEM2-AO",
+            "label": "HadGEM2-AO",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 33,
+        "fields": {
+            "name": "HadGEM2-ES",
+            "label": "HadGEM2-ES",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 34,
+        "fields": {
+            "name": "GISS-E2-R",
+            "label": "GISS-E2-R",
+            "base_time": null
+        }
+    },
+    {
+        "model": "climate_data.climatemodel",
+        "pk": 35,
+        "fields": {
+            "name": "FGOALS-g2",
+            "label": "FGOALS-g2",
+            "base_time": null
+        }
     }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 2,
-    "fields": {
-        "name": "BNU-ESM",
-        "label": "BNU-ESM",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 3,
-    "fields": {
-        "name": "CCSM4",
-        "label": "CCSM4",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 4,
-    "fields": {
-        "name": "CESM1-BGC",
-        "label": "CESM1-BGC",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 5,
-    "fields": {
-        "name": "CNRM-CM5",
-        "label": "CNRM-CM5",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 6,
-    "fields": {
-        "name": "CSIRO-Mk3-6-0",
-        "label": "CSIRO-Mk3-6-0",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 7,
-    "fields": {
-        "name": "CanESM2",
-        "label": "CanESM2",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 8,
-    "fields": {
-        "name": "GFDL-CM3",
-        "label": "GFDL-CM3",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 9,
-    "fields": {
-        "name": "GFDL-ESM2G",
-        "label": "GFDL-ESM2G",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 10,
-    "fields": {
-        "name": "GFDL-ESM2M",
-        "label": "GFDL-ESM2M",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 11,
-    "fields": {
-        "name": "IPSL-CM5A-LR",
-        "label": "IPSL-CM5A-LR",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 12,
-    "fields": {
-        "name": "IPSL-CM5A-MR",
-        "label": "IPSL-CM5A-MR",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 13,
-    "fields": {
-        "name": "MIROC-ESM-CHEM",
-        "label": "MIROC-ESM-CHEM",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 14,
-    "fields": {
-        "name": "MIROC-ESM",
-        "label": "MIROC-ESM",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 15,
-    "fields": {
-        "name": "MIROC5",
-        "label": "MIROC5",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 16,
-    "fields": {
-        "name": "MPI-ESM-LR",
-        "label": "MPI-ESM-LR",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 17,
-    "fields": {
-        "name": "MPI-ESM-MR",
-        "label": "MPI-ESM-MR",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 18,
-    "fields": {
-        "name": "MRI-CGCM3",
-        "label": "MRI-CGCM3",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 19,
-    "fields": {
-        "name": "NorESM1-M",
-        "label": "NorESM1-M",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 20,
-    "fields": {
-        "name": "bcc-csm1-1",
-        "label": "bcc-csm1-1",
-        "base_time": null
-    }
-}, {
-    "model": "climate_data.ClimateModel",
-    "pk": 21,
-    "fields": {
-        "name": "inmcm4",
-        "label": "inmcm4",
-        "base_time": null
-    }
-}]
+]
