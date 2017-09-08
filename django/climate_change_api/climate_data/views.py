@@ -138,6 +138,7 @@ class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyMode
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
 class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -149,6 +150,7 @@ class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelV
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
 class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -161,6 +163,7 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
 class ClimateDataView(APIView):
