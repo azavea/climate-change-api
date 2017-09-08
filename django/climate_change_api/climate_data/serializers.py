@@ -74,9 +74,15 @@ class CityBoundarySerializer(GeoFeatureModelSerializer):
 
 class ClimateDatasetSerializer(serializers.ModelSerializer):
 
+    models = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+     )
+
     class Meta:
         model = ClimateDataset
-        fields = ('name', 'label', 'description', 'url',)
+        fields = ('name', 'label', 'description', 'url', 'models',)
 
 
 class ClimateDataSourceSerializer(serializers.ModelSerializer):
@@ -155,6 +161,12 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
 
 class ClimateModelSerializer(serializers.ModelSerializer):
+
+    datasets = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+     )
 
     class Meta:
         model = ClimateModel
