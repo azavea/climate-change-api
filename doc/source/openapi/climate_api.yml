@@ -539,6 +539,11 @@ definitions:
       base_time:
         type: [string, "null"] #null is necessary to make nullable, but is invalid yml
         description: The base reference time of the model, provided in ISO8061 format
+      datasets:
+        type: array
+        description: Array of dataset names valid for this climate model
+        items:
+          type: string
   Indicators:
     type: array
     items:
