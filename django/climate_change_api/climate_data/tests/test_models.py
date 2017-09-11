@@ -5,8 +5,7 @@ from climate_data.tests.mixins import ClimateDataSetupMixin
 from climate_data.models import (City,
                                  ClimateDataset,
                                  ClimateDataCell,
-                                 ClimateDataSource,
-                                 ClimateModel)
+                                 ClimateDataSource)
 
 
 class ModelsTestCase(ClimateDataSetupMixin, TestCase):
@@ -77,6 +76,6 @@ class ClimateDataSourceTestCase(TestCase):
                                          year=2000)
         with self.assertRaises(ValueError):
             ClimateDataSource.objects.create(scenario=self.scenario,
-                                            dataset=self.loca,
-                                            model=self.gddp_model,
-                                            year=2000)
+                                             dataset=self.loca,
+                                             model=self.gddp_model,
+                                             year=2000)
