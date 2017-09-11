@@ -62,8 +62,6 @@ def get_loca_model_ensemble(model_name, rcp):
 
 
 def get_dataset_model_ensemble(dataset_name, model_name, rcp):
-    # TODO: azavea/climate-change-api#651: Consider moving this mapping directly into the
-    #   database representation of Scenarios/Datasets/Models
     return {
         'LOCA': get_loca_model_ensemble,
         'NEX-GDDP': get_gddp_model_ensemble
