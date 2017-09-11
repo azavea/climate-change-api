@@ -141,16 +141,14 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
         """Should allow equality filtering on name."""
-        ClimateModelFactory(name='CCSM4')
-        ClimateModelFactory(name='CanESM2')
-        ClimateModelFactory(name='CNRM-CM5')
+        # ClimateModel data now loaded by migration
 
         url = reverse('climatemodel-list')
 
         # Ensure no filters pull all data
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual(len(response.data), 34)
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'CCSM4'})
