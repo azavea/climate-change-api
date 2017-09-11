@@ -78,7 +78,7 @@ class ClimateDatasetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name'
-     )
+    )
 
     class Meta:
         model = ClimateDataset
@@ -166,7 +166,7 @@ class ClimateModelSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name'
-     )
+    )
 
     class Meta:
         model = ClimateModel

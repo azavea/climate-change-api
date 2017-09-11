@@ -4,9 +4,9 @@ from django.utils.http import urlencode
 
 from rest_framework import status
 
-from climate_data.models import CityBoundary, ClimateDataYear, ClimateModel
+from climate_data.models import CityBoundary, ClimateDataYear
 from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
-from climate_data.tests.factories import ScenarioFactory
+from climate_data.tests.factories import ClimateDatasetFactory, ScenarioFactory
 
 from user_management.tests.api_test_case import CCAPITestCase
 
@@ -15,42 +15,45 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
 
     def test_complete_response(self):
 
+        dataset = ClimateDatasetFactory(name='NEX-GDDP')
         url = reverse('climatedata-list',
                       kwargs={'scenario': self.rcp45.name, 'city': self.city1.id})
 
-        response = self.client.get(url)
+        response = self.client.get(url, {'dataset': dataset.name})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
         self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
-                         ClimateModel.objects.all()])
+                         dataset.models.all()])
         self.assertEqual(len(response.data['data']), 4)
 
     def test_scenario_filter(self):
+        dataset = ClimateDatasetFactory(name='NEX-GDDP')
         url = reverse('climatedata-list',
                       kwargs={'scenario': self.rcp85.name, 'city': self.city1.id})
 
-        response = self.client.get(url)
+        response = self.client.get(url, {'dataset': dataset.name})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city1.id)
         self.assertEqual(response.data['scenario'], self.rcp85.name)
         self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
-                         ClimateModel.objects.all()])
+                         dataset.models.all()])
         self.assertEqual(len(response.data['data']), 1)
 
     def test_city_filter(self):
+        dataset = ClimateDatasetFactory(name='NEX-GDDP')
         url = reverse('climatedata-list',
                       kwargs={'scenario': self.rcp45.name, 'city': self.city2.id})
 
-        response = self.client.get(url)
+        response = self.client.get(url, {'dataset': dataset.name})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['city']['id'], self.city2.id)
         self.assertEqual(response.data['scenario'], self.rcp45.name)
         self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
         self.assertEqual(response.data['climate_models'], [m.name for m in
-                         ClimateModel.objects.all()])
+                         dataset.models.all()])
         self.assertEqual(len(response.data['data']), 0)
 
     def test_404_if_city_invalid(self):
