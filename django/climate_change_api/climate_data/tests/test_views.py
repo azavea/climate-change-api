@@ -6,8 +6,7 @@ from rest_framework import status
 
 from climate_data.models import CityBoundary, ClimateDataYear, ClimateModel
 from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
-from climate_data.tests.factories import (ClimateModelFactory,
-                                          ScenarioFactory)
+from climate_data.tests.factories import ScenarioFactory
 
 from user_management.tests.api_test_case import CCAPITestCase
 
