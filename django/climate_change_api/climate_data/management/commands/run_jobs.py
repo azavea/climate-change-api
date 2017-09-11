@@ -13,7 +13,6 @@ from boto_helpers.sqs import get_queue
 from climate_data.models import (ClimateDataset,
                                  ClimateDataSource,
                                  ClimateDataYear,
-                                 ClimateModel,
                                  Scenario)
 from climate_data.nex2db import Nex2DB
 
@@ -100,7 +99,7 @@ def process_message(message, queue):
                  '{scenario_id} year {year}'
                  .format(**message_dict))
     dataset = ClimateDataset.objects.get(name=message_dict['dataset'])
-    model = ClimateModel.objects.get(id=message_dict['model_id'])
+    model = dataset.models.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
     logger.info('Processing SQS message for model %s scenario %s year %s',
