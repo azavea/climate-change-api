@@ -76,7 +76,6 @@ def associate_climate_datasets_and_models(apps, schema_editor):
         for model_name in model_list:
             model = ClimateModel.objects.get(name=model_name)
             dataset.models.add(model)
-        dataset.save()
 
     add_models_to_dataset('NEX-GDDP', NEX_GDDP_MODELS)
     add_models_to_dataset('LOCA', LOCA_MODELS)
