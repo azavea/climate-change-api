@@ -1,7 +1,12 @@
 from django.test import TestCase
 
+from climate_data.tests.factories import ClimateDatasetFactory, ClimateModelFactory, ScenarioFactory
 from climate_data.tests.mixins import ClimateDataSetupMixin
-from climate_data.models import City, ClimateDataset, ClimateDataCell
+from climate_data.models import (City,
+                                 ClimateDataset,
+                                 ClimateDataCell,
+                                 ClimateDataSource,
+                                 ClimateModel)
 
 
 class ModelsTestCase(ClimateDataSetupMixin, TestCase):
@@ -33,3 +38,45 @@ class CityTestCase(ClimateDataSetupMixin, TestCase):
         dataset = ClimateDataset.objects.create(name='DOESNOTEXIST')
         with self.assertRaises(ClimateDataCell.DoesNotExist):
             self.city1.get_map_cell(dataset)
+
+
+class ClimateDatasetTestCase(TestCase):
+
+    def setUp(self):
+        # Dataset/model objects actually created by migrations
+        self.loca = ClimateDatasetFactory(name='LOCA')
+        self.gddp = ClimateDatasetFactory(name='NEX-GDDP')
+
+        self.loca_model = ClimateModelFactory(name='ACCESS1-3')
+        self.both_model = ClimateModelFactory(name='ACCESS1-0')
+
+        self.loca.models.add(self.both_model)
+        self.loca.models.add(self.loca_model)
+        self.gddp.models.add(self.both_model)
+
+    def test_has_model(self):
+        self.assertTrue(self.loca.has_model(self.both_model))
+        self.assertTrue(self.gddp.has_model(self.both_model))
+        self.assertTrue(self.loca.has_model(self.loca_model))
+        self.assertFalse(self.gddp.has_model(self.loca_model))
+
+
+class ClimateDataSourceTestCase(TestCase):
+
+    def setUp(self):
+        # Dataset/model objects actually created by migrations
+        self.loca = ClimateDatasetFactory(name='LOCA')
+        self.loca_model = ClimateModelFactory(name='ACCESS1-3')
+        self.gddp_model = ClimateModelFactory(name='BNU-ESM')
+        self.scenario = ScenarioFactory(name='RCP85')
+
+    def test_save_check_datset_models(self):
+        ClimateDataSource.objects.create(scenario=self.scenario,
+                                         dataset=self.loca,
+                                         model=self.loca_model,
+                                         year=2000)
+        with self.assertRaises(ValueError):
+            ClimateDataSource.objects.create(scenario=self.scenario,
+                                            dataset=self.loca,
+                                            model=self.gddp_model,
+                                            year=2000)
