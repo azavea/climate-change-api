@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+if [[ -n "${CC_DEBUG}" ]]; then
+    set -x
+fi
+
+docker-compose exec django python manage.py "${@}"

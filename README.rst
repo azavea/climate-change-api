@@ -151,10 +151,9 @@ Run migrations::
     ./scripts/console django './manage.py migrate'
 
 
-Load scenario and climate model data::
+Load scenario data::
 
     ./scripts/console django './manage.py loaddata scenarios'
-    ./scripts/console django './manage.py loaddata climate-models'
 
 
 Load cities::
@@ -163,6 +162,8 @@ Load cities::
 
     Alternatively, load geonames_cities1000_us.geojson for more data.
 
+It is unnecessary to load dataset and climate model data. The valid set of options for each
+of these models are now handled in migrations since it is a static list.
 
 Create a data processing job. Note that if a previous job has been run for the same parameters, the `ClimateDataSource` object it created will need to be deleted first::
 

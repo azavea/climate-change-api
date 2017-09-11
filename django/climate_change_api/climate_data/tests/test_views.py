@@ -6,8 +6,7 @@ from rest_framework import status
 
 from climate_data.models import CityBoundary, ClimateDataYear, ClimateModel
 from climate_data.tests.mixins import ClimateDataSetupMixin, CityDataSetupMixin
-from climate_data.tests.factories import (ClimateModelFactory,
-                                          ScenarioFactory)
+from climate_data.tests.factories import ScenarioFactory
 
 from user_management.tests.api_test_case import CCAPITestCase
 
@@ -141,16 +140,14 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
 
     def test_filtering(self):
         """Should allow equality filtering on name."""
-        ClimateModelFactory(name='CCSM4')
-        ClimateModelFactory(name='CanESM2')
-        ClimateModelFactory(name='CNRM-CM5')
+        # ClimateModel data now loaded by migration
 
         url = reverse('climatemodel-list')
 
         # Ensure no filters pull all data
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual(len(response.data), 34)
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'CCSM4'})
