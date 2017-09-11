@@ -20,9 +20,9 @@ The global climate is changing. Seasons are shifting. Sea levels are rising. Ext
 
 Everyone has climate questions. For example, how will my area be affected? With what probability can these changes be expected? How will the growing season shift? Can I access and afford reliable climate projection data?
 
-The National Aeronautics and Space Administration of the United States (NASA) produces an abundance of quality global climate data available in NEX format. Recognizing that this more unique data format limits accessibility for many climate professionals, scientists, and even citizens who are actively preparing for climate change, the Climate API processes the NEX data according to the standards set by the Intergovernmental Panel on Climate Change (|IPCC|) and serves it in the universal format, |JSON|. |JSON| is a data structure accepted by virtually all modern programming languages.
+The National Aeronautics and Space Administration of the United States (NASA) produces an abundance of quality global climate data available in NetCDF format. Recognizing that this more unique data format limits accessibility for many climate professionals, scientists, and even citizens who are actively preparing for climate change, the Climate API processes the NEX data according to the standards set by the Intergovernmental Panel on Climate Change (|IPCC|) and serves it in the universal format, |JSON|. |JSON| is a data structure accepted by virtually all modern programming languages.
 
-Currently, the Climate API includes temperature and precipitation data for cities across the entire USA historically and under two popular carbon emission scenarios projected until the end of the century.
+Currently, the Climate API includes temperature and precipitation data for cities across the entire USA historically and under two popular carbon emission scenarios projected until the end of the century. Users can retrieve these results from two popular climate datasets, either NASA NEX-GDDP or LOCA. See `datasets`_ for more information.
 
 Accessible and standardized climate data through the Climate API will help answer decision makers, scientists, technologists, and citizens to answer the aforementioned questions and more. Read on to learn how to use the API.
 
@@ -50,6 +50,9 @@ Any API request must be made with an active account token in the request header:
     curl -i https://app.climate.azavea.com/api/scenario/ -H "Authorization: Token <your_token>"
 
 Voila! You've just make your first Climate API request.
+
+
+.. _`datasets`: api_reference.html#dataset
 
 
 .. URLS:

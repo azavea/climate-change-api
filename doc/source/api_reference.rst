@@ -10,6 +10,12 @@ City
 .. include:: api_reference/city.rst
 
 
+Dataset
+-------
+
+.. include:: api_reference/dataset.rst
+
+
 Climate Model
 -------------
 
