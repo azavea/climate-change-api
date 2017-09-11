@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.db import migrations, IntegrityError
+from django.db import migrations
 
 
 logger = logging.getLogger(__name__)
@@ -80,15 +80,11 @@ def add_missing_climate_models(apps, schema_editor):
 
     """
     ClimateModel = apps.get_model('climate_data', 'ClimateModel')
-    models_to_insert = []
     all_models = set(NEX_GDDP_MODELS + LOCA_MODELS)
-    for model in all_models:
-        try:
-            ClimateModel.objects.get(name=model)
-        except ClimateModel.DoesNotExist:
-            model = ClimateModel(name=model, label=model)
-            models_to_insert.append(model)
-    ClimateModel.objects.bulk_create(models_to_insert)
+    existing_models = set(ClimateModel.objects.all().values_list('name', flat=True))
+    new_models = all_models - existing_models
+    for model in new_models:
+        ClimateModel.objects.create(name=model, label=model)
 
 
 class Migration(migrations.Migration):
