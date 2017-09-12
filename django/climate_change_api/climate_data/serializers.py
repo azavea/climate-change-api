@@ -62,8 +62,6 @@ class ClimateDataCityCellSerializer(serializers.ModelSerializer):
 
 class CitySerializer(GeoFeatureModelSerializer):
 
-    map_cell = serializers.SerializerMethodField()
-
     def get_map_cell(self, obj):
         try:
             nex_gddp = ClimateDataset.objects.get(name='NEX-GDDP')
@@ -76,7 +74,7 @@ class CitySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog', 'map_cell')
+        exclude = ('_geog', )
 
 
 class CityBoundarySerializer(GeoFeatureModelSerializer):
