@@ -9,7 +9,7 @@ from django.utils.cache import patch_cache_control
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -68,6 +68,23 @@ def climate_data_cache_control(func):
         patch_cache_control(response, **cache_headers)
         return response
     return handler
+
+
+class ClimateDatasetValidationMixin(object):
+    """Provides a single method which validates a 'dataset' request param."""
+
+    def validate_param_dataset(self, request, default_dataset='NEX-GDDP'):
+        """Return valid ClimateDataset from GET param.
+
+        Raise DRF ParseError if dataset invalid or not found
+
+        """
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', default_dataset)
+        if dataset_param not in DATASET_CHOICES:
+            raise ParseError(detail='Dataset {} does not exist. Choose one of {}.'
+                                    .format(dataset_param, DATASET_CHOICES))
+        return ClimateDataset.objects.get(name=dataset_param)
 
 
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -166,7 +183,7 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     ordering = ('name',)
 
 
-class ClimateDataView(APIView):
+class ClimateDataView(ClimateDatasetValidationMixin, APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
@@ -187,19 +204,12 @@ class ClimateDataView(APIView):
         except (City.DoesNotExist, City.MultipleObjectsReturned):
             raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
 
-        # Get dataset param
-        DATASET_CHOICES = set(ClimateDataset.datasets())
-        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
-        if dataset_param not in DATASET_CHOICES:
-            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
-                                      .format(dataset_param, DATASET_CHOICES)},
-                            status=status.HTTP_400_BAD_REQUEST)
-        dataset = ClimateDataset.objects.get(name=dataset_param)
-
         try:
             scenario = Scenario.objects.get(name=kwargs['scenario'])
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+
+        dataset = self.validate_param_dataset(request)
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
@@ -222,9 +232,8 @@ class ClimateDataView(APIView):
                 data_source__scenario=scenario
             )
         except ClimateDataCell.DoesNotExist:
-            return Response({'error': 'No data available for {} dataset at this location'
-                                      .format(dataset_param)},
-                            status=status.HTTP_400_BAD_REQUEST)
+            raise ParseError(detail='No data available for {} dataset at this location'
+                                    .format(dataset.name))
 
         # Filter on the ClimateData filter set
         data_filter = ClimateDataFilterSet(request.query_params, queryset)
@@ -264,7 +273,7 @@ class IndicatorDetailView(APIView):
         return Response(IndicatorClass.to_dict())
 
 
-class IndicatorDataView(APIView):
+class IndicatorDataView(ClimateDatasetValidationMixin, APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
@@ -282,13 +291,7 @@ class IndicatorDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
-        DATASET_CHOICES = set(ClimateDataset.datasets())
-        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
-        if dataset_param not in DATASET_CHOICES:
-            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
-                                      .format(dataset_param, DATASET_CHOICES)},
-                            status=status.HTTP_400_BAD_REQUEST)
-        dataset = ClimateDataset.objects.get(name=dataset_param)
+        dataset = self.validate_param_dataset(request)
 
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
