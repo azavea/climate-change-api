@@ -80,15 +80,36 @@ class IndicatorParam(object):
     @param default: Default value to use for parameter if none provided
     @param validators: Array of functions or classes implementing the django.core.validators
                        interface, used to validate the parameter.
+    @param empty_value: Input value that signals an empty value.
     """
 
-    def __init__(self, name, description='', required=True, default=None, validators=None):
+    def __init__(self, name, description='', required=True, default=None, validators=None,
+                 empty_value=''):
         self.name = name
         self.description = description
         self.required = required
         self.default = default
         self.validators = validators if validators is not None else []
         self.value = None
+        self.serialized_value = None
+        self.empty_value = empty_value
+
+    def set_value(self, serialized_value):
+        """Set value of parameter.
+
+        Deserialize the passed value and save both it's serialized and deserialized
+        representation after validation is passed.
+        """
+        if serialized_value is None:
+            serialized_value = self.default
+        deserialized = self.deserialize(serialized_value)
+        self.validate(deserialized)
+        self.serialized_value = serialized_value
+        self.value = deserialized
+
+    def deserialize(self, value):
+        """Deserialize a value and return the result."""
+        return value if value != self.empty_value else None
 
     def validate(self, value):
         """Validate the parameter by running all defined validators.
@@ -97,19 +118,11 @@ class IndicatorParam(object):
 
         Raises django.core.exceptions.ValidationError on the first failed validation check.
         """
-        value = value if value is not None else self.default
-
-        # for user readability, params defaulting to all options available accept 'all' as a value,
-        # which must be converted to None/null to return all
-        if value == 'all' and self.name in ('years', 'models'):
-            value = None
-
         if value is None and self.required:
             raise ValidationError('{} is required.'.format(self.name))
 
         for v in self.validators:
             v(value)
-        self.value = value
 
     def to_dict(self):
         """Return complete representation of this class as a serializable dict.
@@ -131,6 +144,12 @@ class IndicatorParam(object):
         return str(self.to_dict())
 
 
+class CommaSeparatedIndicatorParam(IndicatorParam):
+    def deserialize(self, value):
+        """Deserialize a value and return the result."""
+        return value.split(',') if value != self.empty_value else []
+
+
 class IndicatorParams(object):
     """Superclass used to define parameters necessary for an Indicator class to function.
 
@@ -138,21 +157,24 @@ class IndicatorParams(object):
     if the IndicatorParam in question has no run-time dependencies.
     """
 
-    models = IndicatorParam('models',
-                            description=MODELS_PARAM_DOCSTRING,
-                            required=False,
-                            default='all',
-                            validators=None)
-    years = IndicatorParam('years',
-                           description=YEARS_PARAM_DOCSTRING,
-                           required=False,
-                           default='all',
-                           validators=None)
-    agg = IndicatorParam('agg',
-                         description=AGG_PARAM_DOCSTRING,
-                         required=False,
-                         default='min,max,avg',
-                         validators=None)
+    models = CommaSeparatedIndicatorParam('models',
+                                          description=MODELS_PARAM_DOCSTRING,
+                                          required=False,
+                                          default='all',
+                                          validators=None,
+                                          empty_value='all')
+    years = CommaSeparatedIndicatorParam('years',
+                                         description=YEARS_PARAM_DOCSTRING,
+                                         required=False,
+                                         default='all',
+                                         validators=None,
+                                         empty_value='all')
+    agg = CommaSeparatedIndicatorParam('agg',
+                                       description=AGG_PARAM_DOCSTRING,
+                                       required=False,
+                                       default='min,max,avg',
+                                       validators=None)
+
     custom_time_agg = IndicatorParam('custom_time_agg',
                                      description=CUSTOM_TIME_AGG_PARAM_DOCSTRING,
                                      required=False,
@@ -183,11 +205,11 @@ class IndicatorParams(object):
                                       default='NEX-GDDP',
                                       validators=[ChoicesValidator(ClimateDataset.datasets())])
 
-    def validate(self, parameters):
-        """Validate all parameters."""
+    def set_parameters(self, parameters):
+        """Set all parameters."""
         for param_class in self._get_params_classes():
             value = parameters.get(param_class.name, None)
-            param_class.validate(value)
+            param_class.set_value(value)
 
     def to_dict(self):
         return [c.to_dict() for c in self._get_params_classes()]

@@ -76,7 +76,7 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a scenario instance')
 
         self.params = self.init_params_class()
-        self.params.validate(parameters)
+        self.params.set_parameters(parameters)
 
         self.city = city
         self.scenario = scenario
@@ -87,6 +87,8 @@ class Indicator(object):
         except ClimateDataCell.DoesNotExist:
             raise ValidationError('No data available for %s dataset at this location'
                                   % (self.dataset.name))
+        self.params = self.init_params_class()
+        self.params.set_parameters(parameters)
 
         self.queryset = self.get_queryset()
 
@@ -142,8 +144,8 @@ class Indicator(object):
             filter_params['offset_end'] = True
 
         filterset = ClimateDataFilterSet(**filter_params)
-        queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
-        queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+        queryset = filterset.filter_years(queryset, 'years', ','.join(self.params.years.value))
+        queryset = filterset.filter_models(queryset, 'models', ','.join(self.params.models.value))
 
         value_columns = ['data_source__year', 'data_source__model_id']
         value_columns.extend(var for var in self.variables
@@ -184,7 +186,7 @@ class Indicator(object):
 
         # Serialize the keyed groups using the requested sub-aggregations
         return self.serializer.to_representation(results,
-                                                 aggregations=self.params.agg.value.split(','))
+                                                 aggregations=self.params.agg.value)
 
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
