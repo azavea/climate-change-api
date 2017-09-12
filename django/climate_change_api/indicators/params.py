@@ -80,9 +80,11 @@ class IndicatorParam(object):
     @param default: Default value to use for parameter if none provided
     @param validators: Array of functions or classes implementing the django.core.validators
                        interface, used to validate the parameter.
+    @param empty_value: Input value that signals an empty value.
     """
 
-    def __init__(self, name, description='', required=True, default=None, validators=None, none=''):
+    def __init__(self, name, description='', required=True, default=None, validators=None,
+                 empty_value=''):
         self.name = name
         self.description = description
         self.required = required
@@ -90,7 +92,7 @@ class IndicatorParam(object):
         self.validators = validators if validators is not None else []
         self.value = None
         self.serialized_value = None
-        self.none = none
+        self.empty_value = empty_value
 
     def set_value(self, serialized_value):
         """Set value of parameter.
@@ -107,7 +109,7 @@ class IndicatorParam(object):
 
     def deserialize(self, value):
         """Deserialize a value and return the result."""
-        return value if value != self.none else None
+        return value if value != self.empty_value else None
 
     def validate(self, value):
         """Validate the parameter by running all defined validators.
@@ -145,7 +147,7 @@ class IndicatorParam(object):
 class CommaSeparatedIndicatorParam(IndicatorParam):
     def deserialize(self, value):
         """Deserialize a value and return the result."""
-        return value.split(',') if value != self.none else []
+        return value.split(',') if value != self.empty_value else []
 
 
 class IndicatorParams(object):
@@ -160,13 +162,13 @@ class IndicatorParams(object):
                                           required=False,
                                           default='all',
                                           validators=None,
-                                          none='all')
+                                          empty_value='all')
     years = CommaSeparatedIndicatorParam('years',
                                          description=YEARS_PARAM_DOCSTRING,
                                          required=False,
                                          default='all',
                                          validators=None,
-                                         none='all')
+                                         empty_value='all')
     agg = CommaSeparatedIndicatorParam('agg',
                                        description=AGG_PARAM_DOCSTRING,
                                        required=False,
