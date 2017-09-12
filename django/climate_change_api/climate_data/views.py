@@ -139,8 +139,20 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
         """
         city = self.get_object()
         map_cells = ClimateDataCityCell.objects.filter(city=city)
-        L = map(lambda x: ClimateDataCityCellSerializer(x).data, map_cells)
-        return Response(L, status=status.HTTP_200_OK)
+        response = [ClimateDataCityCellSerializer(map_cell).data for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+    @detail_route(methods=['GET'])
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def datasets(self, request, pk=None):
+        """Return the names of the datasets assocated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        city = self.get_object()
+        map_cells = ClimateDataCityCell.objects.filter(city=city)
+        response = [map_cell.dataset.name for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
