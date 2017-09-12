@@ -1,5 +1,8 @@
 
-The Climate Dataset endpoints describe the datasets available in the Climate API.
+The Climate Dataset endpoints describe the datasets available in the Climate API. Currently the API serves data from two datasets:
+
+ - `NASA NEX-GDDP`_
+ - `UCSD LOCA`_
 
 The "name" attribute of a dataset response can be used in other requests to specify which dataset to source results from.
 
@@ -89,3 +92,6 @@ Response:
             "CESM1-BGC"
         ]
     }
+
+.. _`NASA NEX-GDDP`: https://cds.nccs.nasa.gov/nex-gddp/
+.. _`UCSD LOCA`: http://loca.ucsd.edu/
