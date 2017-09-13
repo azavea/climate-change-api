@@ -5,6 +5,9 @@ from django.conf import settings
 
 from statsd.defaults.django import statsd
 
+LAB_URL = 'lab.climate.azavea'
+LAB_STAGING_URL = 'lab.staging.climate.azavea'
+
 
 class ClimateRequestLoggingMiddleware(object):
     """Middleware class to submit request/response tracking to StatsD.
@@ -68,6 +71,9 @@ class ClimateRequestLoggingMiddleware(object):
             request._tags['user'] = request.user.id
             request._tags['organization'] = request.user.userprofile.organization
             request._tags['name'] = '{} {}'.format(request.user.first_name, request.user.last_name)
+
+            if LAB_URL or LAB_STAGING_URL in request.META['HTTP_ORIGIN']:
+                request._tags['origin'] = 'lab'
 
     def _construct_librato_metric(self, metric, tags=None):
         if tags is not None:
