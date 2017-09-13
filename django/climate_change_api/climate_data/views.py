@@ -27,6 +27,7 @@ from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateDataset,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataYear,
                                  ClimateModel,
                                  HistoricDateRange,
@@ -35,6 +36,7 @@ from climate_data.models import (City,
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
+                                      ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
@@ -144,6 +146,50 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+    @detail_route(methods=['GET'])
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def datasets(self, request, pk=None):
+        """Return the names of the datasets assocated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        city = self.get_object()
+        map_cells = ClimateDataCityCell.objects.filter(city=city)
+        response = [map_cell.dataset.name for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class CityMapCellListView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Return the map cells associated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        map_cells = ClimateDataCityCell.objects.filter(city_id=kwargs['city'])
+        if len(map_cells) == 0:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        response = [ClimateDataCityCellSerializer(map_cell).data for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class CityMapCellDatasetDetailView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Return the detail of a map cell assocated with a city and dataset.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        try:
+            map_cell = ClimateDataCityCell.objects.get(city_id=kwargs['city'],
+                                                       dataset__name=kwargs['dataset'])
+            response = ClimateDataCityCellSerializer(map_cell).data
+            return Response(response, status=status.HTTP_200_OK)
+        except ClimateDataCityCell.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
