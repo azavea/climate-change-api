@@ -189,6 +189,54 @@ paths:
         "404":
           description: |
             No valid boundary
+  /api/city/{pk}/map-cell/:
+    get:
+      description: |
+        Return the list of valid map cells for this city along with the datasets they belong to.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+      responses:
+        "200":
+          description: |
+            List of map cells valid for the city as a list of GeoJson Point features
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ClimateCityMapCell"
+        "404":
+          description: |
+            No valid map cells
+  /api/city/{pk}/map-cell/{dataset}/:
+    get:
+      description: |
+        Return the map cell for the requested combination of city and dataset.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+        - name: dataset
+          in: path
+          type: string
+          required: true
+          description: A string dataset name as retrieved by the dataset endpoint
+          x-example: 4
+      responses:
+        "200":
+          description: |
+            The map cell valid for the requested city and dataset as a GeoJson Point feature
+          schema:
+            $ref: "#/definitions/ClimateCityMapCell"
+        "404":
+          description: |
+            No valid map cell
   /api/dataset/:
     get:
       description: Lists all climate datasets available via the Climate API
@@ -218,6 +266,9 @@ paths:
           description: ClimateDataset object
           schema:
             $ref: "#/definitions/ClimateDataset"
+        "404":
+          description: |
+            No valid dataset with the requested name
   /api/climate-model/:
     get:
       description: Lists all climate models available via the Climate API
@@ -576,6 +627,20 @@ definitions:
         description: Array of climate model names valid for this dataset
         items:
           type: string
+  ClimateCityMapCell:
+    type: object
+    properties:
+      type:
+        type: string
+      properties:
+        type: object
+        properties:
+          dataset:
+            type: string
+        additionalProperties: false
+      geometry:
+        ref: "#/definitions/Point"
+    additionalProperties: false
   ClimateModel:
     type: object
     properties:
