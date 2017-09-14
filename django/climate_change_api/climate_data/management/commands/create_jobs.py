@@ -52,10 +52,10 @@ class Command(BaseCommand):
         if options['models'] == 'all':
             model_ids = [m.id for m in dataset.models.all()]
         else:
-            model_ids = map(get_model_id_from_name, options['models'].split(','))
+            model_ids = list(map(get_model_id_from_name, options['models'].split(',')))
         if options['years'] == 'all':
-            years = (map(str, range(1950, 2006)) if options['rcp'] == 'historical'
-                     else map(str, range(2006, 2101)))
+            years = list((map(str, range(1950, 2006)) if options['rcp'] == 'historical'
+                         else map(str, range(2006, 2101))))
         else:
             years = options['years'].split(',')
         for year in years:
