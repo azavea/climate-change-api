@@ -226,14 +226,6 @@
     {
         "model": "climate_data.climatemodel",
         "fields": {
-            "name": "CMCC-CM5",
-            "label": "CMCC-CM5",
-            "base_time": null
-        }
-    },
-    {
-        "model": "climate_data.climatemodel",
-        "fields": {
             "name": "ACCESS1-3",
             "label": "ACCESS1-3",
             "base_time": null
