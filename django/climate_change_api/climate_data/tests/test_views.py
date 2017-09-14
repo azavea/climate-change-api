@@ -150,7 +150,7 @@ class ClimateModelViewSetTestCase(CCAPITestCase):
         # Ensure no filters pull all data
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 34)
+        self.assertEqual(len(response.data), 33)
 
         # Begin tests for filtering
         response = self.client.get(url, {'name': 'CCSM4'})
