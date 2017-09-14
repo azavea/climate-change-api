@@ -42,6 +42,11 @@ def get_gddp_model_ensemble(model_name, rcp):
 def get_loca_model_ensemble(model_name, rcp):
     """Return ensemble given LOCA model and scenario."""
     ensembles = {
+        'historical': {
+            'CCSM4': 'r6i1p1',
+            'GISS-E2-H': 'r6i1p1',
+            'GISS-E2-R': 'r6i1p1',
+        },
         'RCP45': {
             'CCSM4': 'r6i1p1',
             'EC-EARTH': 'r8i1p1',

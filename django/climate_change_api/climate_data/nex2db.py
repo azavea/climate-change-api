@@ -65,8 +65,9 @@ class Nex2DB(object):
             netcdf_calendar = ds.variables['time'].calendar
 
             year = self.netcdf2year(ds.variables['time'], time_unit, netcdf_calendar)
-            self.logger.debug("Got year %d ?= data_source.year %d", year, data_source.year)
-            assert(year == int(data_source.year))
+            ds_year = int(data_source.year)
+            assert(year == ds_year)
+            self.logger.debug("Got year %d ?= data_source.year %d", year, ds_year)
 
             # read variable data into memory
             var_data = ds.variables[var_name]
