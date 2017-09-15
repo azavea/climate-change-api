@@ -53,13 +53,7 @@ Response:
                     ]
                 },
                 "properties": {
-                    "map_cell": {
-                        "type": "Point",
-                        "coordinates": [
-                                285.875,
-                                40.625
-                        ]
-                    },
+                    "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "New York City",
                     "admin": "NY",
                     "population": 8175133
@@ -108,13 +102,7 @@ Response:
                     ]
                 },
                 "properties": {
-                    "map_cell": {
-                        "type": "Point",
-                        "coordinates": [
-                            284.875,
-                            39.875
-                        ]
-                    },
+                    "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "Philadelphia",
                     "admin": "PA",
                     "population": 1526006
@@ -157,13 +145,7 @@ Response:
             ]
         },
         "properties": {
-            "map_cell": {
-                "type": "Point",
-                "coordinates": [
-                    284.875,
-                    39.875
-                ]
-            },
+            "datasets": ["NEX-GDDP", "LOCA"],
             "name": "Philadelphia",
             "admin": "PA",
             "population": 1526006
