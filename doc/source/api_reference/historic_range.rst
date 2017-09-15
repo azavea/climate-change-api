@@ -1,3 +1,5 @@
+Historic Range
+--------------
 
 The Historic Range endpoint lists all date ranges whose data is considered to calculate the baseline measure of historic climate. This feature is a reflection of the climatalogical practice to only consider 30 consecutive years of historical data to compare against.
 

@@ -1,3 +1,5 @@
+Parameters
+----------
 
 The API accepts GET, POST, PUT, PATCH, and DELETE HTTP requests.
 For GET requests that accept parameters, required parameters are specified in the path. Optional parameters are accepted as an HTTP query string parameter::

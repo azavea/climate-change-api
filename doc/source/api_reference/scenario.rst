@@ -1,3 +1,5 @@
+Scenario
+--------
 
 The Scenario endpoints describe the Representative Concentration Pathways (RCPs) defined by the |IPCC report| that this API supports.
 
