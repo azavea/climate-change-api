@@ -1,3 +1,5 @@
+Dataset
+-------
 
 The Climate Dataset endpoints describe the datasets available in the Climate API. Currently the API serves data from two datasets:
 

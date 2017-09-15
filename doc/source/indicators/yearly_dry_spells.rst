@@ -1,3 +1,6 @@
+Yearly Dry Spells
+-----------------
+
 .. deprecated:: 1.2
    Use `dry spells`_ instead with the parameter ``time_aggregation=yearly``.
 
