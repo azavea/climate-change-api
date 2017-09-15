@@ -590,15 +590,18 @@ definitions:
       properties:
         type: object
         properties:
-          map_cell:
-            $ref: "#/definitions/Point"
+          datasets:
+            type: array
+            description: List of available datasets for this City
+            items:
+              type: string
           name:
             type: string
           admin:
             type: string
         additionalProperties: true
         required:
-        - map_cell
+        - datasets
         - name
         - admin
     additionalProperties: false

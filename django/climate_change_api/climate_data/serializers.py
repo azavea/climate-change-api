@@ -62,14 +62,10 @@ class ClimateDataCityCellSerializer(serializers.ModelSerializer):
 
 class CitySerializer(GeoFeatureModelSerializer):
 
-    def get_map_cell(self, obj):
-        try:
-            nex_gddp = ClimateDataset.objects.get(name='NEX-GDDP')
-            serializer = ClimateDataCellSerializer(obj.get_map_cell(nex_gddp))
-            return serializer.data
-        except (ClimateDataCell.DoesNotExist, ClimateDataCell.MultipleObjectsReturned):
-            logger.warning("No valid NEX-GDDP map cell for city <%s - %s>", obj.id, obj.name)
-            return None
+    datasets = serializers.SerializerMethodField()
+
+    def get_datasets(self, obj):
+        return [map_cell.dataset.name for map_cell in obj.map_cell_set.select_related('dataset')]
 
     class Meta:
         model = City
