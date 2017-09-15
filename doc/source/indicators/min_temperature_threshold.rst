@@ -1,3 +1,5 @@
+Min Temperature Threshold
+-------------------------
 
 Min Temperature Threshold counts the number of days in a user-specified time period where the daily low temperature meets a user-specified condition. The condition is required and includes a value and a comparison operator, such as "less than" (lt). This indicator has broad applications depending on the user's area of expertise, as it allows for custom comparisons and provides a more general interface to other, more specific, indicators.
 

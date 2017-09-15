@@ -1,3 +1,5 @@
+Percentile High Temperature
+---------------------------
 
 Percentile High Temperature returns the high temperature value for a user-specified percentile and time period. This indicator can be used to help gather statistics about uncertainty in the climate model predictions for high temperature.
 

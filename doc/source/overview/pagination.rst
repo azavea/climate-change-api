@@ -1,3 +1,6 @@
+Pagination
+----------
+
 The handful of endpoints with potentially large result sets are paginated.
 
 The API defaults to |limit| from the Django Rest Framework. Limit pagination has query parameters:

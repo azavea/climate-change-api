@@ -1,3 +1,5 @@
+How to Make an Indicator Request
+--------------------------------
 
 Indicators are channels to interact with the Climate API temperature and precipitation data. There are over a dozen highly parametizable indicators that can be used to answer a broad set of research questions.
 
