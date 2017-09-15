@@ -193,9 +193,9 @@ Response:
     }
 
 Get city map cells
-______________________
+__________________
 
-The data for a particular geographical point is pulled from the underlying grid cell in the source NetCDF data for each dataset. To improve auditing and to better understand where the data for a particular city is coming from, these endpoints expose the underlying grid point used for each city and dataset combination.
+These endpoints expose the underlying grid point used for each city and dataset combination. A grid point maps to a grid cell from the source NetCDF dataset.
 
 Retrieve all available map cells for a given city.
 
