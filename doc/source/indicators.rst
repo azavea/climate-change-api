@@ -22,6 +22,8 @@ In the explanations below, assume temperature and precipitation values are aggre
 
 .. include:: indicators/diurnal_temperature_range.rst
 
+.. include::  indicators/dry_spells.rst
+
 .. include::  indicators/extreme_cold_events.rst
 
 .. include::  indicators/extreme_heat_events.rst
