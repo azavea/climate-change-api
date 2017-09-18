@@ -376,7 +376,7 @@ class ArrayThresholdIndicator(ArrayPredicateIndicator):
     predicate = None
 
     def get_comparator(self):
-        """Helper method to translate an aliased string param to its mathematical operation."""
+        """Translate an aliased string param to its mathematical operation with a helper."""
         threshold = self.params_class.threshold.value
         options = {'lt': lambda val: val < threshold,
                    'lte': lambda val: val <= threshold,
