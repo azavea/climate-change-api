@@ -195,6 +195,7 @@ Response:
                 "population": 8175133
             }
         },
+        "dataset": "NEX-GDDP",
         "scenario": "RCP85",
         "indicator": {
             "name": "example_temperature_indicator",
