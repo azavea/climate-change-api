@@ -181,7 +181,7 @@ class ScenarioViewSetTestCase(CCAPITestCase):
 class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
 
     def check_city_list(self, geojson, city_ids):
-        """Helper to compare geojson response against a particular response order."""
+        """Compare geojson response against a particular response order with a helper."""
         for feature, city_id in zip(geojson['features'], city_ids):
             self.assertEqual(feature['id'], city_id)
 
