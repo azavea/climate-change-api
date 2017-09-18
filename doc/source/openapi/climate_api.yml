@@ -189,6 +189,86 @@ paths:
         "404":
           description: |
             No valid boundary
+  /api/city/{pk}/map-cell/:
+    get:
+      description: |
+        Return the list of valid map cells for this city along with the datasets they belong to.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+      responses:
+        "200":
+          description: |
+            List of map cells valid for the city as a list of GeoJson Point features
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ClimateCityMapCell"
+        "404":
+          description: |
+            No valid map cells
+  /api/city/{pk}/map-cell/{dataset}/:
+    get:
+      description: |
+        Return the map cell for the requested combination of city and dataset.
+      parameters:
+        - name: pk
+          in: path
+          type: string
+          required: true
+          description: Primary key of the city
+          x-example: 4
+        - name: dataset
+          in: path
+          type: string
+          required: true
+          description: A string dataset name as retrieved by the dataset endpoint
+          x-example: 4
+      responses:
+        "200":
+          description: |
+            The map cell valid for the requested city and dataset as a GeoJson Point feature
+          schema:
+            $ref: "#/definitions/ClimateCityMapCell"
+        "404":
+          description: |
+            No valid map cell
+  /api/dataset/:
+    get:
+      description: Lists all climate datasets available via the Climate API
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: A list of ClimateDataset objects
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ClimateDataset"
+  /api/dataset/{name}/:
+    get:
+      description: Get information about a single ClimateDataset
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of climate dataset
+          required: true
+          type: string
+          x-example: NEX-GDDP
+      responses:
+        "200":
+          description: ClimateDataset object
+          schema:
+            $ref: "#/definitions/ClimateDataset"
+        "404":
+          description: |
+            No valid dataset with the requested name
   /api/climate-model/:
     get:
       description: Lists all climate models available via the Climate API
@@ -510,15 +590,18 @@ definitions:
       properties:
         type: object
         properties:
-          map_cell:
-            $ref: "#/definitions/Point"
+          datasets:
+            type: array
+            description: List of available datasets for this City
+            items:
+              type: string
           name:
             type: string
           admin:
             type: string
         additionalProperties: true
         required:
-        - map_cell
+        - datasets
         - name
         - admin
     additionalProperties: false
@@ -527,6 +610,40 @@ definitions:
     - type
     - geometry
     - properties
+  ClimateDataset:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Unique name identifier for the climate dataset
+      label:
+        type: string
+        description: Human-readable name of the climate dataset, not necessarily unique
+      description:
+        type: string
+        description: A detailed technical description of the dataset
+      url:
+        type: string
+        description: The source URL for the dataset
+      models:
+        type: array
+        description: Array of climate model names valid for this dataset
+        items:
+          type: string
+  ClimateCityMapCell:
+    type: object
+    properties:
+      type:
+        type: string
+      properties:
+        type: object
+        properties:
+          dataset:
+            type: string
+        additionalProperties: false
+      geometry:
+        ref: "#/definitions/Point"
+    additionalProperties: false
   ClimateModel:
     type: object
     properties:

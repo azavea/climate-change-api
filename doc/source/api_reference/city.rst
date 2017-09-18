@@ -53,13 +53,7 @@ Response:
                     ]
                 },
                 "properties": {
-                    "map_cell": {
-                        "type": "Point",
-                        "coordinates": [
-                                285.875,
-                                40.625
-                        ]
-                    },
+                    "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "New York City",
                     "admin": "NY",
                     "population": 8175133
@@ -108,13 +102,7 @@ Response:
                     ]
                 },
                 "properties": {
-                    "map_cell": {
-                        "type": "Point",
-                        "coordinates": [
-                            284.875,
-                            39.875
-                        ]
-                    },
+                    "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "Philadelphia",
                     "admin": "PA",
                     "population": 1526006
@@ -157,13 +145,7 @@ Response:
             ]
         },
         "properties": {
-            "map_cell": {
-                "type": "Point",
-                "coordinates": [
-                    284.875,
-                    39.875
-                ]
-            },
+            "datasets": ["NEX-GDDP", "LOCA"],
             "name": "Philadelphia",
             "admin": "PA",
             "population": 1526006
@@ -207,5 +189,89 @@ Response:
                     ]
                 ]
             ]
+        }
+    }
+
+Get city map cells
+__________________
+
+These endpoints expose the underlying grid point used for each city and dataset combination. A grid point maps to a grid cell from the source NetCDF dataset.
+
+Retrieve all available map cells for a given city.
+
+.. openapi:: /openapi/climate_api.yml
+    :paths:
+        /api/city/{pk}/map-cell/
+
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/city/2/map-cell/ HTTP/1.1
+    Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [0,0]
+            },
+            "properties": {
+                "dataset": "NEX-GDDP"
+            }
+        }, {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [1,1]
+            },
+            "properties": {
+                "dataset": "LOCA"
+            }
+        }
+    ]
+
+Retrieve the map cell for a particular city and dataset combination.
+
+.. openapi:: /openapi/climate_api.yml
+    :paths:
+        /api/city/{pk}/map-cell/{dataset}/
+
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/city/2/map-cell/LOCA/ HTTP/1.1
+    Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [1,1]
+        },
+        "properties": {
+            "dataset": "LOCA"
         }
     }
