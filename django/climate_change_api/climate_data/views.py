@@ -54,7 +54,7 @@ DEFAULT_CLIMATE_DATA_MAX_AGE = 60 * 60 * 24 * 30     # 30 days
 
 
 def climate_data_cache_control(func):
-    """Decorator to consistently patch the Cache-Control headers for Climate API endpoints.
+    """Consistently patch the Cache-Control headers for Climate API endpoints with decorator.
 
     Can be added to any Django Rest Framework view handler method.
 

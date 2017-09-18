@@ -1,3 +1,5 @@
+Authentication
+--------------
 
 All requests to the Climate API must be authenticated. The Climate API supports the Token authentication scheme via HTTP header.
 

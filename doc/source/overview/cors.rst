@@ -1,3 +1,5 @@
+Cross Origin Resource Sharing (`CORS`_)
+----------------------------------------
 
 As this API is designed for public use, it supports HTTP requests from any origin. To demonstrate, a sample request from an outside domain::
 
@@ -12,3 +14,5 @@ As this API is designed for public use, it supports HTTP requests from any origi
    X-Frame-Options: SAMEORIGIN
    Content-Length: 398
    Connection: keep-alive
+
+.. _CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS

@@ -1,3 +1,5 @@
+Rate Limiting
+-------------
 
 In order to ensure fair access to all users of the Climate API, certain endpoints are protected by rate limiting.
 

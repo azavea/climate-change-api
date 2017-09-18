@@ -1,3 +1,5 @@
+Climate Model
+-------------
 
 The Climate Model endpoints describe the models used to generate the temperature and precipitation data provided by the Climate API.
 
