@@ -55,6 +55,7 @@ Response:
                 "population": 8175133
             }
         },
+        "dataset": "NEX-GDDP",
         "scenario": "RCP85",
         "climate_models": [
             "ACCESS1-0",

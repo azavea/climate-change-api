@@ -288,6 +288,7 @@ class ClimateDataView(ClimateDatasetValidationMixin, APIView):
         serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
         return Response(OrderedDict([
             ('city', CitySerializer(city).data),
+            ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('climate_models', [m.name for m in model_list]),
             ('variables', cleaned_variables),
@@ -363,6 +364,7 @@ class IndicatorDataView(ClimateDatasetValidationMixin, APIView):
 
         return Response(OrderedDict([
             ('city', CitySerializer(city).data),
+            ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('indicator', IndicatorClass.to_dict()),
             ('climate_models', [m.name for m in model_list]),
