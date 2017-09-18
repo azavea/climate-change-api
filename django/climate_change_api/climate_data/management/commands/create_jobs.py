@@ -47,21 +47,21 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
                           Attributes=settings.SQS_IMPORT_QUEUE_ATTRIBUTES)
-        dataset_name = ClimateDataset.objects.get(name=options['dataset']).name
+        dataset = ClimateDataset.objects.get(name=options['dataset'])
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         if options['models'] == 'all':
-            model_ids = [m.id for m in ClimateModel.objects.all()]
+            model_ids = [m.id for m in dataset.models.all()]
         else:
-            model_ids = map(get_model_id_from_name, options['models'].split(','))
+            model_ids = list(map(get_model_id_from_name, options['models'].split(',')))
         if options['years'] == 'all':
-            years = (map(str, range(1950, 2006)) if options['rcp'] == 'historical'
-                     else map(str, range(2006, 2101)))
+            years = list((map(str, range(1950, 2006)) if options['rcp'] == 'historical'
+                         else map(str, range(2006, 2101))))
         else:
             years = options['years'].split(',')
         for year in years:
             for model_id in model_ids:
                 send_message(queue, {
-                    'dataset': dataset_name,
+                    'dataset': dataset.name,
                     'scenario_id': scenario_id,
                     'model_id': model_id,
                     'year': year

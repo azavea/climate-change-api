@@ -65,10 +65,6 @@ then
             run --rm --entrypoint "./manage.py" \
             django loaddata scenarios
 
-        docker-compose \
-            run --rm --entrypoint "./manage.py" \
-            django loaddata climate-models
-
         # if there are no violations, flake8 doesn't write to file
         # start with file present and empty
         set +e

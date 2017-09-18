@@ -23,8 +23,13 @@ class ClimateDataset(models.Model):
     label = models.CharField(max_length=128, blank=True, null=True)
     description = models.CharField(max_length=4096, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
+    models = models.ManyToManyField('ClimateModel', related_name='datasets')
 
     _DATASETS = None
+
+    def has_model(self, climate_model):
+        """Return true if dataset contains the specified model, false otherwise."""
+        return self.models.filter(name=climate_model.name).exists()
 
     @classmethod
     def datasets(cls):
@@ -57,6 +62,9 @@ class ClimateModel(models.Model):
     def __str__(self):
         """Return pretty string representation of model, used by Django for field labels."""
         return self.name
+
+    def natural_key(self):
+        return (self.name,)
 
 
 class Scenario(models.Model):
@@ -125,6 +133,12 @@ class ClimateDataSource(models.Model):
     def __str__(self):
         """Override str for useful info in console."""
         return '{}, {}, {}'.format(self.scenario, self.model, self.year)
+
+    def save(self, *args, **kwargs):
+        if not self.dataset.has_model(self.model):
+            raise ValueError('Dataset {} does not contain model {}'.format(self.dataset.name,
+                                                                           self.model.name))
+        super(ClimateDataSource, self).save(*args, **kwargs)
 
 
 class ClimateDataCellManager(models.Manager):

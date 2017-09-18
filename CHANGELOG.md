@@ -1,5 +1,23 @@
 # Change Log
 
+## [2.0.0](https://github.com/azavea/climate-change-api/tree/2.0.0) (2017-09-18)
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/1.2.1...2.0.0)
+
+**Merged pull requests:**
+
+- Add dataset name to climate data/indicator response [\#687](https://github.com/azavea/climate-change-api/pull/687)
+- Document dry spells [\#686](https://github.com/azavea/climate-change-api/pull/686)
+- Mark yearly dry spells indicator as deprecated [\#684](https://github.com/azavea/climate-change-api/pull/684)
+- Feature/kak/fix docs search titles\#658 [\#683](https://github.com/azavea/climate-change-api/pull/683)
+- Immediately realize map generators in create\_jobs.py [\#680](https://github.com/azavea/climate-change-api/pull/680)
+- Fix issues with LOCA staging import via run\_jobs.py [\#679](https://github.com/azavea/climate-change-api/pull/679)
+- Add ClimateDataset API documentation [\#675](https://github.com/azavea/climate-change-api/pull/675)
+- API view updates for ClimateDataset \<--\> ClimateModel ManyToMany relationship [\#674](https://github.com/azavea/climate-change-api/pull/674)
+- Associate ClimateModel objects with appropriate ClimateDataset [\#670](https://github.com/azavea/climate-change-api/pull/670)
+- Add ClimateDataCityCellSerializer and city map\_cell detail view [\#669](https://github.com/azavea/climate-change-api/pull/669)
+- Feature/csh/add deserialize to indicatorparams [\#660](https://github.com/azavea/climate-change-api/pull/660)
+- Add LOCA data to relevant API views [\#652](https://github.com/azavea/climate-change-api/pull/652)
+
 ## [1.2.1](https://github.com/azavea/climate-change-api/tree/1.2.1) (2017-09-07)
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.2.0...1.2.1)
 

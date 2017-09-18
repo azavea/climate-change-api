@@ -1,3 +1,5 @@
+Scenario
+--------
 
 The Scenario endpoints describe the Representative Concentration Pathways (RCPs) defined by the |IPCC report| that this API supports.
 
@@ -40,7 +42,7 @@ Response:
         {
             "name": "historical",
             "label": "Historical",
-            "description": "A historical dataset from NEX GDDP for 1950 to 2005 that blends reanalysis data with observations"
+            "description": "A historical dataset from 1950 to 2005 that blends reanalysis data with observations"
         }
     ]
 

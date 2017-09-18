@@ -1,19 +1,20 @@
+import json
 import logging
 import os
-import json
+import shutil
 import tempfile
-import boto3
-
 from time import sleep
-from django.core.management.base import BaseCommand
+
+import boto3
+from boto_helpers.sqs import get_queue
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
 
-from boto_helpers.sqs import get_queue
 from climate_data.models import (ClimateDataset,
                                  ClimateDataSource,
                                  ClimateDataYear,
-                                 ClimateModel,
                                  Scenario)
 from climate_data.nex2db import Nex2DB
 
@@ -24,7 +25,6 @@ BUCKET = 'nasanex'
 
 
 def get_key_format_for_dataset(dataset_name):
-
     if dataset_name == 'NEX-GDDP':
         return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/{ensemble}/v1.0/'
                 '{var}_day_BCSD_{rcp}_{ensemble}_{model}_{year}.nc')
@@ -35,25 +35,42 @@ def get_key_format_for_dataset(dataset_name):
         raise ValueError('Unsupported dataset {}'.format(dataset_name))
 
 
-def get_gddp_model_ensemble(model_name):
+def get_gddp_model_ensemble(model_name, rcp):
     return 'r1i1p1'
 
 
-def get_loca_model_ensemble(model_name):
-    # TODO azavea/climate-change-api#651: Add other LOCA specific models here
-    if model_name == 'CCSM4':
-        return 'r6i1p1'
-    else:
+def get_loca_model_ensemble(model_name, rcp):
+    """Return ensemble given LOCA model and scenario."""
+    ensembles = {
+        'historical': {
+            'CCSM4': 'r6i1p1',
+            'GISS-E2-H': 'r6i1p1',
+            'GISS-E2-R': 'r6i1p1',
+        },
+        'RCP45': {
+            'CCSM4': 'r6i1p1',
+            'EC-EARTH': 'r8i1p1',
+            'GISS-E2-H': 'r6i1p3',
+            'GISS-E2-R': 'r6i1p1'
+        },
+        'RCP85': {
+            'CCSM4': 'r6i1p1',
+            'EC-EARTH': 'r2i1p1',
+            'GISS-E2-H': 'r2i1p1',
+            'GISS-E2-R': 'r2i1p1'
+        }
+    }
+    try:
+        return ensembles[rcp][model_name]
+    except KeyError:
         return 'r1i1p1'
 
 
-def get_dataset_model_ensemble(dataset_name, model_name):
-    # TODO: azavea/climate-change-api#651: Consider moving this mapping directly into the
-    #   database representation of Scenarios/Datasets/Models
+def get_dataset_model_ensemble(dataset_name, model_name, rcp):
     return {
         'LOCA': get_loca_model_ensemble,
         'NEX-GDDP': get_gddp_model_ensemble
-    }[dataset_name](model_name)
+    }[dataset_name](model_name, rcp)
 
 
 def handle_failing_message(message, failures):
@@ -82,7 +99,7 @@ def handle_failing_message(message, failures):
 
 
 def download_nc(dataset_name, rcp, model, year, var, dir):
-    ensemble = get_dataset_model_ensemble(dataset_name, model)
+    ensemble = get_dataset_model_ensemble(dataset_name, model, rcp)
     key_format = get_key_format_for_dataset(dataset_name)
     key = key_format.format(rcp=rcp.lower(), model=model, year=year, var=var, ensemble=ensemble)
     filename = os.path.join(dir, os.path.basename(key))
@@ -100,7 +117,7 @@ def process_message(message, queue):
                  '{scenario_id} year {year}'
                  .format(**message_dict))
     dataset = ClimateDataset.objects.get(name=message_dict['dataset'])
-    model = ClimateModel.objects.get(id=message_dict['model_id'])
+    model = dataset.models.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
     logger.info('Processing SQS message for model %s scenario %s year %s',
@@ -148,8 +165,7 @@ def process_message(message, queue):
         raise
     finally:
         # Success or failure, clean up the .nc files
-        for path in variables.values():
-            os.unlink(path)
+        shutil.rmtree(tmpdir)
 
     logger.debug('SQS message processed')
 

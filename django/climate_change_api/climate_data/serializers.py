@@ -12,6 +12,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from climate_data.models import (City,
                                  CityBoundary,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataset,
                                  ClimateDataSource,
                                  ClimateDataYear,
@@ -44,27 +45,35 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
         model = ClimateDataCell
 
 
+class ClimateDataCityCellSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Feature"),
+            ("geometry", ClimateDataCellSerializer(obj.map_cell).data),
+            ("properties", {
+                "dataset": obj.dataset.name
+            })
+        ])
+
+    class Meta:
+        model = ClimateDataCityCell
+
+
 class CitySerializer(GeoFeatureModelSerializer):
 
-    map_cell = serializers.SerializerMethodField()
+    datasets = serializers.SerializerMethodField()
 
-    def get_map_cell(self, obj):
-        try:
-            nex_gddp = ClimateDataset.objects.get(name='NEX-GDDP')
-            serializer = ClimateDataCellSerializer(obj.get_map_cell(nex_gddp))
-            return serializer.data
-        except (ClimateDataCell.DoesNotExist, ClimateDataCell.MultipleObjectsReturned):
-            logger.warning("No valid NEX-GDDP map cell for city <%s - %s>", obj.id, obj.name)
-            return None
+    def get_datasets(self, obj):
+        return [map_cell.dataset.name for map_cell in obj.map_cell_set.select_related('dataset')]
 
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog',)
+        exclude = ('_geog', )
 
 
 class CityBoundarySerializer(GeoFeatureModelSerializer):
-
     class Meta:
         model = CityBoundary
         id_field = False
@@ -74,9 +83,15 @@ class CityBoundarySerializer(GeoFeatureModelSerializer):
 
 class ClimateDatasetSerializer(serializers.ModelSerializer):
 
+    models = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+
     class Meta:
         model = ClimateDataset
-        fields = ('name', 'label', 'description', 'url',)
+        fields = ('name', 'label', 'description', 'url', 'models',)
 
 
 class ClimateDataSourceSerializer(serializers.ModelSerializer):
@@ -155,6 +170,12 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
 
 
 class ClimateModelSerializer(serializers.ModelSerializer):
+
+    datasets = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
 
     class Meta:
         model = ClimateModel

@@ -1,3 +1,5 @@
+Indicator
+---------
 
 The Indicator endpoints detail all of the derived data "indicators" that are available. The indicators provided by the Climate API are derived quantities generated using the same raw data provided by `Climate Data`_. For a full list and high-level explanation of indicators, see the `indicators dictionary`_.
 
@@ -193,6 +195,7 @@ Response:
                 "population": 8175133
             }
         },
+        "dataset": "NEX-GDDP",
         "scenario": "RCP85",
         "indicator": {
             "name": "example_temperature_indicator",

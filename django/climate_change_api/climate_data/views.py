@@ -9,7 +9,7 @@ from django.utils.cache import patch_cache_control
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -27,6 +27,7 @@ from climate_data.healthchecks import check_data
 from climate_data.models import (City,
                                  ClimateDataset,
                                  ClimateDataCell,
+                                 ClimateDataCityCell,
                                  ClimateDataYear,
                                  ClimateModel,
                                  HistoricDateRange,
@@ -35,6 +36,7 @@ from climate_data.models import (City,
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
+                                      ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
                                       ClimateCityScenarioDataSerializer,
                                       RegionDetailSerializer,
@@ -52,7 +54,7 @@ DEFAULT_CLIMATE_DATA_MAX_AGE = 60 * 60 * 24 * 30     # 30 days
 
 
 def climate_data_cache_control(func):
-    """Decorator to consistently patch the Cache-Control headers for Climate API endpoints.
+    """Consistently patch the Cache-Control headers for Climate API endpoints with decorator.
 
     Can be added to any Django Rest Framework view handler method.
 
@@ -68,6 +70,23 @@ def climate_data_cache_control(func):
         patch_cache_control(response, **cache_headers)
         return response
     return handler
+
+
+class ClimateDatasetValidationMixin(object):
+    """Provides a single method which validates a 'dataset' request param."""
+
+    def validate_param_dataset(self, request, default_dataset='NEX-GDDP'):
+        """Return valid ClimateDataset from GET param.
+
+        Raise DRF ParseError if dataset invalid or not found
+
+        """
+        DATASET_CHOICES = set(ClimateDataset.datasets())
+        dataset_param = request.query_params.get('dataset', default_dataset)
+        if dataset_param not in DATASET_CHOICES:
+            raise ParseError(detail='Dataset {} does not exist. Choose one of {}.'
+                                    .format(dataset_param, DATASET_CHOICES))
+        return ClimateDataset.objects.get(name=dataset_param)
 
 
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -128,6 +147,50 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
         except ObjectDoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
 
+    @detail_route(methods=['GET'])
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def datasets(self, request, pk=None):
+        """Return the names of the datasets assocated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        city = self.get_object()
+        map_cells = ClimateDataCityCell.objects.filter(city=city)
+        response = [map_cell.dataset.name for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class CityMapCellListView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Return the map cells associated with a city.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        map_cells = ClimateDataCityCell.objects.filter(city_id=kwargs['city'])
+        if len(map_cells) == 0:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        response = [ClimateDataCityCellSerializer(map_cell).data for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class CityMapCellDatasetDetailView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Return the detail of a map cell assocated with a city and dataset.
+
+        Returns 404 if the city object has no valid map cells.
+        """
+        try:
+            map_cell = ClimateDataCityCell.objects.get(city_id=kwargs['city'],
+                                                       dataset__name=kwargs['dataset'])
+            response = ClimateDataCityCellSerializer(map_cell).data
+            return Response(response, status=status.HTTP_200_OK)
+        except ClimateDataCityCell.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
 
@@ -138,6 +201,7 @@ class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyMode
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
 class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -149,6 +213,7 @@ class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelV
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
 class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -161,9 +226,10 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('name',)
     ordering_fields = ('name',)
+    ordering = ('name',)
 
 
-class ClimateDataView(APIView):
+class ClimateDataView(ClimateDatasetValidationMixin, APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
@@ -189,9 +255,11 @@ class ClimateDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
+        dataset = self.validate_param_dataset(request)
+
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
-        model_list = ClimateModel.objects.all().only('name')
+        model_list = dataset.models.all().only('name')
         if models_param:
             model_list = model_list.filter(name__in=models_param.split(','))
 
@@ -204,24 +272,14 @@ class ClimateDataView(APIView):
         aggregation = request.query_params.get('agg', 'avg')
         aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
 
-        # Get dataset param
-        DATASET_CHOICES = set(ClimateDataset.datasets())
-        dataset_param = request.query_params.get('dataset', 'NEX-GDDP')
-        if dataset_param not in DATASET_CHOICES:
-            return Response({'error': 'Dataset {} does not exist. Choose one of {}.'
-                                      .format(dataset_param, DATASET_CHOICES)},
-                            status=status.HTTP_400_BAD_REQUEST)
-        dataset = ClimateDataset.objects.get(name=dataset_param)
-
         try:
             queryset = ClimateDataYear.objects.filter(
                 map_cell=city.get_map_cell(dataset),
                 data_source__scenario=scenario
             )
         except ClimateDataCell.DoesNotExist:
-            return Response({'error': 'No data available for {} dataset at this location'
-                                      .format(dataset_param)},
-                            status=status.HTTP_400_BAD_REQUEST)
+            raise ParseError(detail='No data available for {} dataset at this location'
+                                    .format(dataset.name))
 
         # Filter on the ClimateData filter set
         data_filter = ClimateDataFilterSet(request.query_params, queryset)
@@ -230,6 +288,7 @@ class ClimateDataView(APIView):
         serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
         return Response(OrderedDict([
             ('city', CitySerializer(city).data),
+            ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('climate_models', [m.name for m in model_list]),
             ('variables', cleaned_variables),
@@ -261,7 +320,7 @@ class IndicatorDetailView(APIView):
         return Response(IndicatorClass.to_dict())
 
 
-class IndicatorDataView(APIView):
+class IndicatorDataView(ClimateDatasetValidationMixin, APIView):
 
     throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
@@ -279,12 +338,14 @@ class IndicatorDataView(APIView):
         except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
             raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
 
+        dataset = self.validate_param_dataset(request)
+
         # Get valid model params list to use in response
         models_param = request.query_params.get('models', None)
         if models_param:
-            model_list = ClimateModel.objects.filter(name__in=models_param.split(','))
+            model_list = dataset.models.filter(name__in=models_param.split(','))
         else:
-            model_list = ClimateModel.objects.all()
+            model_list = dataset.models.all()
 
         indicator_key = kwargs['indicator']
         IndicatorClass = indicator_factory(indicator_key)
@@ -303,6 +364,7 @@ class IndicatorDataView(APIView):
 
         return Response(OrderedDict([
             ('city', CitySerializer(city).data),
+            ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('indicator', IndicatorClass.to_dict()),
             ('climate_models', [m.name for m in model_list]),

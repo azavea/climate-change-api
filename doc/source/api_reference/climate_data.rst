@@ -1,3 +1,5 @@
+Climate Data
+------------
 
 The Climate Data endpoint allows interaction with annual sets of raw projected temperature and precipitation data for any one city and scenario.
 
@@ -53,6 +55,7 @@ Response:
                 "population": 8175133
             }
         },
+        "dataset": "NEX-GDDP",
         "scenario": "RCP85",
         "climate_models": [
             "ACCESS1-0",

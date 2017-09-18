@@ -12,6 +12,7 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
+
 """
 
 from django.conf import settings
@@ -41,6 +42,11 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
     url(r'^accounts/', include('user_management.urls')),
     url(r'^api/', include(router.urls)),
+    url(r'^api/city/(?P<city>[0-9]+)/map-cell/$',
+        climate_data_views.CityMapCellListView.as_view(), name='city-map-cell-list'),
+    url(r'^api/city/(?P<city>[0-9]+)/map-cell/(?P<dataset>.+)/$',
+        climate_data_views.CityMapCellDatasetDetailView.as_view(),
+        name='city-map-cell-dataset-detail'),
     url(r'^api/indicator/$',
         climate_data_views.IndicatorListView.as_view(), name='climateindicator-list'),
     url(r'^api/indicator/(?P<indicator>.+)/$',

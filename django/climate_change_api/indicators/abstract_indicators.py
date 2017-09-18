@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
                                  HistoricAverageClimateDataYear,
-                                 ClimateDataset)
+                                 ClimateDataset,
+                                 ClimateDataCell)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -73,15 +74,21 @@ class Indicator(object):
             raise ValueError('Indicator constructor requires a city instance')
         if not scenario:
             raise ValueError('Indicator constructor requires a scenario instance')
-        dataset = ClimateDataset.objects.first()
+
+        self.params = self.init_params_class()
+        self.params.set_parameters(parameters)
 
         self.city = city
         self.scenario = scenario
-        self.dataset = dataset
-        self.map_cell = self.city.get_map_cell(self.dataset)
+        self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
+        try:
+            self.map_cell = self.city.get_map_cell(self.dataset)
+        except ClimateDataCell.DoesNotExist:
+            raise ValidationError('No data available for %s dataset at this location'
+                                  % (self.dataset.name))
         self.params = self.init_params_class()
-        self.params.validate(parameters)
+        self.params.set_parameters(parameters)
 
         self.queryset = self.get_queryset()
 
@@ -126,7 +133,8 @@ class Indicator(object):
         """
         queryset = ClimateDataYear.objects.filter(
             map_cell=self.map_cell,
-            data_source__scenario=self.scenario
+            data_source__scenario=self.scenario,
+            data_source__dataset=self.dataset
         )
 
         filter_params = {}
@@ -136,8 +144,8 @@ class Indicator(object):
             filter_params['offset_end'] = True
 
         filterset = ClimateDataFilterSet(**filter_params)
-        queryset = filterset.filter_years(queryset, 'years', self.params.years.value)
-        queryset = filterset.filter_models(queryset, 'models', self.params.models.value)
+        queryset = filterset.filter_years(queryset, 'years', ','.join(self.params.years.value))
+        queryset = filterset.filter_models(queryset, 'models', ','.join(self.params.models.value))
 
         value_columns = ['data_source__year', 'data_source__model_id']
         value_columns.extend(var for var in self.variables
@@ -178,7 +186,7 @@ class Indicator(object):
 
         # Serialize the keyed groups using the requested sub-aggregations
         return self.serializer.to_representation(results,
-                                                 aggregations=self.params.agg.value.split(','))
+                                                 aggregations=self.params.agg.value)
 
     def calculate_value(self, data):
         """Calculate the value for the indicator for a given bucket."""
@@ -368,7 +376,7 @@ class ArrayThresholdIndicator(ArrayPredicateIndicator):
     predicate = None
 
     def get_comparator(self):
-        """Helper method to translate an aliased string param to its mathematical operation."""
+        """Translate an aliased string param to its mathematical operation with a helper."""
         threshold = self.params_class.threshold.value
         options = {'lt': lambda val: val < threshold,
                    'lte': lambda val: val <= threshold,

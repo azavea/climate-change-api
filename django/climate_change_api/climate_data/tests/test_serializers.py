@@ -16,7 +16,7 @@ class ClimateCityScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase)
                                                 .filter(data_source__scenario=self.rcp45))
 
     def assert_serializer_data_valid(self, data, variable_list, value_to_check):
-        """Helper to test the serialized python object.
+        """Test the serialized python object with a helper.
 
         Should validate the format:
         {

@@ -1,3 +1,5 @@
+Climate Model
+-------------
 
 The Climate Model endpoints describe the models used to generate the temperature and precipitation data provided by the Climate API.
 
@@ -33,11 +35,18 @@ Response:
 
     [
         {
+            "datasets": [
+                "NEX-GDDP",
+                "LOCA"
+            ],
             "name": "ACCESS1-0",
             "label": "ACCESS1-0",
-            "base_time": null
+            "base_time": null,
         },
         {
+            "datasets": [
+                "NEX-GDDP"
+            ],
             "name": "BNU-ESM",
             "label": "BNU-ESM",
             "base_time": null
@@ -69,6 +78,10 @@ Response:
     Content-Type: application/json
 
     {
+        "datasets": [
+            "NEX-GDDP",
+            "LOCA"
+        ],
         "name": "ACCESS1-0",
         "label": "ACCESS1-0",
         "base_time": null

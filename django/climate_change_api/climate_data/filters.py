@@ -22,7 +22,7 @@ class CityFilterSet(filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search')
 
     def filter_search(self, queryset, name, value):
-        """Custom search param filters on name and admin."""
+        """Filter on name and admin with custom search param."""
         return queryset.filter(Q(name__icontains=value) |
                                Q(admin__icontains=value))
 
