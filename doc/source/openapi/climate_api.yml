@@ -800,6 +800,8 @@ definitions:
     properties:
       city:
         $ref: "#/definitions/City"
+      dataset:
+        type: string
       scenario:
         type: string
       climate_models:
