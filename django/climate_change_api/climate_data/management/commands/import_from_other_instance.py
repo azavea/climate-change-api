@@ -5,6 +5,7 @@ from itertools import islice
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 
 from climate_data.models import (City, Scenario, ClimateModel,
                                  ClimateDataSource, ClimateDataCell,
@@ -19,7 +20,8 @@ failure_logger = logging.getLogger('climate_data_import_failures')
 
 MODEL_LIST_URL = 'https://{domain}/api/climate-model/'
 CITY_LIST_URL = 'https://{domain}/api/city/'
-CLIMATE_DATA_URL = 'https://{domain}/api/climate-data/{city_id}/{rcp}/?models={model}'
+CLIMATE_DATA_URL = ('https://{domain}/api/climate-data/{city_id}/{rcp}/'
+                    '?models={model}&dataset={dataset}')
 
 # wait this many seconds before retrying a request due to throttling
 THROTTLE_WAIT_SECONDS = 20
@@ -73,9 +75,15 @@ def get_cities(domain, token):
         url = data['next']
 
 
-def get_data(domain, token, city_id, rcp, model):
-    """Get all the data for a city for a given rcp and model from a climate-change-api instance."""
-    url = CLIMATE_DATA_URL.format(domain=domain, city_id=city_id, rcp=rcp, model=model)
+def get_data(domain, token, city_id, scenario, model, dataset):
+    """Get all the data for a city for a given source from a climate-change-api instance."""
+    url = CLIMATE_DATA_URL.format(
+        domain=domain,
+        city_id=city_id,
+        rcp=scenario.name,
+        model=model,
+        dataset=dataset.name
+    )
     return make_request(url, token)
 
 
@@ -130,42 +138,41 @@ def import_map_cell(mapcelldata):
     )[0]
 
 
-def import_data(domain, token, remote_city_id, local_map_cell, scenario, model):
+def import_data(domain, token, remote_city_id, local_map_cell, scenario, model, dataset):
     """Import the the output of get_data into the database."""
-    data = get_data(domain, token, remote_city_id, scenario, model)
+    data = get_data(domain, token, remote_city_id, scenario, model, dataset)
 
     start_time = time()
     assert len(data['climate_models']) == 1
     for year, yeardata in data['data'].items():
-        try:
-            data_source = ClimateDataSource.objects.get(model=model,
-                                                        scenario=scenario,
-                                                        year=int(year))
-            if data_source.import_completed:
-                logger.info('Skipping already completed import for model %s scenario %s year %s',
-                            model.name, scenario.name, year)
-                continue
 
-        except ObjectDoesNotExist:
-            logger.debug('Creating data source for model %s scenario %s year %s',
-                         model.name, scenario.name, year)
-            data_source = ClimateDataSource.objects.create(model=model,
-                                                           scenario=scenario,
-                                                           year=int(year))
-        cdy, created = ClimateDataYear.objects.get_or_create(
-            map_cell=local_map_cell,
-            data_source=data_source,
-            defaults={
-                'tasmin': yeardata['tasmin'],
-                'tasmax': yeardata['tasmax'],
-                'pr': yeardata['pr']
-            }
+        data_source, created = ClimateDataSource.objects.get_or_create(
+            model=model,
+            scenario=scenario,
+            year=int(year),
+            dataset=dataset
         )
-        if not created:
-            cdy.tasmin = yeardata['tasmin']
-            cdy.tasmax = yeardata['tasmax']
-            cdy.pr = yeardata['pr']
-            cdy.save()
+        if created:
+            logger.debug('Created data source for model %s scenario %s year %s',
+                         model.name, scenario.name, year)
+        elif data_source.import_completed:
+            logger.info('Skipping already completed import for model %s scenario %s year %s',
+                        model.name, scenario.name, year)
+            continue
+
+        # Ensure we received all data we expect
+        assert set(yeardata.keys()) == set('pr', 'tasmax', 'tasmin')
+        try:
+            ClimateDataYear.objects.create(**dict(
+                yeardata,
+                map_cell=local_map_cell,
+                data_source=data_source
+            ))
+        except IntegrityError:
+            ClimateDataYear.objects.filter(
+                map_cell=local_map_cell,
+                data_source=data_source
+            ).update(**yeardata)
     # note that the job completed successfully
     data_source.import_completed = True
     data_source.save()
@@ -179,6 +186,7 @@ class Command(BaseCommand):
         parser.add_argument('domain', type=str, help='domain name of the remote instance')
         parser.add_argument('token', type=str, help='API token for authorization')
         parser.add_argument('rcp', type=str, help='Scenario; RCP45 or RCP85')
+        parser.add_argument('dataset', type=str, help='Dataset; NEX-GDDP or LOCA')
         parser.add_argument('num_models', type=int, default=10,
                             help='max amount of models to import')
         parser.add_argument('num_cities', type=int, default=100,
@@ -195,7 +203,7 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
-        dataset = ClimateDataset.objects.get(name='NEX-GDDP')
+        dataset = ClimateDataset.objects.get(name=options['dataset'])
 
         logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
@@ -205,7 +213,7 @@ class Command(BaseCommand):
                         city['properties']['admin'])
 
             created_city = import_city(city, dataset)
-            map_cell = created_city.map_cell_set.get(dataset=dataset).map_cell
+            map_cell = created_city.get_map_cell(dataset=dataset)
             coordinates = (map_cell.lat, map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
