@@ -88,7 +88,7 @@ class Indicator(object):
                 invalid_models.append(model_name)
 
         if invalid_models:
-            raise ValidationError('Dataset %s has no data for model(s): %s'
+            raise ValidationError('Dataset %s has no data for model(s) %s'
                                   % (self.dataset.name, ','.join(invalid_models)))
 
         try:
