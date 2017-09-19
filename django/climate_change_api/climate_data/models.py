@@ -27,9 +27,9 @@ class ClimateDataset(models.Model):
 
     _DATASETS = None
 
-    def has_model(self, climate_model):
+    def has_model(self, climate_model_name):
         """Return true if dataset contains the specified model, false otherwise."""
-        return self.models.filter(name=climate_model.name).exists()
+        return self.models.filter(name=climate_model_name).exists()
 
     @classmethod
     def datasets(cls):
@@ -135,7 +135,7 @@ class ClimateDataSource(models.Model):
         return '{}, {}, {}'.format(self.scenario, self.model, self.year)
 
     def save(self, *args, **kwargs):
-        if not self.dataset.has_model(self.model):
+        if not self.dataset.has_model(self.model.name):
             raise ValueError('Dataset {} does not contain model {}'.format(self.dataset.name,
                                                                            self.model.name))
         super(ClimateDataSource, self).save(*args, **kwargs)
