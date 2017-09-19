@@ -82,6 +82,15 @@ class Indicator(object):
         self.scenario = scenario
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
+        invalid_models = []
+        for model_name in self.params.models.value:
+            if not self.dataset.has_model(model_name):
+                invalid_models.append(model_name)
+
+        if invalid_models:
+            raise ValidationError('Dataset %s has no data for model(s): %s'
+                                  % (self.dataset.name, ','.join(invalid_models)))
+
         try:
             self.map_cell = self.city.get_map_cell(self.dataset)
         except ClimateDataCell.DoesNotExist:
