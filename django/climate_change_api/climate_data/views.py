@@ -258,10 +258,20 @@ class ClimateDataView(ClimateDatasetValidationMixin, APIView):
         dataset = self.validate_param_dataset(request)
 
         # Get valid model params list to use in response
-        models_param = request.query_params.get('models', None)
         model_list = dataset.models.all().only('name')
+        models_param = request.query_params.get('models', None)
         if models_param:
-            model_list = model_list.filter(name__in=models_param.split(','))
+            models_param_list = models_param.split(',')
+            invalid_models = []
+            for model_name in models_param_list:
+                if not dataset.has_model(model_name):
+                    invalid_models.append(model_name)
+
+            if invalid_models:
+                raise ParseError('Dataset %s has no data for model(s): %s'
+                                 % (dataset.name, ','.join(invalid_models)))
+
+            model_list = model_list.filter(name__in=models_param_list)
 
         # Get valid variable params list to use in response & serializer context
         variables = request.query_params.get('variables', None)
