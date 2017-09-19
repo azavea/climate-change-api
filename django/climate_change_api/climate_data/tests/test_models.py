@@ -54,10 +54,10 @@ class ClimateDatasetTestCase(TestCase):
         self.gddp.models.add(self.both_model)
 
     def test_has_model(self):
-        self.assertTrue(self.loca.has_model(self.both_model))
-        self.assertTrue(self.gddp.has_model(self.both_model))
-        self.assertTrue(self.loca.has_model(self.loca_model))
-        self.assertFalse(self.gddp.has_model(self.loca_model))
+        self.assertTrue(self.loca.has_model(self.both_model.name))
+        self.assertTrue(self.gddp.has_model(self.both_model.name))
+        self.assertTrue(self.loca.has_model(self.loca_model.name))
+        self.assertFalse(self.gddp.has_model(self.loca_model.name))
 
 
 class ClimateDataSourceTestCase(TestCase):
