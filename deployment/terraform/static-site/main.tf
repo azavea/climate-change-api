@@ -56,7 +56,7 @@ resource "aws_cloudfront_distribution" "site" {
   http_version        = "http2"
   default_root_object = "index.html"
   retain_on_delete    = true
-  aliases             = "${var.site_aliases}"
+  aliases             = ["${var.site_aliases}"]
   price_class         = "PriceClass_100"
 
   default_cache_behavior {
