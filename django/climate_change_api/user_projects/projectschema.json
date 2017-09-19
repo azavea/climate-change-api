@@ -79,6 +79,12 @@
     "model": {
       "type": "object",
       "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+                    "type": "string"
+                   }
+        },
         "name": {"type": "string"},
         "label": {
           "anyOf": [
@@ -113,6 +119,12 @@
         "properties": {
           "type": "object",
           "properties": {
+            "datasets": {
+              "type": "array",
+              "items": {
+                        "type": "string"
+                       }
+            },
             "map_cell": {"$ref": "#/definitions/pointgeom"},
             "name": {
               "type": "string"
@@ -122,7 +134,7 @@
             }
           },
           "additionalProperties": true,
-          "required": ["map_cell", "name", "admin"]
+          "required": ["name", "admin"]
         }
       },
       "additionalProperties": false,
