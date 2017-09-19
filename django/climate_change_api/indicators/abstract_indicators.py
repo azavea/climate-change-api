@@ -87,8 +87,6 @@ class Indicator(object):
         except ClimateDataCell.DoesNotExist:
             raise ValidationError('No data available for %s dataset at this location'
                                   % (self.dataset.name))
-        self.params = self.init_params_class()
-        self.params.set_parameters(parameters)
 
         self.queryset = self.get_queryset()
 
