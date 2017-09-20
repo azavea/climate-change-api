@@ -133,9 +133,15 @@
             },
             "admin": {
               "type": "string"
+            },
+            "population": {
+              "type": "number"
+            },
+            "region": {
+              "type": "number"
             }
           },
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": ["name", "admin"]
         }
       },
