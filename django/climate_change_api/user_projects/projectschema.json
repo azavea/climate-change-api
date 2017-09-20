@@ -17,6 +17,9 @@
     "city": {
       "$ref": "#/definitions/city"
     },
+    "dataset": {
+      "$ref": "#/definitions/dataset"
+    },
     "scenario": {
       "type": "object",
       "properties": {
@@ -56,7 +59,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["name", "city",
+  "required": ["name", "city", "dataset",
                "scenario", "models", "charts"],
   "definitions": {
     "chart": {
@@ -125,7 +128,6 @@
                         "type": "string"
                        }
             },
-            "map_cell": {"$ref": "#/definitions/pointgeom"},
             "name": {
               "type": "string"
             },
@@ -139,6 +141,31 @@
       },
       "additionalProperties": false,
       "required": ["id", "type", "geometry", "properties"]
+    },
+    "dataset": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "models"]
     },
     "pointgeom": {
       "type": "object",
