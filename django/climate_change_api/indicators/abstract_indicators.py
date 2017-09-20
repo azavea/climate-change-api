@@ -82,10 +82,9 @@ class Indicator(object):
         self.scenario = scenario
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
-        invalid_models = []
-        for model_name in self.params.models.value:
-            if not self.dataset.has_model(model_name):
-                invalid_models.append(model_name)
+        found = self.dataset.models.filter(name__in=self.params.models.value)
+        found = found.values_list('name', flat=True)
+        invalid_models = set(self.params.models.value) - set(found)
 
         if invalid_models:
             raise ValidationError('Dataset %s has no data for model(s) %s'
