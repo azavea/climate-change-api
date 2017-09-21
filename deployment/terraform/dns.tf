@@ -23,8 +23,8 @@ resource "aws_route53_record" "cc_docs" {
   type    = "A"
 
   alias {
-    name                   = "${module.static-site.domain_name}"
-    zone_id                = "${module.static-site.hosted_zone_id}"
+    name                   = "${aws_cloudfront_distribution.cdn.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.cdn.hosted_zone_id}"
     evaluate_target_health = false
   }
 }
