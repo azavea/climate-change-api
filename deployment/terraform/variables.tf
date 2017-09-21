@@ -10,6 +10,10 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "rds_database_name" {
+  default = "climate"
+}
+
 variable "cc_api_alb_ingress_cidr_block" {
   type = "list"
 }
