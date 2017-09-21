@@ -104,7 +104,7 @@ data "template_file" "cc_api_http_ecs_task" {
 
   vars = {
     api_server_nginx_url       = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
-    cc_api_papertrail_endpoint = "${data.terraform_remote_state.core.papertrail_host}:${data.terraform_remote_state.core.papertrail_port}"
+    cc_api_papertrail_endpoint = "${var.papertrail_host}:${var.papertrail_port}"
   }
 }
 
@@ -154,7 +154,7 @@ data "template_file" "cc_api_https_ecs_task" {
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"
-    cc_api_papertrail_endpoint       = "${data.terraform_remote_state.core.papertrail_host}:${data.terraform_remote_state.core.papertrail_port}"
+    cc_api_papertrail_endpoint       = "${var.papertrail_host}:${var.papertrail_port}"
     aws_region                       = "${var.aws_region}"
   }
 }
@@ -209,7 +209,7 @@ data "template_file" "cc_api_management_ecs_task" {
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"
-    cc_api_papertrail_endpoint       = "${data.terraform_remote_state.core.papertrail_host}:${data.terraform_remote_state.core.papertrail_port}"
+    cc_api_papertrail_endpoint       = "${var.papertrail_host}:${var.papertrail_port}"
     aws_region                       = "${var.aws_region}"
   }
 }
