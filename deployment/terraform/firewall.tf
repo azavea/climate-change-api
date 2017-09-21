@@ -77,3 +77,13 @@ resource "aws_security_group_rule" "container_instance_alb_cc_api_all_egress" {
   security_group_id        = "${data.terraform_remote_state.core.container_instance_security_group_id}"
   source_security_group_id = "${aws_security_group.cc_api_alb.id}"
 }
+
+resource "aws_security_group_rule" "container_instance_papertrail_egress" {
+  type        = "egress"
+  from_port   = "${var.papertrail_port}"
+  to_port     = "${var.papertrail_port}"
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+
+  security_group_id = "${data.terraform_remote_state.core.container_instance_security_group_id}"
+}
