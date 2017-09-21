@@ -407,6 +407,8 @@ if DEBUG:
 AUTH_USER_MODEL = 'user_management.ClimateUser'
 
 API_DOCUMENTATION_URL = 'https://docs.climate.azavea.com/'
+LAB_STAGING_URN = 'lab.staging.climate.azavea.com'
+LAB_URN = 'lab.climate.azavea.com'
 
 if DEBUG:
     API_DOCUMENTATION_URL = 'http://localhost:8084/'
