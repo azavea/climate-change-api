@@ -44,6 +44,10 @@ variable "django_secret_key" {}
 
 variable "rollbar_server_side_access_token" {}
 
+variable "papertrail_host" {}
+
+variable "papertrail_port" {}
+
 variable "climate_docs_site_bucket" {}
 
 variable "climate_docs_logs_bucket" {}
