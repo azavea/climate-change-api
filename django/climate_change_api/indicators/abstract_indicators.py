@@ -82,8 +82,8 @@ class Indicator(object):
         self.scenario = scenario
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
-        found = self.dataset.models.filter(name__in=self.params.models.value)
-        found = found.values_list('name', flat=True)
+        found = (self.dataset.models.filter(name__in=self.params.models.value)
+                                    .values_list('name', flat=True))
         invalid_models = set(self.params.models.value) - set(found)
 
         if invalid_models:
