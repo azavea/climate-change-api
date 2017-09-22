@@ -17,7 +17,7 @@ FUTURE_YEARS = range(2006, 2101)
 
 def check_city_cells():
     """Check for cities that have no associated map cell."""
-    missing = City.objects.filter(map_cell=None).values('name', 'admin')
+    missing = City.objects.filter(map_cell_set=None).values('name', 'admin')
     return {'missing_city_cells': list(missing)}
 
 
