@@ -101,6 +101,7 @@
             {"type": "null"}
           ]
         },
+        "enabled": {"type": "boolean"},
         "selected": {"type": "boolean"}
       },
       "additionalProperties": false,
