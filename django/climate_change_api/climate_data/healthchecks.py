@@ -16,8 +16,8 @@ FUTURE_YEARS = range(2006, 2101)
 
 
 def check_city_cells():
-    """Check for cities that have no associated map cell."""
-    missing = City.objects.filter(map_cell=None).values('name', 'admin')
+    """Check for cities that have no associated map cell set."""
+    missing = City.objects.filter(map_cell_set=None).values('name', 'admin')
     return {'missing_city_cells': list(missing)}
 
 
@@ -27,9 +27,15 @@ def check_incomplete_imports():
 
     Find data sources created, but for which data import did not finish successfully.
     """
-    missing = ClimateDataSource.objects.filter(import_completed=False).values('year',
-                                                                              'model',
-                                                                              'scenario')
+    missing = (ClimateDataSource.objects.filter(import_completed=False)
+                                        .order_by('dataset',
+                                                  'scenario',
+                                                  'model',
+                                                  'year')
+                                        .values_list('dataset__name',
+                                                     'scenario__name',
+                                                     'model__name',
+                                                     'year'))
     return {'incomplete_imports': list(missing)}
 
 
@@ -89,6 +95,8 @@ def check_missing_data_sources():
 
 def check_data():
     """Return the results of all data status checks in a single object."""
-    return {'status': [check_city_cells(),
-                       check_incomplete_imports(),
-                       check_missing_data_sources()]}
+    return {'status': [
+        check_city_cells(),
+        check_incomplete_imports(),
+        # check_missing_data_sources()
+    ]}
