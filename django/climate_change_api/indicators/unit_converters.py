@@ -85,9 +85,7 @@ class PrecipitationRateConverter(LinearConverter):
     units = {
         'kg/m^2/s': 1,
         'kg/m^2/day': SECONDS_PER_DAY,
-        'kg/m^2/year': SECONDS_PER_DAY * DAYS_PER_YEAR,
         'in/day': INCHES_PER_MILLIMETER * SECONDS_PER_DAY,
-        'in/year': INCHES_PER_MILLIMETER * SECONDS_PER_DAY * DAYS_PER_YEAR,
     }
 
 

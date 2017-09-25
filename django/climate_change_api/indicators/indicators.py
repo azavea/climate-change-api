@@ -18,6 +18,7 @@ from .params import (DegreeDayIndicatorParams,
                      PercentileIndicatorParams)
 from .unit_converters import (CountUnitsMixin,
                               DaysUnitsMixin,
+                              PrecipRateUnitsMixin,
                               PrecipUnitsMixin,
                               TemperatureDeltaUnitsMixin,
                               TemperatureUnitsMixin,
@@ -132,7 +133,7 @@ class TotalPrecipitation(PrecipUnitsMixin, ArrayIndicator):
         return sum(values) * SECONDS_PER_DAY
 
 
-class PercentilePrecipitation(PrecipUnitsMixin, ArrayIndicator):
+class PercentilePrecipitation(PrecipRateUnitsMixin, ArrayIndicator):
     label = 'Percentile Precipitation'
     description = ('The specified percentile of precipitation for each timespan. '
                    'Defaults to 50th percentile (Median)')
@@ -142,7 +143,7 @@ class PercentilePrecipitation(PrecipUnitsMixin, ArrayIndicator):
 
     def agg_function(self, values):
         percentile = self.params.percentile.value
-        return np.percentile(values, percentile) * SECONDS_PER_DAY
+        return np.percentile(values, percentile)
 
 
 class FrostDays(DaysUnitsMixin, ArrayIndicator):
