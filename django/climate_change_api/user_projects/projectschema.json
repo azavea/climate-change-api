@@ -59,7 +59,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["name", "city", "dataset",
+  "required": ["name", "city",
                "scenario", "models", "charts"],
   "definitions": {
     "chart": {
@@ -140,7 +140,8 @@
             },
             "region": {
               "type": "number"
-            }
+            },
+            "map_cell": {"$ref": "#/definitions/pointgeom"}
           },
           "additionalProperties": false,
           "required": ["name", "admin"]
