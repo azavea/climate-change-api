@@ -13,7 +13,7 @@ from climate_data.models import (ClimateDataBaseline,
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import (PrecipitationConverter,
+from .unit_converters import (PrecipitationRateConverter,
                               TemperatureConverter)
 from .partitioners import (CustomPartitioner,
                            MonthlyPartitioner,
@@ -323,8 +323,8 @@ class ThresholdIndicatorMixin(object):
             default_unit = 'K'
             converter_type = TemperatureConverter
         else:
-            default_unit = 'kg/m^2'
-            converter_type = PrecipitationConverter
+            default_unit = 'kg/m^2/s'
+            converter_type = PrecipitationRateConverter
 
         converter = converter_type.get(unit, default_unit)
 
@@ -337,7 +337,7 @@ class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
 
 
 class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
-    params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
+    params_class_kwargs = {'threshold_units': PrecipitationRateConverter.available_units}
 
 
 class ArrayIndicator(Indicator):
