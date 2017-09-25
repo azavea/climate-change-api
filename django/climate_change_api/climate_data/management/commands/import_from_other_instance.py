@@ -7,9 +7,14 @@ from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
-from climate_data.models import (City, Scenario, ClimateModel,
-                                 ClimateDataSource, ClimateDataCell,
-                                 ClimateDataYear, ClimateDataset)
+from climate_data.models import (City,
+                                 Scenario,
+                                 ClimateModel,
+                                 ClimateDataSource,
+                                 ClimateDataCell,
+                                 ClimateDataCityCell,
+                                 ClimateDataYear,
+                                 ClimateDataset)
 
 import requests
 
@@ -22,6 +27,7 @@ MODEL_LIST_URL = 'https://{domain}/api/climate-model/'
 CITY_LIST_URL = 'https://{domain}/api/city/'
 CLIMATE_DATA_URL = ('https://{domain}/api/climate-data/{city_id}/{rcp}/'
                     '?models={model}&dataset={dataset}')
+MAP_CELL_URL = 'https://{domain}/api/city/{city_id}/map-cell/{dataset}/'
 
 # wait this many seconds before retrying a request due to throttling
 THROTTLE_WAIT_SECONDS = 20
@@ -58,11 +64,11 @@ def make_request(url, token, failures=10):
             wait *= 2
 
 
-def get_models(domain, token):
+def get_models(domain, token, dataset):
     """Return a list of available models from an instance of climate-change-api."""
     url = MODEL_LIST_URL.format(domain=domain)
     data = make_request(url, token)
-    return [d['name'] for d in data]
+    return [d['name'] for d in data if dataset.name in d['datasets']]
 
 
 def get_cities(domain, token):
@@ -96,7 +102,7 @@ def create_models(models):
     return dbmodels
 
 
-def import_city(citydata, dataset):
+def import_city(citydata):
     """Create a city and if not already created, its grid cell from the city dict.
 
     City dict was downloaded from another instance.
@@ -106,15 +112,8 @@ def import_city(citydata, dataset):
             name=citydata['properties']['name'],
             admin=citydata['properties']['admin'],
         )
-        if not city.map_cell_set.filter(dataset=dataset).exists():
-            city.map_cell_set.add(
-                cell=import_map_cell(citydata['properties']['map_cell']),
-                dataset=dataset)
-        return city
     except ObjectDoesNotExist:
         logger.info('City does not exist, creating city')
-
-        map_cell = import_map_cell(citydata['properties']['map_cell'])
 
         city_coordinates = citydata['geometry']['coordinates']
         city = City.objects.create(
@@ -123,15 +122,19 @@ def import_city(citydata, dataset):
             geom=Point(*city_coordinates),
             _geog=Point(*city_coordinates)
         )
-        city.map_cell_set.add(
-            cell=map_cell,
-            dataset=dataset
-        )
-        return city
+
+    return city
 
 
-def import_map_cell(mapcelldata):
-    map_cell_coordinates = mapcelldata['coordinates']
+def import_city_map_cell(domain, token, remote_city_id, dataset):
+    url = MAP_CELL_URL.format(
+        domain=domain,
+        city_id=remote_city_id,
+        dataset=dataset.name
+    )
+    mapcelldata = make_request(url, token)
+
+    map_cell_coordinates = mapcelldata['geometry']['coordinates']
     return ClimateDataCell.objects.get_or_create(
         lon=map_cell_coordinates[0],
         lat=map_cell_coordinates[1]
@@ -161,7 +164,7 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model, 
             continue
 
         # Ensure we received all data we expect
-        assert set(yeardata.keys()) == set('pr', 'tasmax', 'tasmin')
+        assert set(yeardata.keys()) == set(['pr', 'tasmax', 'tasmin'])
         try:
             ClimateDataYear.objects.create(**dict(
                 yeardata,
@@ -193,7 +196,9 @@ class Command(BaseCommand):
                             help='max amount of cities to import')
 
     def handle(self, *args, **options):
-        model_names = get_models(options['domain'], options['token'])
+        dataset = ClimateDataset.objects.get(name=options['dataset'])
+
+        model_names = get_models(options['domain'], options['token'], dataset)
         if len(model_names) > options['num_models']:
             model_names = model_names[:options['num_models']]
 
@@ -203,8 +208,6 @@ class Command(BaseCommand):
 
         imported_grid_cells = {model.name: [] for model in models}
 
-        dataset = ClimateDataset.objects.get(name=options['dataset'])
-
         logger.info('Importing cities...')
         remote_cities = get_cities(options['domain'], options['token'])
         for city in islice(remote_cities, options['num_cities']):
@@ -212,8 +215,19 @@ class Command(BaseCommand):
                         city['properties']['name'],
                         city['properties']['admin'])
 
-            created_city = import_city(city, dataset)
-            map_cell = created_city.get_map_cell(dataset=dataset)
+            created_city = import_city(city)
+
+            try:
+                map_cell = created_city.get_map_cell(dataset=dataset)
+            except ObjectDoesNotExist:
+                map_cell = import_city_map_cell(options['domain'], options['token'],
+                                                city['id'], dataset)
+                ClimateDataCityCell.objects.create(
+                    city=created_city,
+                    map_cell=map_cell,
+                    dataset=dataset
+                )
+
             coordinates = (map_cell.lat, map_cell.lon)
             for model in models:
                 if coordinates in imported_grid_cells[model.name]:
@@ -233,6 +247,7 @@ class Command(BaseCommand):
                             token=options['token'],
                             remote_city_id=city['id'],
                             local_map_cell=map_cell,
+                            dataset=dataset,
                             scenario=scenario,
                             model=model)
                         imported_grid_cells[model.name].append(coordinates)
