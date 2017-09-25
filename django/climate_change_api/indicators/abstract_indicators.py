@@ -315,21 +315,21 @@ class ThresholdIndicatorMixin(object):
         self._set_threshold_values()
 
     def _set_threshold_values(self):
-        # Convert threshold value to appropriate format
+        # Convert threshold value / unit param to the units of the db values
         value = self.params.threshold.value
         unit = self.params.threshold_units.value
 
         if self.variables[0] != 'pr':
-            default_unit = 'K'
+            db_storage_unit = 'K'
             converter_type = TemperatureConverter
         else:
-            default_unit = 'kg/m^2/s'
+            db_storage_unit = 'kg/m^2/s'
             converter_type = PrecipitationRateConverter
 
-        converter = converter_type.get(unit, default_unit)
+        converter = converter_type.get(unit, db_storage_unit)
 
         self.params.threshold.value = converter(float(value))
-        self.params.threshold_units.value = default_unit
+        self.params.threshold_units.value = db_storage_unit
 
 
 class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
