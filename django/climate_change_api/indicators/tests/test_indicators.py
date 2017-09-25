@@ -230,17 +230,17 @@ class YearlyPercentilePrecipitationTestCase(IndicatorTests, TestCase):
     indicator_class = indicators.PercentilePrecipitation
     indicator_name = 'percentile_precipitation'
     time_aggregation = 'yearly'
-    units = 'kg/m^2'
-    test_indicator_rcp85_equals = {2000: {'avg': 3024000.0, 'min': 2592000, 'max': 3456000}}
-    test_indicator_rcp45_equals = {2000: {'max': 1728000, 'avg': 1296000, 'min': 864000},
-                                   2001: {'max': 1728000, 'avg': 1296000, 'min': 864000},
-                                   2002: {'avg': 864000, 'max': 864000, 'min': 864000},
+    units = 'kg/m^2/s'
+    test_indicator_rcp85_equals = {2000: {'avg': 35, 'min': 30, 'max': 40}}
+    test_indicator_rcp45_equals = {2000: {'max': 20, 'avg': 15, 'min': 10},
+                                   2001: {'max': 20, 'avg': 15, 'min': 10},
+                                   2002: {'avg': 10, 'max': 10, 'min': 10},
                                    2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
-    test_years_filter_equals = {2001: {'max': 1728000, 'avg': 1296000, 'min': 864000},
-                                2002: {'avg': 864000, 'max': 864000, 'min': 864000}}
-    test_models_filter_equals = {2000: {'avg': 864000, 'max': 864000, 'min': 864000},
-                                 2001: {'avg': 864000, 'max': 864000, 'min': 864000},
-                                 2002: {'avg': 864000, 'max': 864000, 'min': 864000},
+    test_years_filter_equals = {2001: {'max': 20, 'avg': 15, 'min': 10},
+                                2002: {'avg': 10, 'max': 10, 'min': 10}}
+    test_models_filter_equals = {2000: {'avg': 10, 'max': 10, 'min': 10},
+                                 2001: {'avg': 10, 'max': 10, 'min': 10},
+                                 2002: {'avg': 10, 'max': 10, 'min': 10},
                                  2003: {'avg': 0.0, 'max': 0.0, 'min': 0.0}}
 
 
@@ -730,7 +730,7 @@ class MonthlyPrecipitationThresholdTestcase(IndicatorTests, TestCase):
     indicator_class = indicators.PrecipitationThreshold
     indicator_name = 'precipitation_threshold'
     time_aggregation = 'monthly'
-    extra_params = {'threshold': .5, 'threshold_comparator': 'lt', 'threshold_units': 'in'}
+    extra_params = {'threshold': .5, 'threshold_comparator': 'lt', 'threshold_units': 'in/s'}
     test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
                                    '2001-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
