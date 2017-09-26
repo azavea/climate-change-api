@@ -181,8 +181,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('domain', type=str, help='domain name of the remote instance')
         parser.add_argument('token', type=str, help='API token for authorization')
-        parser.add_argument('rcp', type=str, help='Scenario; RCP45 or RCP85')
         parser.add_argument('dataset', type=str, help='Dataset; NEX-GDDP or LOCA')
+        parser.add_argument('rcp', type=str, help='Scenario; RCP45 or RCP85')
         parser.add_argument('num_models', type=int, default=10,
                             help='max amount of models to import')
         parser.add_argument('num_cities', type=int, default=100,
