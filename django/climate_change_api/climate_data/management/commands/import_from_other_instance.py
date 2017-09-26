@@ -5,7 +5,6 @@ from itertools import islice
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
 
 from climate_data.models import (City,
                                  Scenario,
@@ -156,26 +155,20 @@ def import_data(domain, token, remote_city_id, local_map_cell, scenario, model, 
             dataset=dataset
         )
         if created:
-            logger.debug('Created data source for model %s scenario %s year %s',
-                         model.name, scenario.name, year)
+            logger.debug('Created data source for model %s scenario %s year %s in %s',
+                         model.name, scenario.name, year, dataset.name)
         elif data_source.import_completed:
-            logger.info('Skipping already completed import for model %s scenario %s year %s',
-                        model.name, scenario.name, year)
+            logger.info('Skipping already completed import for model %s scenario %s year %s in %s',
+                        model.name, scenario.name, year, dataset.name)
             continue
 
-        # Ensure we received all data we expect
+        # Ensure we received the data we expected
         assert set(yeardata.keys()) == set(['pr', 'tasmax', 'tasmin'])
-        try:
-            ClimateDataYear.objects.create(**dict(
-                yeardata,
-                map_cell=local_map_cell,
-                data_source=data_source
-            ))
-        except IntegrityError:
-            ClimateDataYear.objects.filter(
-                map_cell=local_map_cell,
-                data_source=data_source
-            ).update(**yeardata)
+        ClimateDataYear.objects.update_or_create(
+            yeardata,
+            map_cell=local_map_cell,
+            data_source=data_source
+        )
     # note that the job completed successfully
     data_source.import_completed = True
     data_source.save()
