@@ -282,17 +282,18 @@ And from the django console, do::
     Out[3]: (14, {'climate_data.City': 7, 'climate_data.CityBoundary': 7})
 
     # Delete all Climate data that isn't associated with one of the cities above
-    In [4]: ClimateDataCell.objects.exclude(id__in=City.objects.all().values_list("map_cell_id", flat=True)).delete()
+    In [4]: ClimateDataCell.objects.exclude(city_set__city__in=City.objects.all()).delete()
     Out[4]:
-    (9413650,
-     {'climate_data.ClimateData': 9411795,
-      'climate_data.ClimateDataBaseline': 20,
-      'climate_data.ClimateDataCell': 5,
-      'climate_data.HistoricAverageClimateData': 1830})
+    (80915,
+     {'climate_data.ClimateDataBaseline': 60,
+      'climate_data.ClimateDataCell': 12,
+      'climate_data.ClimateDataCityCell': 0,
+      'climate_data.ClimateDataYear': 80828,
+      'climate_data.HistoricAverageClimateDataYear': 15})
 
 Once the database has been pruned, run ``pg_dump`` from inside of the postgres container to make a database dump of the current state. Console into the ``postgres`` container::
 
-    $ docker-compose exec postgres db_dump -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
+    $ docker-compose exec postgres pg_dump -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
 
 Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy the newest backup to S3.::
 
