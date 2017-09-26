@@ -301,7 +301,7 @@ Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy
 
     $ aws s3 cp database_backup/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/latest/
 
-Where DATE is in the format mmddyyyy (i.e. cc_dev_db_05082017.dump)
+Where DATE is in the format yyyymmdd (i.e. cc_dev_db_20170508.dump)
 
 .. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
 .. _Django Debug Toolbar: https://django-debug-toolbar.readthedocs.io
