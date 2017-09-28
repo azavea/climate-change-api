@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% load bootstrap3 %}
+
+<head>
+    <title>{% block title %}Climate Account{% endblock %}</title>
+</head>
+
+{% block content %}
+Welcome to Azavea's Climate Application
+
+<a class="btn" href="{% url 'api_home' %}">API</a>
+<a class="btn" href="https://{{ lab_urn }}">Lab</a>
+{% endblock content %}
