@@ -73,6 +73,16 @@ class RegistrationView(BaseRegistrationView):
         return new_user
 
 
+class AppHomeView(LoginRequiredMixin, View):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, )
+
+    def get(self, request, *args, **kwargs):
+        context = {'lab_urn': settings.LAB_URN}
+        template = 'app_home.html'
+        return render(request, template, context)
+
+
 class APIHomeView(LoginRequiredMixin, View):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (TokenAuthentication, )
@@ -88,7 +98,7 @@ class APIHomeView(LoginRequiredMixin, View):
         return HttpResponseRedirect('{}'.format(reverse('api_home')))
 
     def get(self, request, *args, **kwargs):
-        template = 'registration/api_home.html'
+        template = 'api_home.html'
         return render(request, template)
 
 
