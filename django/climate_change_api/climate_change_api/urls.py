@@ -39,7 +39,7 @@ router.register(r'scenario', climate_data_views.ScenarioViewSet)
 router.register(r'project', user_projects_views.ProjectViewSet, base_name='project')
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
+    url(r'^$', RedirectView.as_view(pattern_name='api_home')),
     url(r'^accounts/', include('user_management.urls')),
     url(r'^api/', include(router.urls)),
     url(r'^api/city/(?P<city>[0-9]+)/map-cell/$',
