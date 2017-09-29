@@ -17,6 +17,9 @@
     "city": {
       "$ref": "#/definitions/city"
     },
+    "dataset": {
+      "$ref": "#/definitions/dataset"
+    },
     "scenario": {
       "type": "object",
       "properties": {
@@ -98,6 +101,7 @@
             {"type": "null"}
           ]
         },
+        "enabled": {"type": "boolean"},
         "selected": {"type": "boolean"}
       },
       "additionalProperties": false,
@@ -125,20 +129,51 @@
                         "type": "string"
                        }
             },
-            "map_cell": {"$ref": "#/definitions/pointgeom"},
             "name": {
               "type": "string"
             },
             "admin": {
               "type": "string"
-            }
+            },
+            "population": {
+              "type": "number"
+            },
+            "region": {
+              "type": "number"
+            },
+            "map_cell": {"$ref": "#/definitions/pointgeom"}
           },
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": ["name", "admin"]
         }
       },
       "additionalProperties": false,
       "required": ["id", "type", "geometry", "properties"]
+    },
+    "dataset": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "models"]
     },
     "pointgeom": {
       "type": "object",
