@@ -19,16 +19,25 @@
     <div class="navbar">
       <div class="container">
         <div class="navbar-left">
-          <a href="{% if user.is_authenticated %}{% url 'edit_profile' %}{% else %}{% url 'auth_login' %}{% endif %}" class="brand">
+          <a href="{% url 'app_home' %}" class="brand">
             <img src="{% static "images/climate-logo.svg" %}" alt="">
           </a>
         </div>
         <div class="navbar-right">
           <nav>
-            <a href="{{ API_DOCUMENTATION_URL }}">Documentation</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'edit_profile' %}">Account</a>
-                <a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a>
+                <a href="{% url 'api_home' %}">API</a>
+                <a href="http://{{ LAB_URN }}">Lab</a>
+                <button class="btn btn-default dropdown-toggle" type="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
+                    id="accountDropdown">
+                    {{ user.first_name }} {{ user.last_name }}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="accountDropdown">
+                    <li><a href="{% url 'edit_profile' %}">Account</a></li>
+                    <li><a href="{% url 'auth_logout' %}">Log out</a></li>
+                </ul>
             {% else %}
                 <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
             {% endif %}
