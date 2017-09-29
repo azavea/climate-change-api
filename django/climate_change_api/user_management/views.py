@@ -78,9 +78,8 @@ class AppHomeView(LoginRequiredMixin, View):
     authentication_classes = (TokenAuthentication, )
 
     def get(self, request, *args, **kwargs):
-        context = {'lab_urn': settings.LAB_URN}
         template = 'app_home.html'
-        return render(request, template, context)
+        return render(request, template)
 
 
 class APIHomeView(LoginRequiredMixin, View):
