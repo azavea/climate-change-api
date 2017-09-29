@@ -27,11 +27,15 @@
           <nav>
             {% if user.is_authenticated %}
                 <a href="{% url 'api_home' %}">API</a>
-                <a href="http://{{ LAB_URN }}">Lab</a>
+                <a href="//{{ LAB_URN }}">Lab</a>
                 <button class="btn btn-default dropdown-toggle" type="button"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
                     id="accountDropdown">
-                    {{ user.first_name }} {{ user.last_name }}
+                    {% if user.first_name or user.last_name %}
+                        {{ user.first_name }} {{ user.last_name }}
+                    {% else %}
+                        User Settings
+                    {% endif %}
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="accountDropdown">
