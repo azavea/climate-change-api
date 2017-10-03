@@ -22,8 +22,9 @@ class TemperatureConverterTestCase(ConverterTestMixin, TestCase):
 class PrecipitationRateConverterTestCase(ConverterTestMixin, TestCase):
     converter_class = PrecipitationRateConverter
     cases = [
-        {'kg/m^2/s': 1, 'kg/m^2/day': 86400},
-        {'kg/m^2/s': 0.00001157407, 'kg/m^2/day': 1}
+        {'kg/m^2/s': 1, 'kg/m^2/s': 1},
+        {'kg/m^2/s': 1, 'mm/day': 86400},
+        {'kg/m^2/s': 1, 'in/day': 3401.57480315}
     ]
 
 
