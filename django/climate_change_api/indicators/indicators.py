@@ -191,7 +191,7 @@ class DrySpells(CountUnitsMixin, ArrayStreakIndicator):
 
 class ExtremePrecipitationEvents(CountUnitsMixin, ArrayBaselineIndicator):
     label = 'Extreme Precipitation Events'
-    description = ('Total number of times per period daily precipitation rate exceeds the '
+    description = ('Total number of times per period daily average precipitation rate exceeds the '
                    'specified percentile of historic observations')
     params_class = ExtremeIndicatorParams
     params_class_kwargs = {'percentile': 99}
