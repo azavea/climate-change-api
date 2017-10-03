@@ -730,7 +730,7 @@ class MonthlyPrecipitationThresholdTestcase(IndicatorTests, TestCase):
     indicator_class = indicators.PrecipitationThreshold
     indicator_name = 'precipitation_threshold'
     time_aggregation = 'monthly'
-    extra_params = {'threshold': .5, 'threshold_comparator': 'lt', 'threshold_units': 'in/s'}
+    extra_params = {'threshold': 43200, 'threshold_comparator': 'lt', 'threshold_units': 'in/day'}
     test_indicator_rcp85_equals = {'2000-01': {'avg': 0.0, 'min': 0.0, 'max': 0.0}}
     test_indicator_rcp45_equals = {'2000-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
                                    '2001-01': {'max': 1.0, 'avg': 0.5, 'min': 0.0},
