@@ -1,0 +1,41 @@
+.home-container {
+  text-align: center;
+}
+
+.home-intro {
+  max-width: 60rem;
+  margin: 0 auto 4rem;
+}
+
+.btn-app-entrances {
+  text-align: left;
+  white-space: normal;
+  padding: 2rem;
+
+  &.btn-lab {
+    background: #1DAD5F;
+
+    &:hover, &.hover {
+      background: darken(#1DAD5F, 5%);
+    }
+
+    &:focus {
+      background: #1DAD5F!important;
+    }
+  }
+
+  @media (max-width: 550px) {
+    width: 100%;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  .title {
+    color: white;
+  }
+
+  .description {
+    font-size: 1.5rem;
+    line-height: 1.45;
+  }
+}

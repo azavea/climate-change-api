@@ -7,12 +7,17 @@
     <title>{% block title %}Your profile{% endblock %}</title>
 </head>
 
+{% block navbar %}
+<a class="btn btn-link active" href="{% url 'api_home' %}">API</a>
+<a class="btn btn-link" href="//{{ LAB_URN }}">Lab</a>
+{% endblock %}
+
 {% block precontent %}
 <section class="background-light section-user section-user-welcome">
   <div class="container">
     <div class="row stack-xs">
       <div class="column-6">
-        <h1>Welcome to the Climate API!</h1>
+        <h1>API</h1>
         <p>Here you will be able to view your API token, read documentation, and configure your user profile.</p>
       </div>
       <div class="column-6 text-center">
@@ -23,9 +28,19 @@
 {% endblock precontent %}
 
 {% block content %}
-
 <div class="row stack-xs">
   <div class="column-6">
+    <section class="section-user">
+      <div name="documentation">
+        <h3>Documentation</h3>
+        <p>Please share with us how we can improve the API. Was the documentation clear? Was the information we provided helpful? We want to hear your thoughts!
+        </p>
+         <p>
+          <a href="{{ API_DOCUMENTATION_URL }}">Go to Documentation</a>
+        </p>
+      </div>
+    </section>
+
     <section class="section-user">
       <div name="apitoken">
         <h3>API token</h3>
