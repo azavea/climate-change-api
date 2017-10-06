@@ -33,6 +33,7 @@
  * Components
 **/
 @import
+  "scss/components/dropdown",
   "scss/components/button",
   "scss/components/image",
   "scss/components/form",
@@ -45,4 +46,6 @@
  * Pages
 **/
 @import
-  "scss/pages/home";
+  "scss/pages/home",
+  "scss/pages/app-home",
+  "scss/pages/api-home";

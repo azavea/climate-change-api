@@ -1,0 +1,35 @@
+.dropdown-menu {
+  
+  // Arrow on top of dropdown menu
+  &:before {
+    content: "";
+    display: block;
+    position: absolute;
+    height: 10px;
+    width: 10px;
+    background-color: white;
+    transform: rotate(45deg);
+    top: -5px;
+    right: 12px;
+    outline: 1px solid $gray-lightest;
+    z-index: -1;
+  }
+
+  // A white box to cover the outline of the arrow
+  &:after {
+    content: "";
+    display: block;
+    position: absolute;
+    height: 10px;
+    width: 22px;
+    background-color: white;
+    top: 0;
+    right: 6px;
+    z-index: -1;
+  }
+
+  li {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}

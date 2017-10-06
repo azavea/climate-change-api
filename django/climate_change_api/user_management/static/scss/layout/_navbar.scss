@@ -1,7 +1,8 @@
 .navbar {
   @extend %clearfix;
   position: relative;
-  padding-top: 2.5rem;
+  background: $shade-dark;
+  line-height: 0;
 
   .container {
     display: flex;
@@ -12,16 +13,42 @@
     }
   }
 
+  .btn:focus {
+    box-shadow: none;
+    text-decoration: none;
+  }
+
   nav {
     display: inline-block;
     vertical-align: middle;
+    position: relative;
 
-    a {
-      color: $shade-light;
-      padding: 1.5rem 1.5rem;
+    > a {
+      color: $white;
+      margin: 0 1.5rem;
+      padding: 1.5rem 0;
+      border-radius: 0;
+      
+      &.active {
+        font-weight: bold;
+      }
+      &.active:before {
+        content: "";
+        position: absolute;
+        height: 4px;
+        width: 100%;
+        background: $white;
+        top: 0;
+        left: 0;
+
+        @include respond-to('xxs') {
+          top: auto;
+          bottom: 0;
+        }
+      }
 
       &:hover {
-        color: darken($shade-light, 5%);
+        color: darken($white, 5%);
       }
     }
   }
@@ -30,17 +57,19 @@
 .navbar {
   margin-bottom: 70px;
   margin-top: 0;
-  nav a {
-    font-weight: 600;
+
+  nav > a {
+    font-weight: 500;
   }
   @include respond-to(xxs) {
-    margin-bottom: -10px;
-    nav a {
+    margin-bottom: 0;
+
+    nav > .btn-link {
       margin-top: 30px;
       border: 2px solid #6F6F76;
       padding: 8px !important;
       border-radius: 2px;
-      color: #6F6F76;
+      text-decoration: none!important;
     }
   }
 }
@@ -59,7 +88,6 @@
 }
 
 .navbar-right {
-
   @include respond-to('sm-down') {
     justify-content: flex-end;
   }
@@ -85,5 +113,16 @@
 
   @include respond-to('xxs') {
     display: none;
+  }
+}
+
+.navbar .btn-link {
+  color: $white;
+  font-size: 1.5rem;
+
+  &:hover, &.hover,
+  &:active, &.active {
+    color: darken($white, 10%);
+    text-decoration: none;
   }
 }
