@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block precontent %}
-<section class="background-light section-user section-user-welcome">
+<section class="section-user section-user-welcome">
   <div class="container">
     <div class="row stack-xs">
       <div class="column-6">
@@ -78,7 +78,7 @@
       <div class="modal-footer">
         <form action="new_token/" method="post">
           {% csrf_token %}
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-danger" href="{% url 'new_token' %}">Do It</button>
         </form>
       </div>

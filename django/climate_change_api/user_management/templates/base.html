@@ -20,7 +20,7 @@
       <div class="container">
         <div class="navbar-left">
           <a href="{% url 'app_home' %}" class="brand">
-            <img src="{% static "images/climate-logo-white.svg" %}" alt="">
+            <img src="{% static "images/climate-logo-white.svg" %}" alt="Climate">
           </a>
         </div>
         <div class="navbar-right">
@@ -33,8 +33,8 @@
                 <button class="btn btn-link dropdown-toggle" type="button"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
                     id="accountDropdown">
-                    {% if user.first_name or user.last_name %}
-                        {{ user.first_name }} {{ user.last_name }}
+                    {% if user.email %}
+                        {{ user.email }}
                     {% else %}
                         User Settings
                     {% endif %}
