@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load compile_static %}
+{% load staticfiles %}
 {% load i18n %}
 
 {% load bootstrap3 %}
@@ -10,16 +12,17 @@
 {% block content %}
 <div class="home-container">
   <div class="home-intro">
-    <h1>Welcome to Azavea&#8217;s Climate Application</h1>
+    <img src="{% static "images/climate-graphic-sun.png" %}" class="image-sun" alt="Climate">
+    <h3>Welcome to Azavea&#8217;s Climate Application</h3>
     <p>Maecenas sed diam eget risus varius blandit sit amet non magna. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Sed posuere consectetur est at lobortis.</p>
   </div>
 
-  <a class="btn btn-primary btn-app-entrances btn-api column-5" href="{% url 'api_home' %}">
-    <h3 class="title">API</h3>
+  <a class="btn btn-primary btn-app-entrances btn-api column-4" href="{% url 'api_home' %}">
+    <h4 class="title">API</h4>
     <div class="description">Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nulla vitae elit libero, a pharetra augue. Etiam porta sem malesuada magna mollis euismod.</div>
   </a>
-  <a class="btn btn-primary btn-app-entrances btn-lab column-5" href="//{{ LAB_URN }}">
-    <h3 class="title">Lab</h3>
+  <a class="btn btn-primary btn-app-entrances btn-lab column-4" href="//{{ LAB_URN }}">
+    <h4 class="title">Lab</h4>
     <div class="description">Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nulla vitae elit libero, a pharetra augue. Etiam porta sem malesuada magna mollis euismod.</div>
   </a>
 </div>

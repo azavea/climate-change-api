@@ -3,9 +3,13 @@
   position: relative;
   background: $shade-dark;
   line-height: 0;
+  border: none;
+  height: 50px;
 
   .container {
     display: flex;
+    max-width: none;
+    padding: 0 15px !important;
 
     @include respond-to('xxs') {
       flex-direction: column;
@@ -28,7 +32,7 @@
       margin: 0 1.5rem;
       padding: 1.5rem 0;
       border-radius: 0;
-      
+
       &.active {
         font-weight: bold;
       }
@@ -55,12 +59,21 @@
 }
 
 .navbar {
-  margin-bottom: 70px;
+  margin-bottom: 20px;
   margin-top: 0;
+  border-radius: 0 !important;
 
   nav > a {
-    font-weight: 500;
+    font-weight: 400;
+    margin: 0 10px;
   }
+
+  nav {
+    .caret {
+      margin-left: 2px;
+    }
+  }
+
   @include respond-to(xxs) {
     margin-bottom: 0;
 
@@ -71,6 +84,10 @@
       border-radius: 2px;
       text-decoration: none!important;
     }
+  }
+
+  .dropdown-toggle {
+    padding-left: 12px;
   }
 }
 
@@ -98,9 +115,9 @@
   vertical-align: middle;
 
   > img {
-    max-width: 10.8rem;
+    height: 14px;
     position: relative;
-    top: 1.3rem;
+    top: 1.7rem;
   }
 }
 
@@ -118,11 +135,16 @@
 
 .navbar .btn-link {
   color: $white;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  line-height: 1.5;
 
   &:hover, &.hover,
   &:active, &.active {
     color: darken($white, 10%);
     text-decoration: none;
   }
+}
+
+.navbar .btn-link:hover, .navbar .btn-link.hover, .navbar .btn-link:active, .navbar .btn-link.active {
+  color: #fff !important;
 }
