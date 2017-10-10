@@ -5,6 +5,11 @@
 .home-intro {
   max-width: 60rem;
   margin: 0 auto 4rem;
+
+  .climate-flair-image {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+  }
 }
 
 .btn-app-entrances {
@@ -12,15 +17,28 @@
   white-space: normal;
   padding: 2rem;
 
-  &.btn-lab {
-    background: #1DAD5F;
+  &.btn-api {
+    background: #1D428C;
+    margin-right: 15px;
 
     &:hover, &.hover {
-      background: darken(#1DAD5F, 5%);
+      background: darken(#1D428C, 5%);
     }
 
     &:focus {
-      background: #1DAD5F!important;
+      background: #1D428C !important;
+    }
+  }
+
+  &.btn-lab {
+    background: #009DD7;
+
+    &:hover, &.hover {
+      background: darken(#009DD7, 5%);
+    }
+
+    &:focus {
+      background: #009DD7 !important;
     }
   }
 
