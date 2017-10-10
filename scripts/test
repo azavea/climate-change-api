@@ -65,7 +65,7 @@ then
             run --rm --entrypoint "./manage.py" \
             django loaddata scenarios
 
-        # if there are no violations, flake8 doesn't write to file
+        # if there are no violations, flake8 doesn't remove violations from the previous run
         # start with file present and empty
         set +e
         echo "Remove linter output file, if present"
