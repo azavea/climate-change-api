@@ -14,16 +14,18 @@
   <div class="home-intro">
     <img src="{% static "images/climate-graphic-sun.png" %}" class="image-sun" alt="Climate">
     <h3>Welcome to Azavea&#8217;s Climate Application</h3>
-    <p>Maecenas sed diam eget risus varius blandit sit amet non magna. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Sed posuere consectetur est at lobortis.</p>
+    <p>We combined the Global Daily Downscaled Projections (<a href="https://nex.nasa.gov/nex/projects/1356/">NEX-GDDP</a>) and the Coupled Model Intercomparison Project Phase 5 (<a href="https://sos.noaa.gov/Datasets/dataset.php?id=437">CMIP5</a>), and two carbon scenarios (<a href="">RCP 4.5</a> and <a href="https://sos.noaa.gov/Datasets/dataset.php?id=438">RCP 8.5</a>) to give you access to low temperature, high temperature and precipitation data from 1950 to 2100. You can access <a href="https://docs.climate.azavea.com/indicators.html">22 climate indicators</a> for over 1,000 U.S. locations via web interface or API.</p>
   </div>
 
-  <a class="btn btn-primary btn-app-entrances btn-api column-4" href="{% url 'api_home' %}">
-    <h4 class="title">API</h4>
-    <div class="description">Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nulla vitae elit libero, a pharetra augue. Etiam porta sem malesuada magna mollis euismod.</div>
-  </a>
-  <a class="btn btn-primary btn-app-entrances btn-lab column-4" href="//{{ LAB_URN }}">
-    <h4 class="title">Lab</h4>
-    <div class="description">Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nulla vitae elit libero, a pharetra augue. Etiam porta sem malesuada magna mollis euismod.</div>
-  </a>
+  <div class="app-entrances">
+    <a class="btn btn-primary btn-app-entrances btn-api column-4" href="{% url 'api_home' %}">
+      <h4 class="title">API</h4>
+      <div class="description">Use our flexible application programming interface (API) to pull data or include climate intelligence in your web application.</div>
+    </a>
+    <a class="btn btn-primary btn-app-entrances btn-lab column-4" href="//{{ LAB_URN }}">
+      <h4 class="title">Lab</h4>
+      <div class="description">Visualize and export climate data from your web browser, no technical expertise required.</div>
+    </a>
+  </div>
 </div>
 {% endblock content %}
