@@ -45,7 +45,7 @@
                     <li><a href="{% url 'auth_logout' %}">Log out</a></li>
                 </ul>
             {% else %}
-                <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
+                <a class="btn btn-link" href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
             {% endif %}
           </nav>
         </div>
