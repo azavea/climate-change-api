@@ -19,7 +19,7 @@ Next, ssh into the VM with ``vagrant ssh``. Then run::
 
     ./scripts/console django './manage.py createsuperuser'
 
-and follow the prompts to create an initial user to login with. You will also need to create a UserProfile so that you can login to the app.
+and follow the prompts to create an initial user to login with. Remember the email address you use to sign up; you will use it to create a UserProfile so that you can login to the app in the steps below.
 
 In the VM:
 
@@ -30,8 +30,10 @@ In the VM:
 Within the shell:
 
 .. code-block:: bash
+    # Get your created user using its email address
+    In  [1]: my_user = ClimateUser.objects.get(email="<Your User's Email>")
 
-    In  [1]: my_user = ClimateUser.objects.get(email=<Your User's Email>)
+    # Create a UserProfile associated with the user object retrieved above 
     In  [2]: UserProfile.objects.create(user=my_user)
     Out [2]: <UserProfile: (Your User's Email)>
 
