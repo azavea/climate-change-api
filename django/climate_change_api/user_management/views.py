@@ -18,6 +18,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework.response import Response
 
 from user_management.forms import UserForm, UserProfileForm
 from user_management.models import UserProfile
@@ -140,3 +141,18 @@ class ClimateAPIObtainAuthToken(ObtainAuthToken):
 
     throttle_classes = (ObtainAuthTokenThrottle,)
     serializer_class = AuthTokenSerializer
+
+
+class ClimateAPIRefreshAuthToken(ClimateAPIObtainAuthToken):
+    """Anonymous endpoint for users to refresh and request tokens from for authentication."""
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        if user.auth_token:
+            user.auth_token.delete()
+        user.auth_token = Token.objects.create(user=user)
+        user.auth_token.save()
+        return Response({'token': user.auth_token.key})
