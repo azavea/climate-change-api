@@ -154,5 +154,4 @@ class ClimateAPIRefreshAuthToken(ClimateAPIObtainAuthToken):
         if user.auth_token:
             user.auth_token.delete()
         user.auth_token = Token.objects.create(user=user)
-        user.auth_token.save()
         return Response({'token': user.auth_token.key})
