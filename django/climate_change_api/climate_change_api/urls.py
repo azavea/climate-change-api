@@ -66,7 +66,7 @@ urlpatterns = [
     url(r'^api/datacheck/$', climate_data_views.DataCheckView.as_view(), name='data-check'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/', ClimateAPIObtainAuthToken.as_view()),
-    url(r'^api-refresh-token-auth/', ClimateAPIRefreshAuthToken.as_view()),
+    url(r'^api-token-auth/refresh/', ClimateAPIRefreshAuthToken.as_view()),
     url(r'^admin/', admin.site.urls),
 
     # 3rd party
