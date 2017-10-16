@@ -418,3 +418,6 @@ elif ENVIRONMENT == 'Staging':
 else:
     LAB_URN = 'lab.climate.azavea.com'
     API_DOCUMENTATION_URL = 'https://docs.climate.azavea.com'
+
+# On login redirect to the application root
+LOGIN_REDIRECT_URL = '/'
