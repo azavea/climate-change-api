@@ -1,6 +1,34 @@
 # Change Log
 
+## [2.1.0](https://github.com/azavea/climate-change-api/tree/2.1.0) (2017-10-17)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.0.0...2.1.0)
+
+**Merged pull requests:**
+
+- Redirect to application home on login [\#738](https://github.com/azavea/climate-change-api/pull/738)
+- Clarify ClimateUser creation documentation [\#735](https://github.com/azavea/climate-change-api/pull/735)
+- Update copy [\#733](https://github.com/azavea/climate-change-api/pull/733)
+- Style changes and HTML changes made, just waiting on content. Also ad… [\#731](https://github.com/azavea/climate-change-api/pull/731)
+- Style changes and HTML changes made, just waiting on content. Also ad… [\#730](https://github.com/azavea/climate-change-api/pull/730)
+- Set Lab/Docs links based on settings.ENVIRONMENT [\#727](https://github.com/azavea/climate-change-api/pull/727)
+- Update header for lab integration [\#724](https://github.com/azavea/climate-change-api/pull/724)
+- Scaffold the "app page", "account profile" and "api page" [\#722](https://github.com/azavea/climate-change-api/pull/722)
+- Update instructions for dumping staging database in README.rst [\#716](https://github.com/azavea/climate-change-api/pull/716)
+- Update relevant indicators to use precipitation rates [\#711](https://github.com/azavea/climate-change-api/pull/711)
+- Fix City Map Cell and incomplete ClimateDataSource datachecks [\#709](https://github.com/azavea/climate-change-api/pull/709)
+- Replace internal static-site with terraform-aws-s3-origin [\#708](https://github.com/azavea/climate-change-api/pull/708)
+- Use project specific RDS database name [\#705](https://github.com/azavea/climate-change-api/pull/705)
+- Use project specific Papertrail settings [\#703](https://github.com/azavea/climate-change-api/pull/703)
+- Feature/kak/update project schema dataset\#700 [\#701](https://github.com/azavea/climate-change-api/pull/701)
+- Update project schema with datasets property [\#693](https://github.com/azavea/climate-change-api/pull/693)
+- Feature/kak/model dataset combo check\#665 [\#692](https://github.com/azavea/climate-change-api/pull/692)
+- Connect API infrastructure with core infrastructure [\#691](https://github.com/azavea/climate-change-api/pull/691)
+- Allow importing LOCA data from remote instances [\#690](https://github.com/azavea/climate-change-api/pull/690)
+- Add lab librato tag [\#677](https://github.com/azavea/climate-change-api/pull/677)
+
 ## [2.0.0](https://github.com/azavea/climate-change-api/tree/2.0.0) (2017-09-18)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.2.1...2.0.0)
 
 **Merged pull requests:**
@@ -19,6 +47,7 @@
 - Add LOCA data to relevant API views [\#652](https://github.com/azavea/climate-change-api/pull/652)
 
 ## [1.2.1](https://github.com/azavea/climate-change-api/tree/1.2.1) (2017-09-07)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.2.0...1.2.1)
 
 **Merged pull requests:**
@@ -29,6 +58,7 @@
 - Add ClimateDataset model and make City\<-\>Cell many-to-many [\#644](https://github.com/azavea/climate-change-api/pull/644)
 
 ## [1.2.0](https://github.com/azavea/climate-change-api/tree/1.2.0) (2017-08-29)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.1.0...1.2.0)
 
 **Merged pull requests:**
@@ -41,6 +71,7 @@
 - Migrate run\_jobs.py to use ClimateDataYear [\#610](https://github.com/azavea/climate-change-api/pull/610)
 
 ## [1.1.0](https://github.com/azavea/climate-change-api/tree/1.1.0) (2017-08-16)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.9...1.1.0)
 
 **Merged pull requests:**
@@ -71,6 +102,7 @@
 - Add offset yearly time aggregation [\#557](https://github.com/azavea/climate-change-api/pull/557)
 
 ## [1.0.9](https://github.com/azavea/climate-change-api/tree/1.0.9) (2017-07-18)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.8...1.0.9)
 
 **Merged pull requests:**
@@ -83,6 +115,7 @@
 - Store and process ClimateData by year chunks [\#527](https://github.com/azavea/climate-change-api/pull/527)
 
 ## [1.0.8](https://github.com/azavea/climate-change-api/tree/1.0.8) (2017-07-17)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.7...1.0.8)
 
 **Merged pull requests:**
@@ -95,6 +128,7 @@
 - Feature/jf/custom historical ranges [\#506](https://github.com/azavea/climate-change-api/pull/506)
 
 ## [1.0.7](https://github.com/azavea/climate-change-api/tree/1.0.7) (2017-06-26)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.6...1.0.7)
 
 **Merged pull requests:**
@@ -103,6 +137,7 @@
 - Fixup librato sink to work with new Librato Tags API [\#518](https://github.com/azavea/climate-change-api/pull/518)
 
 ## [1.0.6](https://github.com/azavea/climate-change-api/tree/1.0.6) (2017-06-20)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.5...1.0.6)
 
 **Merged pull requests:**
@@ -122,6 +157,7 @@
 - Ensure django.conf.settings aren't evaluated until after running command [\#466](https://github.com/azavea/climate-change-api/pull/466)
 
 ## [1.0.5](https://github.com/azavea/climate-change-api/tree/1.0.5) (2017-05-19)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.4...1.0.5)
 
 **Merged pull requests:**
@@ -133,10 +169,12 @@
 - Feature/jf/hookup salesforce [\#458](https://github.com/azavea/climate-change-api/pull/458)
 - Style registration form [\#457](https://github.com/azavea/climate-change-api/pull/457)
 - Open all external links in docs in new tab [\#451](https://github.com/azavea/climate-change-api/pull/451)
+- Restore development DB from an S3 backup [\#449](https://github.com/azavea/climate-change-api/pull/449)
 - Fix healthchecks to check for scenario data within correct time range [\#446](https://github.com/azavea/climate-change-api/pull/446)
 - Update load tests [\#402](https://github.com/azavea/climate-change-api/pull/402)
 
 ## [1.0.4](https://github.com/azavea/climate-change-api/tree/1.0.4) (2017-04-26)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.3...1.0.4)
 
 **Merged pull requests:**
@@ -144,9 +182,11 @@
 - Merge branch 'release/1.0.3' [\#455](https://github.com/azavea/climate-change-api/pull/455)
 
 ## [1.0.3](https://github.com/azavea/climate-change-api/tree/1.0.3) (2017-04-26)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.2...1.0.3)
 
 ## [1.0.2](https://github.com/azavea/climate-change-api/tree/1.0.2) (2017-04-26)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.1...1.0.2)
 
 **Merged pull requests:**
@@ -154,7 +194,6 @@
 - Fix broken img reference in logout page [\#453](https://github.com/azavea/climate-change-api/pull/453)
 - Update to open registration in all cases [\#452](https://github.com/azavea/climate-change-api/pull/452)
 - Fix deployment of static assets [\#450](https://github.com/azavea/climate-change-api/pull/450)
-- Restore development DB from an S3 backup [\#449](https://github.com/azavea/climate-change-api/pull/449)
 - Install pydocstyle version compatible with flake8-docstrings [\#448](https://github.com/azavea/climate-change-api/pull/448)
 - Quote passing of Git commit SHA to Terraform [\#445](https://github.com/azavea/climate-change-api/pull/445)
 - Move data health checks to API [\#443](https://github.com/azavea/climate-change-api/pull/443)
@@ -162,9 +201,13 @@
 - Release 1.0.1, update Changelog [\#432](https://github.com/azavea/climate-change-api/pull/432)
 
 ## [1.0.1](https://github.com/azavea/climate-change-api/tree/1.0.1) (2017-04-19)
+
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/1.0.0...1.0.1)
 
 ## [1.0.0](https://github.com/azavea/climate-change-api/tree/1.0.0) (2017-04-19)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/e487f62fd17c1a974a299f2ee374d8f3353fd893...1.0.0)
+
 **Merged pull requests:**
 
 - Feature/jf/docs copy edit [\#431](https://github.com/azavea/climate-change-api/pull/431)
@@ -373,4 +416,4 @@
 
 
 
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
+* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
