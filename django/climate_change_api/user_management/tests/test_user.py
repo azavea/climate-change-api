@@ -34,3 +34,19 @@ class UserTestCase(DummyCacheTestCase):
         self.assertTrue(encoded_email.endswith(b'='))
         encoded_email = encoded_email.strip(b'=')
         self.assertEqual(ClimateUser.objects.from_encoded_email(encoded_email), self.user)
+
+    def test_refresh_token(self):
+        self.client = Client()
+        import ipdb;ipdb.set_trace()
+        url = '/api-token-auth/'
+        response = self.client.post(url, {'email': 'panda@wwf.org',
+                                          'password': 'iucnendangered'})
+        old_token = response
+
+        url = '/api-token-auth/refresh/'
+        response = self.client.post(url, {'email': 'panda@wwf.org',
+                                          'password': 'iucnendangered'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_token = response
+
+        self.assertNotEqual(old_token, new_token)
