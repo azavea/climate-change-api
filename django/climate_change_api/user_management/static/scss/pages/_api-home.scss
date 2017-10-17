@@ -1,0 +1,7 @@
+.background-light {
+  margin-top: -70px;
+
+  @include respond-to(xxs) {
+    margin-top: 0px;
+  }
+}

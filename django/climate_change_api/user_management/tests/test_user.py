@@ -1,4 +1,5 @@
 from django.test import Client
+from django.urls import reverse
 
 from climate_change_api.tests import DummyCacheTestCase
 from user_management.models import ClimateUser
@@ -16,10 +17,13 @@ class UserTestCase(DummyCacheTestCase):
     def test_login(self):
 
         self.client = Client()
-        url = '/accounts/login/'
+        url = reverse('auth_login')
         response = self.client.post(url, {'username': 'panda@wwf.org',
-                                          'password': 'iucnendangered'})
+                                          'password': 'iucnendangered'},
+                                    follow=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.context['user'].is_authenticated())
+        self.assertRedirects(response, reverse('app_home'))
 
     def test_encode_email(self):
         encoded_email = self.user.encode_email()

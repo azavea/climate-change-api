@@ -18,6 +18,7 @@ from .params import (DegreeDayIndicatorParams,
                      PercentileIndicatorParams)
 from .unit_converters import (CountUnitsMixin,
                               DaysUnitsMixin,
+                              PrecipRateUnitsMixin,
                               PrecipUnitsMixin,
                               TemperatureDeltaUnitsMixin,
                               TemperatureUnitsMixin,
@@ -50,7 +51,7 @@ class PrecipitationThreshold(DaysUnitsMixin,
                              PrecipitationThresholdIndicatorMixin,
                              ArrayThresholdIndicator):
     label = 'Precipitation Threshold'
-    description = ('Number of days where precipitation, generated from daily data ' +
+    description = ('Number of days where precipitation rate, generated from daily data ' +
                    'using all requested models, fulfils the comparison')
     variables = ('pr',)
 
@@ -132,9 +133,9 @@ class TotalPrecipitation(PrecipUnitsMixin, ArrayIndicator):
         return sum(values) * SECONDS_PER_DAY
 
 
-class PercentilePrecipitation(PrecipUnitsMixin, ArrayIndicator):
+class PercentilePrecipitation(PrecipRateUnitsMixin, ArrayIndicator):
     label = 'Percentile Precipitation'
-    description = ('The specified percentile of precipitation for each timespan. '
+    description = ('The specified percentile of precipitation rate for each timespan. '
                    'Defaults to 50th percentile (Median)')
     variables = ('pr',)
     params_class = PercentileIndicatorParams
@@ -142,7 +143,7 @@ class PercentilePrecipitation(PrecipUnitsMixin, ArrayIndicator):
 
     def agg_function(self, values):
         percentile = self.params.percentile.value
-        return np.percentile(values, percentile) * SECONDS_PER_DAY
+        return np.percentile(values, percentile)
 
 
 class FrostDays(DaysUnitsMixin, ArrayIndicator):
@@ -190,8 +191,8 @@ class DrySpells(CountUnitsMixin, ArrayStreakIndicator):
 
 class ExtremePrecipitationEvents(CountUnitsMixin, ArrayBaselineIndicator):
     label = 'Extreme Precipitation Events'
-    description = ('Total number of times per period daily precipitation exceeds the specified '
-                   'percentile of historic observations')
+    description = ('Total number of times per period daily average precipitation rate exceeds the '
+                   'specified percentile of historic observations')
     params_class = ExtremeIndicatorParams
     params_class_kwargs = {'percentile': 99}
     variables = ('pr',)

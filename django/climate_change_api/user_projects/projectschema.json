@@ -17,6 +17,9 @@
     "city": {
       "$ref": "#/definitions/city"
     },
+    "dataset": {
+      "$ref": "#/definitions/dataset"
+    },
     "scenario": {
       "type": "object",
       "properties": {
@@ -79,6 +82,12 @@
     "model": {
       "type": "object",
       "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+                    "type": "string"
+                   }
+        },
         "name": {"type": "string"},
         "label": {
           "anyOf": [
@@ -92,6 +101,7 @@
             {"type": "null"}
           ]
         },
+        "enabled": {"type": "boolean"},
         "selected": {"type": "boolean"}
       },
       "additionalProperties": false,
@@ -113,20 +123,57 @@
         "properties": {
           "type": "object",
           "properties": {
-            "map_cell": {"$ref": "#/definitions/pointgeom"},
+            "datasets": {
+              "type": "array",
+              "items": {
+                        "type": "string"
+                       }
+            },
             "name": {
               "type": "string"
             },
             "admin": {
               "type": "string"
-            }
+            },
+            "population": {
+              "type": "number"
+            },
+            "region": {
+              "type": "number"
+            },
+            "map_cell": {"$ref": "#/definitions/pointgeom"}
           },
-          "additionalProperties": true,
-          "required": ["map_cell", "name", "admin"]
+          "additionalProperties": false,
+          "required": ["name", "admin"]
         }
       },
       "additionalProperties": false,
       "required": ["id", "type", "geometry", "properties"]
+    },
+    "dataset": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "models"]
     },
     "pointgeom": {
       "type": "object",

@@ -1,4 +1,5 @@
 from factory.django import DjangoModelFactory
+from factory import PostGenerationMethodCall
 
 from user_management.models import UserProfile, ClimateUser
 
@@ -8,7 +9,7 @@ class UserFactory(DjangoModelFactory):
     first_name = 'Hei'
     last_name = 'Bai'
     email = 'panda@wwf.org'
-    password = 'iucnendangered'
+    password = PostGenerationMethodCall('set_password', 'iucnendangered')
 
     class Meta:
         model = ClimateUser

@@ -2,10 +2,10 @@
 # Security group resources
 #
 resource "aws_security_group" "cc_api_alb" {
-  vpc_id = "${module.vpc.id}"
+  vpc_id = "${data.terraform_remote_state.core.vpc_id}"
 
   tags {
-    Name        = "sgAPIServerLoadBalancer"
+    Name        = "sgAPILoadBalancer"
     Project     = "${var.project}"
     Environment = "${var.environment}"
   }
@@ -16,20 +16,18 @@ resource "aws_security_group" "cc_api_alb" {
 #
 resource "aws_alb" "cc_api" {
   security_groups = ["${aws_security_group.cc_api_alb.id}"]
-  subnets         = ["${module.vpc.public_subnet_ids}"]
-  name            = "alb${var.environment}APIServer"
+  subnets         = ["${data.terraform_remote_state.core.public_subnet_ids}"]
+  name            = "alb${var.environment}API"
 
   tags {
-    Name        = "albAPIServer"
+    Name        = "albAPI"
     Project     = "${var.project}"
     Environment = "${var.environment}"
   }
 }
 
 resource "aws_alb_target_group" "cc_api_http" {
-  # Name can only be 32 characters long, so we MD5 hash the name and
-  # truncate it to fit.
-  name = "tf-tg-${replace("${md5("${var.environment}HTTPAPIServer")}", "/(.{0,26})(.*)/", "$1")}"
+  name = "tg${var.environment}HTTPAPI"
 
   health_check {
     healthy_threshold   = "3"
@@ -43,19 +41,17 @@ resource "aws_alb_target_group" "cc_api_http" {
 
   port     = "80"
   protocol = "HTTP"
-  vpc_id   = "${module.vpc.id}"
+  vpc_id   = "${data.terraform_remote_state.core.vpc_id}"
 
   tags {
-    Name        = "tg${var.environment}HTTPAPIServer"
+    Name        = "tg${var.environment}HTTPAPI"
     Project     = "${var.project}"
     Environment = "${var.environment}"
   }
 }
 
 resource "aws_alb_target_group" "cc_api_https" {
-  # Name can only be 32 characters long, so we MD5 hash the name and
-  # truncate it to fit.
-  name = "tf-tg-${replace("${md5("${var.environment}HTTPSAPIServer")}", "/(.{0,26})(.*)/", "$1")}"
+  name = "tg${var.environment}HTTPSAPI"
 
   health_check {
     healthy_threshold   = "3"
@@ -68,10 +64,10 @@ resource "aws_alb_target_group" "cc_api_https" {
 
   port     = "443"
   protocol = "HTTP"
-  vpc_id   = "${module.vpc.id}"
+  vpc_id   = "${data.terraform_remote_state.core.vpc_id}"
 
   tags {
-    Name        = "tg${var.environment}HTTPSAPIServer"
+    Name        = "tg${var.environment}HTTPSAPI"
     Project     = "${var.project}"
     Environment = "${var.environment}"
   }
@@ -100,28 +96,36 @@ resource "aws_alb_listener" "cc_api_https" {
   }
 }
 
+#
+# ECS resources
+#
 data "template_file" "cc_api_http_ecs_task" {
   template = "${file("task-definitions/nginx.json")}"
 
   vars = {
-    api_server_nginx_url       = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
+    api_server_nginx_url       = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
     cc_api_papertrail_endpoint = "${var.papertrail_host}:${var.papertrail_port}"
   }
 }
 
 resource "aws_ecs_task_definition" "cc_api_http" {
-  family                = "${var.environment}HTTPAPIServer"
+  family                = "${var.environment}HTTPAPI"
   container_definitions = "${data.template_file.cc_api_http_ecs_task.rendered}"
 }
 
 resource "aws_ecs_service" "cc_api_http" {
-  name                               = "${var.environment}HTTPAPIServer"
-  cluster                            = "${aws_ecs_cluster.container_instance.id}"
+  name                               = "${var.environment}HTTPAPI"
+  cluster                            = "${data.terraform_remote_state.core.container_service_cluster_id}"
   task_definition                    = "${aws_ecs_task_definition.cc_api_http.arn}"
   desired_count                      = "${var.cc_api_http_ecs_desired_count}"
   deployment_minimum_healthy_percent = "${var.cc_api_http_ecs_deployment_min_percent}"
   deployment_maximum_percent         = "${var.cc_api_http_ecs_deployment_max_percent}"
-  iam_role                           = "${aws_iam_role.container_instance_ecs.name}"
+  iam_role                           = "${data.terraform_remote_state.core.container_service_cluster_ecs_service_role_name}"
+
+  placement_strategy {
+    type  = "spread"
+    field = "attribute:ecs.availability-zone"
+  }
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.cc_api_http.id}"
@@ -134,19 +138,19 @@ data "template_file" "cc_api_https_ecs_task" {
   template = "${file("task-definitions/api.json")}"
 
   vars = {
-    api_server_nginx_url             = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
-    api_server_django_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
-    api_server_statsd_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
+    api_server_nginx_url             = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-nginx:${var.git_commit}"
+    api_server_django_url            = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
+    api_server_statsd_url            = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
     django_secret_key                = "${var.django_secret_key}"
-    rds_host                         = "${module.database.hostname}"
-    rds_password                     = "${var.rds_password}"
-    rds_username                     = "${var.rds_username}"
+    rds_host                         = "${data.terraform_remote_state.core.rds_host}"
     rds_database_name                = "${var.rds_database_name}"
-    ec_memcached_host                = "${module.cache.endpoint}"
-    ec_memcached_port                = "${module.cache.port}"
-    sqs_queue_name                   = "${var.sqs_queue_name}"
-    s3_storage_bucket                = "${aws_s3_bucket.static.id}"
-    django_allowed_hosts             = "${var.django_allowed_hosts}"
+    rds_username                     = "${data.terraform_remote_state.core.rds_username}"
+    rds_password                     = "${data.terraform_remote_state.core.rds_password}"
+    ec_memcached_host                = "${data.terraform_remote_state.core.ec_memcached_host}"
+    ec_memcached_port                = "${data.terraform_remote_state.core.ec_memcached_port}"
+    sqs_queue_name                   = "${data.terraform_remote_state.core.sqs_queue_name}"
+    s3_storage_bucket                = "${data.terraform_remote_state.core.s3_storage_bucket}"
+    django_allowed_hosts             = "${aws_route53_record.cc_api.fqdn}"
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"
@@ -156,7 +160,7 @@ data "template_file" "cc_api_https_ecs_task" {
 }
 
 resource "aws_ecs_task_definition" "cc_api_https" {
-  family                = "${var.environment}HTTPSAPIServer"
+  family                = "${var.environment}HTTPSAPI"
   container_definitions = "${data.template_file.cc_api_https_ecs_task.rendered}"
 
   volume {
@@ -166,13 +170,18 @@ resource "aws_ecs_task_definition" "cc_api_https" {
 }
 
 resource "aws_ecs_service" "cc_api_https" {
-  name                               = "${var.environment}HTTPSAPIServer"
-  cluster                            = "${aws_ecs_cluster.container_instance.id}"
+  name                               = "${var.environment}HTTPSAPI"
+  cluster                            = "${data.terraform_remote_state.core.container_service_cluster_id}"
   task_definition                    = "${aws_ecs_task_definition.cc_api_https.arn}"
   desired_count                      = "${var.cc_api_https_ecs_desired_count}"
   deployment_minimum_healthy_percent = "${var.cc_api_https_ecs_deployment_min_percent}"
   deployment_maximum_percent         = "${var.cc_api_https_ecs_deployment_max_percent}"
-  iam_role                           = "${aws_iam_role.container_instance_ecs.name}"
+  iam_role                           = "${data.terraform_remote_state.core.container_service_cluster_ecs_service_role_name}"
+
+  placement_strategy {
+    type  = "spread"
+    field = "attribute:ecs.availability-zone"
+  }
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.cc_api_https.id}"
@@ -185,18 +194,18 @@ data "template_file" "cc_api_management_ecs_task" {
   template = "${file("task-definitions/management.json")}"
 
   vars {
-    management_url                   = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
-    management_statsd_url            = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
+    management_url                   = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-api:${var.git_commit}"
+    management_statsd_url            = "${data.terraform_remote_state.core.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/cc-statsd:${var.git_commit}"
     django_secret_key                = "${var.django_secret_key}"
-    rds_host                         = "${module.database.hostname}"
-    rds_password                     = "${var.rds_password}"
-    rds_username                     = "${var.rds_username}"
+    rds_host                         = "${data.terraform_remote_state.core.rds_host}"
     rds_database_name                = "${var.rds_database_name}"
-    ec_memcached_host                = "${module.cache.endpoint}"
-    ec_memcached_port                = "${module.cache.port}"
-    sqs_queue_name                   = "${var.sqs_queue_name}"
-    s3_storage_bucket                = "${aws_s3_bucket.static.id}"
-    django_allowed_hosts             = "${var.django_allowed_hosts}"
+    rds_username                     = "${data.terraform_remote_state.core.rds_username}"
+    rds_password                     = "${data.terraform_remote_state.core.rds_password}"
+    ec_memcached_host                = "${data.terraform_remote_state.core.ec_memcached_host}"
+    ec_memcached_port                = "${data.terraform_remote_state.core.ec_memcached_port}"
+    sqs_queue_name                   = "${data.terraform_remote_state.core.sqs_queue_name}"
+    s3_storage_bucket                = "${data.terraform_remote_state.core.s3_storage_bucket}"
+    django_allowed_hosts             = "${aws_route53_record.cc_api.fqdn}"
     git_commit                       = "${var.git_commit}"
     rollbar_server_side_access_token = "${var.rollbar_server_side_access_token}"
     environment                      = "${var.environment}"

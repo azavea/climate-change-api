@@ -19,7 +19,7 @@ Next, ssh into the VM with ``vagrant ssh``. Then run::
 
     ./scripts/console django './manage.py createsuperuser'
 
-and follow the prompts to create an initial user to login with. You will also need to create a UserProfile so that you can login to the app.
+and follow the prompts to create an initial user to login with. Remember the email address you use to sign up; you will use it to create a UserProfile so that you can login to the app in the steps below.
 
 In the VM:
 
@@ -30,8 +30,10 @@ In the VM:
 Within the shell:
 
 .. code-block:: bash
+    # Get your created user using its email address
+    In  [1]: my_user = ClimateUser.objects.get(email="<Your User's Email>")
 
-    In  [1]: my_user = ClimateUser.objects.get(email=<Your User's Email>)
+    # Create a UserProfile associated with the user object retrieved above 
     In  [2]: UserProfile.objects.create(user=my_user)
     Out [2]: <UserProfile: (Your User's Email)>
 
@@ -282,17 +284,18 @@ And from the django console, do::
     Out[3]: (14, {'climate_data.City': 7, 'climate_data.CityBoundary': 7})
 
     # Delete all Climate data that isn't associated with one of the cities above
-    In [4]: ClimateDataCell.objects.exclude(id__in=City.objects.all().values_list("map_cell_id", flat=True)).delete()
+    In [4]: ClimateDataCell.objects.exclude(city_set__city__in=City.objects.all()).delete()
     Out[4]:
-    (9413650,
-     {'climate_data.ClimateData': 9411795,
-      'climate_data.ClimateDataBaseline': 20,
-      'climate_data.ClimateDataCell': 5,
-      'climate_data.HistoricAverageClimateData': 1830})
+    (80915,
+     {'climate_data.ClimateDataBaseline': 60,
+      'climate_data.ClimateDataCell': 12,
+      'climate_data.ClimateDataCityCell': 0,
+      'climate_data.ClimateDataYear': 80828,
+      'climate_data.HistoricAverageClimateDataYear': 15})
 
 Once the database has been pruned, run ``pg_dump`` from inside of the postgres container to make a database dump of the current state. Console into the ``postgres`` container::
 
-    $ docker-compose exec postgres db_dump -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
+    $ docker-compose exec postgres pg_dump -T pg_dump -U climate -d climate -v -O -Fc -f /opt/database_backup/cc_dev_db.dump
 
 Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy the newest backup to S3.::
 
@@ -300,7 +303,7 @@ Finally, move the ``latest`` backup on S3 into the ``archive`` folder, then copy
 
     $ aws s3 cp database_backup/cc_dev_db.dump s3://development-climate-backups-us-east-1/db/latest/
 
-Where DATE is in the format mmddyyyy (i.e. cc_dev_db_05082017.dump)
+Where DATE is in the format yyyymmdd (i.e. cc_dev_db_20170508.dump)
 
 .. _Azaveas Scripts to Rule Them All: https://github.com/azavea/architecture/blob/master/doc/arch/adr-0000-scripts-to-rule-them-all.md
 .. _Django Debug Toolbar: https://django-debug-toolbar.readthedocs.io

@@ -344,15 +344,28 @@ header {
 }
 
 .section-user {
-  padding: 3rem 0;
+  padding: 2rem 0;
+  p {
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.section-user-welcome {
+  margin-bottom: -4rem;
+
+  p {
+    line-height: 1.2;
+    color: #32323C;
+    font-size: 1.8rem;
+    margin-top: 3rem;
+    margin-bottom: 1.4rem;
+  }
 }
 
 .image-overlay {
   max-width: 141px;
-}
-
-.navbar-right {
-  margin-right: 0 !important;
 }
 
 .alert-danger {

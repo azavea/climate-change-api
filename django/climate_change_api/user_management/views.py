@@ -73,6 +73,34 @@ class RegistrationView(BaseRegistrationView):
         return new_user
 
 
+class AppHomeView(LoginRequiredMixin, View):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, )
+
+    def get(self, request, *args, **kwargs):
+        template = 'app_home.html'
+        return render(request, template)
+
+
+class APIHomeView(LoginRequiredMixin, View):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, )
+
+    def new_token(self, request):
+        """Generate new auth token from within the profile page."""
+        if request.method not in SAFE_METHODS:
+            user = request.user
+            if user.auth_token:
+                user.auth_token.delete()
+            user.auth_token = Token.objects.create(user=user)
+            user.auth_token.save()
+        return HttpResponseRedirect('{}'.format(reverse('api_home')))
+
+    def get(self, request, *args, **kwargs):
+        template = 'api_home.html'
+        return render(request, template)
+
+
 class UserProfileView(LoginRequiredMixin, View):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (TokenAuthentication, )
@@ -104,16 +132,6 @@ class UserProfileView(LoginRequiredMixin, View):
             user.save()
             user.userprofile.save()
 
-        return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
-
-    def new_token(self, request):
-        """Generate new auth token from within the profile page."""
-        if request.method not in SAFE_METHODS:
-            user = request.user
-            if user.auth_token:
-                user.auth_token.delete()
-            user.auth_token = Token.objects.create(user=user)
-            user.auth_token.save()
         return HttpResponseRedirect('{}'.format(reverse('edit_profile')))
 
 

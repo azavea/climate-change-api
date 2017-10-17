@@ -13,7 +13,7 @@ from climate_data.models import (ClimateDataBaseline,
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
-from .unit_converters import (PrecipitationConverter,
+from .unit_converters import (PrecipitationRateConverter,
                               TemperatureConverter)
 from .partitioners import (CustomPartitioner,
                            MonthlyPartitioner,
@@ -82,13 +82,19 @@ class Indicator(object):
         self.scenario = scenario
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
+        found = (self.dataset.models.filter(name__in=self.params.models.value)
+                                    .values_list('name', flat=True))
+        invalid_models = set(self.params.models.value) - set(found)
+
+        if invalid_models:
+            raise ValidationError('Dataset %s has no data for model(s) %s'
+                                  % (self.dataset.name, ','.join(invalid_models)))
+
         try:
             self.map_cell = self.city.get_map_cell(self.dataset)
         except ClimateDataCell.DoesNotExist:
             raise ValidationError('No data available for %s dataset at this location'
                                   % (self.dataset.name))
-        self.params = self.init_params_class()
-        self.params.set_parameters(parameters)
 
         self.queryset = self.get_queryset()
 
@@ -309,21 +315,21 @@ class ThresholdIndicatorMixin(object):
         self._set_threshold_values()
 
     def _set_threshold_values(self):
-        # Convert threshold value to appropriate format
+        # Convert threshold value / unit param to the units of the db values
         value = self.params.threshold.value
         unit = self.params.threshold_units.value
 
         if self.variables[0] != 'pr':
-            default_unit = 'K'
+            db_storage_unit = 'K'
             converter_type = TemperatureConverter
         else:
-            default_unit = 'kg/m^2'
-            converter_type = PrecipitationConverter
+            db_storage_unit = 'kg/m^2/s'
+            converter_type = PrecipitationRateConverter
 
-        converter = converter_type.get(unit, default_unit)
+        converter = converter_type.get(unit, db_storage_unit)
 
         self.params.threshold.value = converter(float(value))
-        self.params.threshold_units.value = default_unit
+        self.params.threshold_units.value = db_storage_unit
 
 
 class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
@@ -331,7 +337,7 @@ class TemperatureThresholdIndicatorMixin(ThresholdIndicatorMixin):
 
 
 class PrecipitationThresholdIndicatorMixin(ThresholdIndicatorMixin):
-    params_class_kwargs = {'threshold_units': PrecipitationConverter.available_units}
+    params_class_kwargs = {'threshold_units': PrecipitationRateConverter.available_units}
 
 
 class ArrayIndicator(Indicator):

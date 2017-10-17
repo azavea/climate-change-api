@@ -1,10 +1,15 @@
 .navbar {
   @extend %clearfix;
   position: relative;
-  padding-top: 2.5rem;
+  background: $shade-dark;
+  line-height: 0;
+  border: none;
+  height: 50px;
 
   .container {
     display: flex;
+    max-width: none;
+    padding: 0 15px !important;
 
     @include respond-to('xxs') {
       flex-direction: column;
@@ -12,36 +17,78 @@
     }
   }
 
+  .btn:focus {
+    box-shadow: none;
+    text-decoration: none;
+  }
+
   nav {
     display: inline-block;
     vertical-align: middle;
+    position: relative;
 
-    a {
-      color: $shade-light;
-      padding: 1.5rem 1.5rem;
+    > a {
+      color: $white;
+      margin: 0 1.5rem;
+      padding: 1.5rem 0;
+      border-radius: 0;
+
+      &.active {
+        font-weight: bold;
+      }
+      &.active:before {
+        content: "";
+        position: absolute;
+        height: 4px;
+        width: 100%;
+        background: $white;
+        top: 0;
+        left: 0;
+
+        @include respond-to('xxs') {
+          top: auto;
+          bottom: 0;
+        }
+      }
 
       &:hover {
-        color: darken($shade-light, 5%);
+        color: darken($white, 5%);
       }
     }
   }
 }
 
 .navbar {
-  margin-bottom: 70px;
+  margin-bottom: 20px;
   margin-top: 0;
-  nav a {
-    font-weight: 600;
+  border-radius: 0 !important;
+
+  nav > a {
+    font-weight: 400;
+    margin: 0 10px;
   }
+
+  nav {
+    .caret {
+      margin-left: 2px;
+    }
+  }
+
   @include respond-to(xxs) {
-    margin-bottom: -10px;
-    nav a {
+    margin-bottom: 0;
+
+    nav > .btn-link {
       margin-top: 30px;
       border: 2px solid #6F6F76;
       padding: 8px !important;
       border-radius: 2px;
-      color: #6F6F76;
+      text-decoration: none!important;
     }
+  }
+
+  .dropdown-toggle {
+    padding-left: 12px;
+    padding-right: 17px;
   }
 }
 
@@ -59,7 +106,6 @@
 }
 
 .navbar-right {
-
   @include respond-to('sm-down') {
     justify-content: flex-end;
   }
@@ -70,9 +116,9 @@
   vertical-align: middle;
 
   > img {
-    max-width: 10.8rem;
+    height: 14px;
     position: relative;
-    top: 1.3rem;
+    top: 1.7rem;
   }
 }
 
@@ -86,4 +132,20 @@
   @include respond-to('xxs') {
     display: none;
   }
+}
+
+.navbar .btn-link {
+  color: $white;
+  font-size: 1.4rem;
+  line-height: 1.5;
+
+  &:hover, &.hover,
+  &:active, &.active {
+    color: darken($white, 10%);
+    text-decoration: none;
+  }
+}
+
+.navbar .btn-link:hover, .navbar .btn-link.hover, .navbar .btn-link:active, .navbar .btn-link.active {
+  color: #fff !important;
 }

@@ -18,13 +18,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.views.generic import RedirectView
 
 from rest_framework import routers
 
 from climate_data import views as climate_data_views
 from user_projects import views as user_projects_views
-from user_management.views import ClimateAPIObtainAuthToken
+from user_management.views import ClimateAPIObtainAuthToken, AppHomeView
 
 if settings.DEBUG and settings.STATIC_URL_PATH:
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -39,7 +38,7 @@ router.register(r'scenario', climate_data_views.ScenarioViewSet)
 router.register(r'project', user_projects_views.ProjectViewSet, base_name='project')
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(pattern_name='edit_profile')),
+    url(r'^$', AppHomeView.as_view(), name='app_home'),
     url(r'^accounts/', include('user_management.urls')),
     url(r'^api/', include(router.urls)),
     url(r'^api/city/(?P<city>[0-9]+)/map-cell/$',

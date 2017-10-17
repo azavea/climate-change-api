@@ -69,6 +69,9 @@ class ClimateRequestLoggingMiddleware(object):
             request._tags['organization'] = request.user.userprofile.organization
             request._tags['name'] = '{} {}'.format(request.user.first_name, request.user.last_name)
 
+            if settings.LAB_URN in request.META.get('HTTP_ORIGIN', []):
+                request._tags['origin'] = 'lab'
+
     def _construct_librato_metric(self, metric, tags=None):
         if tags is not None:
             tags = ['{}={}'.format(k, v) for k, v in tags.items()]

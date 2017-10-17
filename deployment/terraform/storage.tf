@@ -1,16 +1,12 @@
-resource "aws_s3_bucket" "static" {
-  bucket = "climate-change-api-${lower("${var.environment}")}"
-  acl    = "private"
+#
+# S3 resources
+#
+module "docs" {
+  source           = "github.com/azavea/terraform-aws-s3-origin?ref=0.2.0"
+  bucket_name      = "${lower(var.environment)}-${var.aws_region}-climate-docs"
+  logs_bucket_name = "${lower(var.environment)}-${var.aws_region}-climate-docs-logs"
+  region           = "${var.aws_region}"
 
-  cors_rule {
-    allowed_origins = ["*"]
-    allowed_methods = ["GET"]
-    max_age_seconds = 3000
-    allowed_headers = ["Authorization"]
-  }
-
-  tags {
-    Environment = "${var.environment}"
-    Project     = "${var.project}"
-  }
+  project     = "${var.project}"
+  environment = "${var.environment}"
 }

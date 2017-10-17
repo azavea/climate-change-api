@@ -406,7 +406,18 @@ if DEBUG:
 
 AUTH_USER_MODEL = 'user_management.ClimateUser'
 
-API_DOCUMENTATION_URL = 'https://docs.climate.azavea.com/'
 
-if DEBUG:
+# Set related URLs for docs and lab based on environment
+if ENVIRONMENT == 'Development':
+    LAB_URN = 'localhost:4200'
     API_DOCUMENTATION_URL = 'http://localhost:8084/'
+elif ENVIRONMENT == 'Staging':
+    LAB_URN = 'lab.staging.climate.azavea.com'
+    API_DOCUMENTATION_URL = 'https://docs.staging.climate.azavea.com'
+# Default to 'safest' links, which are the production ones
+else:
+    LAB_URN = 'lab.climate.azavea.com'
+    API_DOCUMENTATION_URL = 'https://docs.climate.azavea.com'
+
+# On login redirect to the application root
+LOGIN_REDIRECT_URL = '/'
