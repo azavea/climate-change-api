@@ -36,7 +36,7 @@ class UserTestCase(DummyCacheTestCase):
         self.assertEqual(ClimateUser.objects.from_encoded_email(encoded_email), self.user)
 
     def test_get_token(self):
-        url = '/api-token-auth/'
+        url = reverse('get_token')
         response = self.client.post(url, {'email': 'panda@wwf.org',
                                           'password': 'iucnendangered'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -44,7 +44,7 @@ class UserTestCase(DummyCacheTestCase):
 
     def test_refresh_token(self):
         old_token = self.user.auth_token.key
-        url = '/api-token-auth/refresh/'
+        url = reverse('refresh_token')
         response = self.client.post(url, {'email': 'panda@wwf.org',
                                           'password': 'iucnendangered'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
