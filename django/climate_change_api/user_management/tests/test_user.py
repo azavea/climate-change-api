@@ -6,6 +6,7 @@ from user_management.models import ClimateUser
 from user_management.tests.factories import UserProfileFactory
 
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 
 class UserTestCase(DummyCacheTestCase):
@@ -51,3 +52,7 @@ class UserTestCase(DummyCacheTestCase):
         new_token = response.data['token']
 
         self.assertNotEqual(old_token, new_token)
+
+        # Ensure the token we got back is associated with our user
+        user_token = Token.objects.get(user=self.user).key
+        self.assertEqual(new_token, user_token)
