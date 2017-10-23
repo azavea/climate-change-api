@@ -4,7 +4,7 @@ Use AWS Batch for single city ingest
 Context
 -------
 
-We would like to implement a feature that allows a user to request data for their city to be imported into the database if it is not already available.
+We would like to implement a feature that allows a user to request data for their city to be imported into the database if it is not already available. This feature will also improve our workflow for importing data for preselected cities.
 
 We identified two options:
 
