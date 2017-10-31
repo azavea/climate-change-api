@@ -4,6 +4,12 @@ Use AWS Batch for single city ingest
 Context
 -------
 
+We would like to implement a feature that allows a user to request data for their city to be imported into the database if it is not already available. The import should complete within 24-48 hours. Importing data requires processing a very large number of data files, and is resource intensive: To have a customer's request accomplished within the desired timescale would require a large number of machines working in parallel.
+
+We currently do not have a mechanism for scaling resources without manual intervention, and because this functionality is expected to happen infrequently, leaving the resources necessary always allocated is expected to be infeasibly expensive.
+
+To minimize the operational expense, we identified two solutions:
+
 We would like to implement a feature that allows a user to request data for their city to be imported into the database if it is not already available. This feature will also improve our workflow for importing data for preselected cities.
 
 We identified two options:
