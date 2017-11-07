@@ -101,6 +101,8 @@ if DEBUG:
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = ('GET', 'PUT', 'PATCH', 'DELETE', 'POST', 'OPTIONS')
 CORS_REPLACE_HTTPS_REFERER = True
+# Set CORS headers on all views, except /api-token/ which sets them itself
+CORS_URLS_REGEX = r'^(?!/api-token).*'
 
 if DEBUG:
     # IP addresses that we want to allow access to the Django Debug Toolbar
@@ -410,13 +412,16 @@ AUTH_USER_MODEL = 'user_management.ClimateUser'
 # Set related URLs for docs and lab based on environment
 if ENVIRONMENT == 'Development':
     LAB_URN = 'localhost:4200'
+    LAB_URL = 'http://{}'.format(LAB_URN)
     API_DOCUMENTATION_URL = 'http://localhost:8084/'
 elif ENVIRONMENT == 'Staging':
     LAB_URN = 'lab.staging.climate.azavea.com'
+    LAB_URL = 'https://{}'.format(LAB_URN)
     API_DOCUMENTATION_URL = 'https://docs.staging.climate.azavea.com'
 # Default to 'safest' links, which are the production ones
 else:
     LAB_URN = 'lab.climate.azavea.com'
+    LAB_URL = 'https://{}'.format(LAB_URN)
     API_DOCUMENTATION_URL = 'https://docs.climate.azavea.com'
 
 # On login redirect to the application root

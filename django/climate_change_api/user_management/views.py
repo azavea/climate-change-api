@@ -6,17 +6,23 @@ timestamped activation token to the user on signup.
 
 import requests
 import logging
-from django.shortcuts import render
-from django.conf import settings
-from django.urls import reverse
-from django.http import HttpResponseRedirect
-from django.views.generic import View
-from django.contrib.auth.mixins import LoginRequiredMixin
 
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
+from django.views.generic import View
+
+from corsheaders.defaults import default_headers as default_cors_headers
+from corsheaders.middleware import (ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                                    ACCESS_CONTROL_ALLOW_HEADERS,
+                                    ACCESS_CONTROL_ALLOW_ORIGIN,
+                                    ACCESS_CONTROL_EXPOSE_HEADERS)
 from registration.backends.hmac.views import RegistrationView as BaseRegistrationView
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 
@@ -155,3 +161,37 @@ class ClimateAPIRefreshAuthToken(ClimateAPIObtainAuthToken):
             user.auth_token.delete()
         user.auth_token = Token.objects.create(user=user)
         return Response({'token': user.auth_token.key})
+
+
+class ClimateAPIObtainAuthTokenForCurrentUser(View):
+    """Endpoint to allow session-authenticated Lab users to request their API token."""
+
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AuthTokenSerializer
+
+    def _set_cors_headers(self, request, response):
+        # We need to handle CORS headers manually for this endpoint, as this is
+        # the only endpoint in the API we want to allow credentials on, and we
+        # only want it available to the Lab
+        response[ACCESS_CONTROL_ALLOW_ORIGIN] = settings.LAB_URL
+        response[ACCESS_CONTROL_ALLOW_CREDENTIALS] = 'true'
+        response[ACCESS_CONTROL_EXPOSE_HEADERS] = ', '.join(default_cors_headers)
+
+    def options(self, request, *args, **kwargs):
+        response = HttpResponse()
+        self._set_cors_headers(request, response)
+        response[ACCESS_CONTROL_ALLOW_HEADERS] = ', '.join(default_cors_headers)
+
+        return response
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            token, created = Token.objects.get_or_create(user=request.user)
+            response = JsonResponse({'token': token.key, 'email': request.user.email})
+        else:
+            response = HttpResponse(status=401)
+
+        self._set_cors_headers(request, response)
+
+        return response
