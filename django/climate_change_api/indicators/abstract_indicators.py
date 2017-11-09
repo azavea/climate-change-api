@@ -417,7 +417,7 @@ class ArrayBaselineIndicator(ArrayIndicator):
                 map_cell=self.map_cell,
                 historic_range_id=self.params.historic_range.value,
                 percentile=self.params.percentile.value,
-                map_cell__city_set__dataset=self.dataset
+                dataset=self.dataset
             )
         except ClimateDataBaseline.DoesNotExist:
             logger.warning("No ClimateDataBaseline for " +
@@ -445,7 +445,7 @@ class ArrayHistoricAverageIndicator(ArrayIndicator):
             averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
                         .get(map_cell=self.map_cell,
                              historic_range=self.params.historic_range.value,
-                             map_cell__city_set__dataset=self.dataset))
+                             dataset=self.dataset))
 
             # Label the dictionary keys so they don't conflict with yearly data
             return {label: averages[var]

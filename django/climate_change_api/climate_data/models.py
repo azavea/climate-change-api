@@ -175,6 +175,7 @@ class HistoricDateRange(models.Model):
 
 
 class ClimateDataBaseline(models.Model):
+    dataset = TinyForeignKey(ClimateDataset, blank=True)
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
     historic_range = TinyForeignKey(HistoricDateRange, null=True)
     percentile = models.IntegerField(null=False)
@@ -190,7 +191,7 @@ class ClimateDataBaseline(models.Model):
         return (self.map_cell, self.percentile)
 
     class Meta:
-        unique_together = ('map_cell', 'percentile', 'historic_range')
+        unique_together = ('map_cell', 'percentile', 'historic_range', 'dataset')
 
 
 class CityBoundaryManager(models.Manager):
@@ -340,6 +341,7 @@ class HistoricAverageClimateDataYear(models.Model):
     Derived from raw historic ClimateData and stored separately for performance and ease of access.
     """
 
+    dataset = TinyForeignKey(ClimateDataset, blank=True)
     map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average_array')
     historic_range = TinyForeignKey(HistoricDateRange, null=True)
 
@@ -351,5 +353,5 @@ class HistoricAverageClimateDataYear(models.Model):
                     help_text='Historic Average Precipitation (mean of the daily precipitation rate) in kg/s/m^2')  # NOQA: E501
 
     class Meta:
-        unique_together = ('map_cell', 'historic_range')
-        index_together = ('map_cell', 'historic_range')
+        unique_together = ('map_cell', 'historic_range', 'dataset')
+        index_together = ('map_cell', 'historic_range', 'dataset')
