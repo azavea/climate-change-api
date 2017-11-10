@@ -84,7 +84,7 @@ def generate_baselines(dataset, mapcells, time_periods, queryset):
                 try:
                     # Collect the percentiles by model and average them together per variable
                     insert_vals = {var: np.mean([np.percentile(vals, percentile)
-                                                for vals in variable_values[var]])
+                                   for vals in filter(lambda x: x != [], variable_values[var])])
                                    for var in VARIABLES}
                 except TypeError:
                     # numpy throws a TypeError if you try to calculate the mean of a set that has
