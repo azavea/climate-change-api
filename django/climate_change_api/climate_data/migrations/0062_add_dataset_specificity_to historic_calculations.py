@@ -7,9 +7,18 @@ from django.db import migrations
 import django.db.models.deletion
 
 
-class Migration(migrations.Migration):
+def set_historic_dataset_as_nex(apps, schema_editor):
+    ClimateDataset = apps.get_model('climate_data', 'ClimateDataset')
+    HistoricAverageClimateDataYear = apps.get_model('climate_data', 'HistoricAverageClimateDataYear')
+    ClimateDataBaseline = apps.get_model('climate_data', 'ClimateDataBaseline')
 
-    nex_gddp = climate_data.models.ClimateDataset.objects.get(name='NEX-GDDP').pk
+    nex_gddp = ClimateDataset.objects.get(name='NEX-GDDP')
+
+    ClimateDataBaseline.objects.filter(dataset=1).update(dataset=nex_gddp)
+    HistoricAverageClimateDataYear.objects.filter(dataset=1).update(dataset=nex_gddp)
+
+
+class Migration(migrations.Migration):
 
     dependencies = [
         ('climate_data', '0061_fix_loca_model_list'),
@@ -19,13 +28,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='climatedatabaseline',
             name='dataset',
-            field=climate_data.models.TinyForeignKey(blank=True, default=nex_gddp, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
+            field=climate_data.models.TinyForeignKey(blank=True, default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='historicaverageclimatedatayear',
             name='dataset',
-            field=climate_data.models.TinyForeignKey(blank=True, default=nex_gddp, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
+            field=climate_data.models.TinyForeignKey(blank=True, default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
             preserve_default=False,
         ),
         migrations.AlterUniqueTogether(
@@ -39,5 +48,6 @@ class Migration(migrations.Migration):
         migrations.AlterIndexTogether(
             name='historicaverageclimatedatayear',
             index_together=set([('map_cell', 'historic_range', 'dataset')]),
-        )
+        ),
+        migrations.RunPython(set_historic_dataset_as_nex, migrations.RunPython.noop)
     ]
