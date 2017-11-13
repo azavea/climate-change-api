@@ -1,2 +1,2 @@
 ---
-docker_compose_version: "1.6.2"
+docker_compose_version: "1.17.1"
