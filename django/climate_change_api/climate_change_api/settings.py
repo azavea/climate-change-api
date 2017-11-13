@@ -77,11 +77,11 @@ INSTALLED_APPS = [
     # 3rd-party
     'storages',
     'debug_toolbar',
-    'django_filters',
     'rest_framework',
     'rest_framework_extensions',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'django_filters',
     'corsheaders',
     'bootstrap3',
     'watchman',
