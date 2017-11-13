@@ -1,4 +1,4 @@
-FROM nginx:1.10
+FROM nginx:1.12
 
 RUN mkdir -p /etc/nginx/includes
 RUN mkdir /srv/dist
