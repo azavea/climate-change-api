@@ -232,8 +232,7 @@ class CityBoundary(models.Model):
 
 
 class Coastline(models.Model):
-    """NOAA coastline, as a collection of line strings.
-    """
+    """NOAA coastline, as a collection of line strings."""
 
     objectid = models.IntegerField(unique=True)
     geom = models.LineStringField()
