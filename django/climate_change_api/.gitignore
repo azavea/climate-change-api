@@ -1,3 +1,6 @@
 *.log
 violations.txt
 
+categories.json
+confusables.json
+
