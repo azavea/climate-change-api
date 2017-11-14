@@ -67,6 +67,7 @@ def generate_baselines(dataset, mapcells, time_periods, queryset):
         cell.baseline.all().delete()
 
         for period in time_periods:
+            # queryset data was prior filtered by dataset
             period_model_values = [queryset.filter(map_cell=cell,
                                                    data_source__model=model,
                                                    data_source__year__gte=period.start_year,
@@ -111,6 +112,8 @@ def generate_year_averages(dataset, mapcells, time_periods, queryset):
             # to hold all of the time period's raw data in memory either.
             # The alternative is to build the average incrementally, keeping a count
             # and sum for each day (Since some days may not have data)
+            #
+            # Note: queryset data was prior filtered by dataset
             yearly_data = queryset.filter(
                 map_cell=cell,
                 data_source__year__gte=period.start_year,
@@ -155,19 +158,21 @@ class Command(BaseCommand):
         datasets = ClimateDataset.objects.all()
 
         for dataset in datasets:
-            historic_year_data = ClimateDataYear.objects.filter(
-                data_source__scenario__name='historical',
-                data_source__dataset=dataset)
+            # Only use dataset's data
+            dataset_historic_year_data = historic_year_data.filter(data_source__dataset=dataset)
 
             time_periods = HistoricDateRange.objects.all()
-            map_cells = ClimateDataCell.objects.filter(id__in=historic_year_data.values('map_cell'))
+            map_cells = ClimateDataCell.objects.filter(
+                id__in=dataset_historic_year_data.values('map_cell'))
 
-            logger.info("Importing yearly averages for " + dataset.name)
-            averages = generate_year_averages(dataset, map_cells, time_periods, historic_year_data)
+            logger.info("Importing yearly averages for %s ", dataset.name)
+            averages = generate_year_averages(dataset, map_cells, time_periods,
+                                              dataset_historic_year_data)
             for chunk in chunk_sequence(averages, BATCH_SIZE):
                 HistoricAverageClimateDataYear.objects.bulk_create(chunk)
 
-            logger.info("Importing percentile baselines for " + dataset.name)
-            baselines = generate_baselines(dataset, map_cells, time_periods, historic_year_data)
+            logger.info("Importing percentile baselines for %s ", dataset.name)
+            baselines = generate_baselines(dataset, map_cells, time_periods,
+                                           dataset_historic_year_data)
             for chunk in chunk_sequence(baselines, BATCH_SIZE):
                 ClimateDataBaseline.objects.bulk_create(chunk)

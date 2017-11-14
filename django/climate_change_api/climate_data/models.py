@@ -175,7 +175,7 @@ class HistoricDateRange(models.Model):
 
 
 class ClimateDataBaseline(models.Model):
-    dataset = TinyForeignKey(ClimateDataset, blank=True)
+    dataset = TinyForeignKey(ClimateDataset)
     map_cell = TinyForeignKey(ClimateDataCell, null=False, related_name='baseline')
     historic_range = TinyForeignKey(HistoricDateRange, null=True)
     percentile = models.IntegerField(null=False)
@@ -341,7 +341,7 @@ class HistoricAverageClimateDataYear(models.Model):
     Derived from raw historic ClimateData and stored separately for performance and ease of access.
     """
 
-    dataset = TinyForeignKey(ClimateDataset, blank=True)
+    dataset = TinyForeignKey(ClimateDataset)
     map_cell = TinyForeignKey(ClimateDataCell, related_name='historic_average_array')
     historic_range = TinyForeignKey(HistoricDateRange, null=True)
 
