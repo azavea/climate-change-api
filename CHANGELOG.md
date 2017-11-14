@@ -1,5 +1,17 @@
 # Change Log
 
+## [2.1.1](https://github.com/azavea/climate-change-api/tree/2.1.1) (2017-11-14)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.0...2.1.1)
+
+**Merged pull requests:**
+
+- Add a new endpoint for the Lab to request the token of the logged in user [\#755](https://github.com/azavea/climate-change-api/pull/755)
+- Copy data to ram to speed up nex2db [\#754](https://github.com/azavea/climate-change-api/pull/754)
+- Add ADR-0009: Use AWS Batch for single city ingest [\#745](https://github.com/azavea/climate-change-api/pull/745)
+- Remove duplicate field [\#744](https://github.com/azavea/climate-change-api/pull/744)
+- Add refresh token API endpoint [\#736](https://github.com/azavea/climate-change-api/pull/736)
+
 ## [2.1.0](https://github.com/azavea/climate-change-api/tree/2.1.0) (2017-10-17)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.0.0...2.1.0)
