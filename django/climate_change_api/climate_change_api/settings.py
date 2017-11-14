@@ -233,6 +233,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ACCOUNT_ACTIVATION_DAYS = 14
 REGISTRATION_OPEN = True
 
+# Serialization
+SERIALIZATION_MODULES = {'geojson': 'django.contrib.gis.serializers.geojson'}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
