@@ -156,7 +156,7 @@ def process_message(message, queue):
 
         # pass to nex2db
         Nex2DB(logger=logger).nex2db(variables, datasource)
-    except:
+    except Exception:
         logger.exception('Failed to process data for dataset %s model %s scenario %s year %s',
                          dataset.name, model.name, scenario.name, year)
         failure_logger.exception('Failed to process data for '
