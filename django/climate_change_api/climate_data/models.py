@@ -268,6 +268,7 @@ class City(models.Model):
     name = models.CharField(max_length=40)
     admin = models.CharField(max_length=40)
 
+    is_coastal = models.BooleanField(default=False)
     population = models.IntegerField(null=True)
 
     region = models.ForeignKey(Region, on_delete=SET_NULL, null=True)
