@@ -70,7 +70,8 @@ class Nex2DB(object):
             self.logger.debug("Got year %d ?= data_source.year %d", year, ds_year)
 
             # read variable data into memory
-            var_data = ds.variables[var_name]
+            var_data = ds.variables[var_name][:, :, :]  # :,:,: loads everything into ram
+            assert ds.variables[var_name].shape == var_data.shape
 
             cell_idx = set()
             city_to_coords = {}

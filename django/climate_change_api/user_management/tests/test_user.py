@@ -6,6 +6,7 @@ from user_management.models import ClimateUser
 from user_management.tests.factories import UserProfileFactory
 
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 
 class UserTestCase(DummyCacheTestCase):
@@ -34,3 +35,24 @@ class UserTestCase(DummyCacheTestCase):
         self.assertTrue(encoded_email.endswith(b'='))
         encoded_email = encoded_email.strip(b'=')
         self.assertEqual(ClimateUser.objects.from_encoded_email(encoded_email), self.user)
+
+    def test_get_token(self):
+        url = reverse('get_token')
+        response = self.client.post(url, {'email': 'panda@wwf.org',
+                                          'password': 'iucnendangered'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.auth_token.key, response.data['token'])
+
+    def test_refresh_token(self):
+        old_token = self.user.auth_token.key
+        url = reverse('refresh_token')
+        response = self.client.post(url, {'email': 'panda@wwf.org',
+                                          'password': 'iucnendangered'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_token = response.data['token']
+
+        self.assertNotEqual(old_token, new_token)
+
+        # Ensure the token we got back is associated with our user
+        user_token = Token.objects.get(user=self.user).key
+        self.assertEqual(new_token, user_token)
