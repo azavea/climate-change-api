@@ -231,6 +231,21 @@ class CityBoundary(models.Model):
     objects = CityBoundaryManager()
 
 
+class Coastline(models.Model):
+    """NOAA coastline, as a collection of line strings.
+    """
+
+    objectid = models.IntegerField(unique=True)
+    geom = models.LineStringField()
+
+    def __str__(self):
+        """Return pretty string representation of model, used by Django for field labels."""
+        return "Object ID: {}".format(self.objectid)
+
+    class Meta:
+        unique_together = ('objectid',)
+
+
 class Region(models.Model):
     """A level 2 ecoregion.
 
