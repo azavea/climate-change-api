@@ -14,8 +14,14 @@ def set_historic_dataset_as_nex(apps, schema_editor):
 
     nex_gddp = ClimateDataset.objects.get(name='NEX-GDDP')
 
-    ClimateDataBaseline.objects.filter(dataset=1).update(dataset=nex_gddp)
-    HistoricAverageClimateDataYear.objects.filter(dataset=1).update(dataset=nex_gddp)
+    ClimateDataBaseline.objects.all().update(dataset=nex_gddp)
+    HistoricAverageClimateDataYear.objects.all().update(dataset=nex_gddp)
+
+
+def delete_historic_and_baseline_data(apps, schema_editor):
+    # Cascade delete all HistoricAverageClimateDataYear and ClimateDataBaseline objects
+    HistoricDateRange = apps.get_model('climate_data', 'HistoricDateRange')
+    HistoricDateRange.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -28,14 +34,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='climatedatabaseline',
             name='dataset',
-            field=climate_data.models.TinyForeignKey(blank=True, default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
-            preserve_default=False,
+            field=climate_data.models.TinyForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='climate_data.ClimateDataset')
         ),
         migrations.AddField(
             model_name='historicaverageclimatedatayear',
             name='dataset',
-            field=climate_data.models.TinyForeignKey(blank=True, default=1, on_delete=django.db.models.deletion.CASCADE, to='climate_data.ClimateDataset'),
-            preserve_default=False,
+            field=climate_data.models.TinyForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='climate_data.ClimateDataset')
         ),
         migrations.AlterUniqueTogether(
             name='climatedatabaseline',
@@ -49,5 +59,19 @@ class Migration(migrations.Migration):
             name='historicaverageclimatedatayear',
             index_together=set([('map_cell', 'historic_range', 'dataset')]),
         ),
-        migrations.RunPython(set_historic_dataset_as_nex, migrations.RunPython.noop)
+        migrations.RunPython(set_historic_dataset_as_nex, delete_historic_and_baseline_data),
+        migrations.AlterField(
+            model_name='historicaverageclimatedatayear',
+            name='dataset',
+            field=climate_data.models.TinyForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to='climate_data.ClimateDataset')
+        ),
+        migrations.AlterField(
+            model_name='climatedatabaseline',
+            name='dataset',
+            field=climate_data.models.TinyForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to='climate_data.ClimateDataset')
+        )
     ]
