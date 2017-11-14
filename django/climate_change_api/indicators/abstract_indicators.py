@@ -407,7 +407,7 @@ class ArrayStreakIndicator(ArrayPredicateIndicator):
     @classmethod
     def agg_function(cls, lengths):
         """Calculate the number of times a sequence is longer than min_streak."""
-        return sum(1 for l in lengths if l >= cls.min_streak)
+        return sum(1 for length in lengths if length >= cls.min_streak)
 
 
 class ArrayBaselineIndicator(ArrayIndicator):
