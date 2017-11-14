@@ -4,10 +4,11 @@ from esridump.dumper import EsriDumper
 
 from django.core.management.base import BaseCommand
 
-# from django.contrib.gis.db.models import Union
-from django.contrib.gis.geos import LineString
+# from django.contrib.gis.db.models import Collect, Union
+from django.contrib.gis.geos import GEOSGeometry, LineString, MultiPolygon
+from django.db import connection
 
-from climate_data.models import Coastline
+from climate_data.models import City, CityBoundary, Coastline
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,23 @@ logger = logging.getLogger(__name__)
 COAST_URL = 'https://encdirect.noaa.gov/arcgis/rest/services/encdirect/enc_coastal/MapServer/70'
 COASTAL_SRID = 4326
 
+RAW_UNION = """
+            SELECT ST_Union(polygons.poly) AS geom FROM (,
+            SELECT coast.objectid, ,
+            ST_CollectionExtract(ST_ConcaveHull(ST_Buffer(,
+            ST_Collect(coast.geom)::geography, 4000)::geometry, 0.99, true), 3) AS poly ,
+            FROM (SELECT objectid, (ST_Dump(geom)).geom AS geom ,
+            FROM climate_data_coastline) AS coast ,
+            GROUP BY objectid) AS polygons;
+            """
+
 
 class Command(BaseCommand):
-    """Imports coast outline from NOAA."""
+    """Imports coast outline from NOAA. Sets `is_coastal` on `City`.
+
+    Unions together coastline LineString geometries, buffers them to ~2.5 miles (4000 meters),
+    then flags cities with boundaries that intersect with the resulting MultiPolygon as coastal.
+    """
 
     def handle(self, *args, **options):
         logger.info('Running NOAA coastline import')
@@ -31,16 +46,18 @@ class Command(BaseCommand):
                                      srid=COASTAL_SRID)
 
             Coastline.objects.update_or_create(objectid=object_id, defaults={'geom': line_string})
-            logger.info('Loaded coastline LineString: %s', object_id)
+            logger.debug('Loaded coastline LineString: %s', object_id)
 
-        logger.info('Got shoreline features downloaded')
+        logger.info('Got shoreline features downloaded; going to match to city bounds')
 
-        # TODO: bounds check with cities
-
-        # multi_line = Coastline.objects.aggregate(Collect('geom'))['geom__collect']
-        # buff = multi_line.buffer(0.0001).unary_union
-        # coastal_cities = CityBoundary.objects.filter(geom__intersects=buff)
-        # get invalid geoms
-        # bad = Coastline.objects.filter(geom__isvalid=False)
-        # Too few points in geometry component
-        # with .simplify(0.001)
+        # set is_coastal flag on cities with bounds that intersect the bufferred coastal area
+        with connection.cursor() as cursor:
+            cursor.execute(RAW_UNION)
+            row = cursor.fetchone()
+            poly = MultiPolygon(*GEOSGeometry(row[0]))
+            # TODO: #762 remove geometry validity check here when all city boundaries valid
+            coastal = CityBoundary.objects.filter(geom__isvalid=True).filter(geom__intersects=poly)
+            ct = City.objects.filter(pk__in=coastal.values_list('city',
+                                                                flat=True)).update(is_coastal=True)
+            total = City.objects.all().count()
+            logger.info('Flagged %s of %s cities as coastal', ct, total)
