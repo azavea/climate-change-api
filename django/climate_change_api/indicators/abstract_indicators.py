@@ -416,12 +416,13 @@ class ArrayBaselineIndicator(ArrayIndicator):
             self.baseline = ClimateDataBaseline.objects.get(
                 map_cell=self.map_cell,
                 historic_range_id=self.params.historic_range.value,
-                percentile=self.params.percentile.value
+                percentile=self.params.percentile.value,
+                dataset=self.dataset
             )
         except ClimateDataBaseline.DoesNotExist:
             logger.warning("No ClimateDataBaseline for " +
-                           "<map_cell: {}, historic_range: {}, percentile: {}>"
-                           .format(self.map_cell,
+                           "<dataset: {}, map_cell: {}, historic_range: {}, percentile: {}>"
+                           .format(self.dataset, self.map_cell,
                                    self.params.historic_range.value,
                                    self.params.percentile.value))
             self.baseline = None
@@ -443,15 +444,16 @@ class ArrayHistoricAverageIndicator(ArrayIndicator):
         try:
             averages = (HistoricAverageClimateDataYear.objects.values(*raw_variables)
                         .get(map_cell=self.map_cell,
-                             historic_range=self.params.historic_range.value))
+                             historic_range=self.params.historic_range.value,
+                             dataset=self.dataset))
 
             # Label the dictionary keys so they don't conflict with yearly data
             return {label: averages[var]
                     for label, var in zip(variables, raw_variables)}
         except HistoricAverageClimateDataYear.DoesNotExist:
             logger.warning("No HistoricAverageClimateDataYear for " +
-                           "<map_cell: {}, historic_range: {}>"
-                           .format(self.map_cell, self.params.historic_range.value))
+                           "<dataset: {}, map_cell: {}, historic_range: {}>"
+                           .format(self.dataset, self.map_cell, self.params.historic_range.value))
             return {}
 
     def generate_model_segments(self):
