@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('climate_data', '0061_fix_loca_model_list'),
+        ('climate_data', '0062_add_dataset_specificity_to_historic_calculations'),
     ]
 
     operations = [
