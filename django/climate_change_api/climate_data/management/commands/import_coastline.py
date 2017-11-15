@@ -4,7 +4,6 @@ from esridump.dumper import EsriDumper
 
 from django.core.management.base import BaseCommand
 
-# from django.contrib.gis.db.models import Collect, Union
 from django.contrib.gis.geos import GEOSGeometry, LineString, MultiPolygon
 from django.db import connection
 
@@ -55,8 +54,7 @@ class Command(BaseCommand):
             cursor.execute(RAW_UNION)
             row = cursor.fetchone()
             poly = MultiPolygon(*GEOSGeometry(row[0]))
-            # TODO: #762 remove geometry validity check here when all city boundaries valid
-            coastal = CityBoundary.objects.filter(geom__isvalid=True).filter(geom__intersects=poly)
+            coastal = CityBoundary.objects.filter(geom__intersects=poly)
             ct = City.objects.filter(pk__in=coastal.values_list('city',
                                                                 flat=True)).update(is_coastal=True)
             total = City.objects.all().count()
