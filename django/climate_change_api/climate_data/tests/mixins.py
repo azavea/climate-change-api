@@ -6,6 +6,7 @@ from climate_data.tests.factories import (CityFactory,
                                           ClimateModelFactory,
                                           RegionFactory,
                                           ScenarioFactory,
+                                          ClimateDatasetFactory,
                                           ClimateDataYearFactory,
                                           ClimateDataSourceFactory,
                                           ClimateDataCellFactory,
@@ -78,6 +79,8 @@ class ClimateDataSetupMixin(object):
 
         self.mapcell = ClimateDataCellFactory(lat=15, lon=240)
 
+        self.dataset = ClimateDatasetFactory(name='NEX-GDDP')
+
         self.historic_range_1 = HistoricDateRangeFactory(start_year=1961, end_year=1990)
 
         self.ds_s1_m1_2000 = ClimateDataSourceFactory(scenario=self.rcp45, model=self.model1,
@@ -133,15 +136,18 @@ class ClimateDataSetupMixin(object):
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=99,
                                    tasmax=20, tasmin=20, pr=20,
-                                   historic_range=self.historic_range_1)
+                                   historic_range=self.historic_range_1,
+                                   dataset=self.dataset)
 
         ClimateDataBaselineFactory(map_cell=self.mapcell, percentile=1,
                                    tasmax=10, tasmin=15, pr=15,
-                                   historic_range=self.historic_range_1)
+                                   historic_range=self.historic_range_1,
+                                   dataset=self.dataset)
 
         HistoricAverageClimateDataYearFactory(map_cell=self.mapcell,
                                               historic_range=self.historic_range_1,
-                                              tasmax=[0], tasmin=[0], pr=[0])
+                                              tasmax=[0], tasmin=[0], pr=[0],
+                                              dataset=self.dataset)
 
         self.city1 = CityFactory(name='city1', admin='city1', map_cell_set=[self.mapcell])
         self.city2 = CityFactory(name='city2', admin='city2',
