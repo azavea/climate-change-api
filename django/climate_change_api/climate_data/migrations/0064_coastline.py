@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('climate_data', '0062_city_is_coastal'),
+        ('climate_data', '0063_city_is_coastal'),
     ]
 
     operations = [
