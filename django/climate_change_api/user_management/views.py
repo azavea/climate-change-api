@@ -12,6 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.cache import patch_vary_headers
 from django.views.generic import View
 
 from corsheaders.defaults import default_headers as default_cors_headers
@@ -173,8 +174,13 @@ class ClimateAPIObtainAuthTokenForCurrentUser(View):
     def _set_cors_headers(self, request, response):
         # We need to handle CORS headers manually for this endpoint, as this is
         # the only endpoint in the API we want to allow credentials on, and we
-        # only want it available to the Lab
-        response[ACCESS_CONTROL_ALLOW_ORIGIN] = settings.LAB_URL
+        # only want it available to the Lab in production
+        if settings.ENVIRONMENT in {'Development', 'Staging'}:
+            response[ACCESS_CONTROL_ALLOW_ORIGIN] = request.META.get('HTTP_ORIGIN')
+            patch_vary_headers(response, ['Origin'])
+        else:
+            response[ACCESS_CONTROL_ALLOW_ORIGIN] = settings.LAB_URL
+
         response[ACCESS_CONTROL_ALLOW_CREDENTIALS] = 'true'
         response[ACCESS_CONTROL_EXPOSE_HEADERS] = ', '.join(default_cors_headers)
 
