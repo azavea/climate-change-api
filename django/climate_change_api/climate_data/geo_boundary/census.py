@@ -40,19 +40,19 @@ def geocoder_api_request(return_type, search_type, params=None):
     :param search_type: str
     :param params: dict - Query params to pass to API request
     """
-    VALID_RETURN_TYPES = ('locations', 'geographies',)
-    VALID_SEARCH_TYPES = ('onelineaddress', 'address', 'coordinates',)
-    URL_PREFIX = 'https://geocoding.geo.census.gov/geocoder'
+    valid_return_types = ('locations', 'geographies',)
+    valid_search_types = ('onelineaddress', 'address', 'coordinates',)
+    url_prefix = 'https://geocoding.geo.census.gov/geocoder'
     if params is None:
         params = {}
-    if return_type not in VALID_RETURN_TYPES:
-        raise ValueError('return_type must be one of {}'.format(VALID_RETURN_TYPES))
-    if search_type not in VALID_SEARCH_TYPES:
-        raise ValueError('search_type must be one of {}'.format(VALID_SEARCH_TYPES))
+    if return_type not in valid_return_types:
+        raise ValueError('return_type must be one of {}'.format(valid_return_types))
+    if search_type not in valid_search_types:
+        raise ValueError('search_type must be one of {}'.format(valid_search_types))
 
     params['format'] = 'json'
 
-    url = '{}/{}/{}'.format(URL_PREFIX, return_type, search_type)
+    url = '{}/{}/{}'.format(url_prefix, return_type, search_type)
     response = requests.get(url, params=params)
     data = response.json()
     return data['result']
@@ -71,7 +71,6 @@ def boundary_from_point(point, srid=4326):
     :param srid: int - Desired SRID of the MultiPolygon boundary. Default: 4326.
     :return (boundary: MultiPolygon, boundary_type: str). The associated boundary and its type.
     """
-
     if not point.x and not point.y:
         raise CensusBoundaryError("Cannot get census boundary for missing Point: {}".format(point))
 
