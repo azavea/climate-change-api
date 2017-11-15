@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.1.2](https://github.com/azavea/climate-change-api/tree/2.1.2) (2017-11-15)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.1...2.1.2)
+
+**Merged pull requests:**
+
+- Historic baseline by dataset [\#756](https://github.com/azavea/climate-change-api/pull/756)
+
 ## [2.1.1](https://github.com/azavea/climate-change-api/tree/2.1.1) (2017-11-14)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.0...2.1.1)
