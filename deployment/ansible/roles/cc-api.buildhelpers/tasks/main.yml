@@ -4,4 +4,4 @@
   pip: name=yamlordereddictloader
 
 - name: Install AWS cli
-  pip: name=awscli version=1.11.134
+  pip: name=awscli version=1.11.185
