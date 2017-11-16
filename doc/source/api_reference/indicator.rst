@@ -159,7 +159,7 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-data/1/RCP85/example_temperature_indicator/ HTTP/1.1
+    GET /api/climate-data/1/RCP85/indicator/example_temperature_indicator/ HTTP/1.1
     Host: example.org
     Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
@@ -192,6 +192,7 @@ Response:
                 },
                 "name": "New York City",
                 "admin": "NY",
+                "is_coastal": true,
                 "population": 8175133
             }
         },
