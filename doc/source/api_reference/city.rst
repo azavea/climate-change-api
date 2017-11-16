@@ -58,6 +58,7 @@ Response:
                     "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "New York City",
                     "admin": "NY",
+                    "is_coastal": true,
                     "population": 8175133
                 }
             }
@@ -107,6 +108,7 @@ Response:
                     "datasets": ["NEX-GDDP", "LOCA"],
                     "name": "Philadelphia",
                     "admin": "PA",
+                    "is_coastal": false,
                     "population": 1526006
                 }
             }
@@ -150,6 +152,7 @@ Response:
             "datasets": ["NEX-GDDP", "LOCA"],
             "name": "Philadelphia",
             "admin": "PA",
+            "is_coastal": false,
             "population": 1526006
         }
     }
