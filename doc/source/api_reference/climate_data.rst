@@ -52,6 +52,7 @@ Response:
                 },
                 "name": "New York City",
                 "admin": "NY",
+                "is_coastal": true,
                 "population": 8175133
             }
         },
