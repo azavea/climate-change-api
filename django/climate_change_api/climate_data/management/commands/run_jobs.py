@@ -9,7 +9,6 @@ import boto3
 from boto_helpers.sqs import get_queue
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 
 from climate_data.models import (ClimateDataset,
@@ -123,28 +122,13 @@ def process_message(message, queue):
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
 
-    try:
-        datasource = ClimateDataSource.objects.get(dataset=dataset,
-                                                   model=model,
-                                                   scenario=scenario,
-                                                   year=year)
-        if datasource.import_completed:
-            logger.info('Skipping already completed import for '
-                        'dataset %s model %s scenario %s year %s',
-                        dataset.name, model.name, scenario.name, year)
-            logger.debug('SQS message processed')
-            return
-        else:
-            # Log note but still continue to attempt re-import
-            logger.warn('Found incomplete import for dataset %s model %s scenario %s year %s',
-                        dataset.name, model.name, scenario.name, year)
-    except ObjectDoesNotExist:
-        logger.debug('Creating data source for dataset %s model %s scenario %s year %s',
-                     dataset.name, model.name, scenario.name, year)
-        datasource = ClimateDataSource.objects.create(dataset=dataset,
-                                                      model=model,
-                                                      scenario=scenario,
-                                                      year=year)
+    datasource, created = ClimateDataSource.objects.get_or_create(dataset=dataset,
+                                                                  model=model,
+                                                                  scenario=scenario,
+                                                                  year=year)
+    if created:
+        logger.info('Created data source for dataset %s model %s scenario %s year %s',
+                    dataset.name, model.name, scenario.name, year)
 
     # download files
     tmpdir = tempfile.mkdtemp()

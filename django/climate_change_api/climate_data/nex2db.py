@@ -6,7 +6,6 @@ import numpy
 import netCDF4
 
 from .models import City, ClimateDataCell, ClimateDataCityCell, ClimateDataYear
-from django.db import IntegrityError
 
 DAY_OF_YEAR_FEB_29 = 60
 
@@ -144,25 +143,27 @@ class Nex2DB(object):
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
-                cell_model, _ = ClimateDataCell.objects.get_or_create(lat=lat.item(),
-                                                                      lon=lon.item())
+                cell_model, cell_model_created = (ClimateDataCell.objects
+                                                  .get_or_create(lat=lat.item(), lon=lon.item()))
                 cell_models[coords] = cell_model
+                if cell_model_created:
+                    self.logger.info('Created map_cell at (%s, %s)', lat.item(), lon.item())
 
-            climatedatayear_args = dict(map_cell=cell_model,
-                                        data_source=data_source,
-                                        **results)
-            try:
-                ClimateDataYear.objects.create(**climatedatayear_args)
-            except IntegrityError:
-                self.logger.warn('Deleting existing record for data_source: %s, map_cell: %s',
+            # If appropriate ClimateDataYear object exists, update data
+            # Otherwise create it
+            cdy, cdy_created = ClimateDataYear.objects.update_or_create(map_cell=cell_model,
+                                                                        data_source=data_source,
+                                                                        defaults=results)
+            if cdy_created:
+                self.logger.info('Created ClimateDataYear record for ' +
+                                 'data_source: %s, map_cell: %s',
                                  data_source,
                                  cell_model)
-                ClimateDataYear.objects.filter(map_cell=cell_model,
-                                               data_source=data_source).delete()
-                self.logger.warn('Re-attempting record insert for data_source: %s, map_cell: %s',
-                                 data_source,
-                                 cell_model)
-                ClimateDataYear.objects.create(**climatedatayear_args)
+            else:
+                self.logger.debug('Updated ClimateDataYear record ' +
+                                  'for data_source: %s, map_cell: %s',
+                                  data_source,
+                                  cell_model)
 
         # Go through all the cities and update their ClimateDataCityCell representations
         # Ensuring only one entry exists for a given city and dataset
