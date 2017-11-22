@@ -141,6 +141,9 @@
             "region": {
               "type": "number"
             },
+            "is_coastal": {
+              "type": "boolean"
+            },
             "map_cell": {"$ref": "#/definitions/pointgeom"}
           },
           "additionalProperties": false,
