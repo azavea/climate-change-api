@@ -17,14 +17,17 @@ COAST_URL = 'https://encdirect.noaa.gov/arcgis/rest/services/encdirect/enc_coast
 COASTAL_SRID = 4326
 
 RAW_UNION = """
-            SELECT ST_Union(polygons.poly) AS geom FROM (,
-            SELECT coast.objectid, ,
-            ST_CollectionExtract(ST_ConcaveHull(ST_Buffer(,
-            ST_Collect(coast.geom)::geography, 4000)::geometry, 0.99, true), 3) AS poly ,
-            FROM (SELECT objectid, (ST_Dump(geom)).geom AS geom ,
-            FROM climate_data_coastline) AS coast ,
-            GROUP BY objectid) AS polygons;
-            """
+SELECT ST_Union(polygons.poly) AS geom FROM (
+    SELECT
+        coast.objectid,
+        ST_CollectionExtract(ST_ConcaveHull(ST_Buffer(
+        ST_Collect(coast.geom)::geography, 4000)::geometry, 0.99, true), 3) AS poly
+    FROM (
+        SELECT objectid, (ST_Dump(geom)).geom AS geom
+        FROM climate_data_coastline) AS coast
+        GROUP BY objectid)
+AS polygons;
+"""
 
 
 class Command(BaseCommand):
