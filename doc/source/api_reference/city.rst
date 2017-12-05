@@ -56,9 +56,11 @@ Response:
                 },
                 "properties": {
                     "datasets": ["NEX-GDDP", "LOCA"],
+                    "proximity": {
+                        "ocean": true
+                    },
                     "name": "New York City",
                     "admin": "NY",
-                    "is_coastal": true,
                     "population": 8175133
                 }
             }
@@ -106,9 +108,11 @@ Response:
                 },
                 "properties": {
                     "datasets": ["NEX-GDDP", "LOCA"],
+                    "proximity": {
+                        "coastal": false
+                    }
                     "name": "Philadelphia",
                     "admin": "PA",
-                    "is_coastal": false,
                     "population": 1526006
                 }
             }
@@ -150,9 +154,11 @@ Response:
         },
         "properties": {
             "datasets": ["NEX-GDDP", "LOCA"],
+            "proximity": {
+                "ocean": false
+            },
             "name": "Philadelphia",
             "admin": "PA",
-            "is_coastal": false,
             "population": 1526006
         }
     }
