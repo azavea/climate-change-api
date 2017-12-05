@@ -67,10 +67,17 @@ class CitySerializer(GeoFeatureModelSerializer):
     def get_datasets(self, obj):
         return [map_cell.dataset.name for map_cell in obj.map_cell_set.select_related('dataset')]
 
+    proximity = serializers.SerializerMethodField()
+
+    def get_proximity(self, obj):
+        return {
+            'ocean': obj.is_coastal
+        }
+
     class Meta:
         model = City
         geo_field = 'geom'
-        exclude = ('_geog', )
+        exclude = ('_geog', 'is_coastal')
 
 
 class CityBoundarySerializer(GeoFeatureModelSerializer):
