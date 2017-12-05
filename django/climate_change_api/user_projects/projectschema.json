@@ -141,8 +141,13 @@
             "region": {
               "type": "number"
             },
-            "is_coastal": {
-              "type": "boolean"
+            "proximity": {
+              "type": "object",
+              "properties": {
+                "coastal": {
+                    "type": "boolean"
+                }
+              }
             },
             "map_cell": {"$ref": "#/definitions/pointgeom"}
           },
