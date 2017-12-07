@@ -595,6 +595,10 @@ definitions:
             description: List of available datasets for this City
             items:
               type: string
+          proximity:
+            type: object
+            additionalProperties:
+              type: boolean
           name:
             type: string
           admin:
