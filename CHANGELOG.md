@@ -1,5 +1,27 @@
 # Change Log
 
+## [2.1.4](https://github.com/azavea/climate-change-api/tree/2.1.4) (2017-12-11)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.3...2.1.4)
+
+**Merged pull requests:**
+
+- Move is\_coastal into a proximity grouping [\#788](https://github.com/azavea/climate-change-api/pull/788)
+- Style password reset page [\#786](https://github.com/azavea/climate-change-api/pull/786)
+- Add management command to update cities [\#777](https://github.com/azavea/climate-change-api/pull/777)
+- Fixup is\_coastal changes [\#775](https://github.com/azavea/climate-change-api/pull/775)
+- Support incremental nex2db inserts for new cities [\#774](https://github.com/azavea/climate-change-api/pull/774)
+
+## [2.1.3](https://github.com/azavea/climate-change-api/tree/2.1.3) (2017-11-20)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.2...2.1.3)
+
+**Merged pull requests:**
+
+- Allow requesting API token of current user for any origin in non-prod envs [\#767](https://github.com/azavea/climate-change-api/pull/767)
+- Feature/kak/coastal\#753 [\#764](https://github.com/azavea/climate-change-api/pull/764)
+- Feature/kak/updates\#725 [\#761](https://github.com/azavea/climate-change-api/pull/761)
+
 ## [2.1.2](https://github.com/azavea/climate-change-api/tree/2.1.2) (2017-11-15)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.1...2.1.2)
