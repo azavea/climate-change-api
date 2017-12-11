@@ -310,6 +310,13 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
         geojson = response.data
         self.assertNotIn('boundary', geojson['properties'])
 
+    def test_detail_has_proximity_object(self):
+        """Ensure this endpoint is geojson-like."""
+        url = reverse('city-detail', args=[self.city1.id])
+
+        response = self.client.get(url)
+        self.assertIn('ocean', response.data['properties']['proximity'])
+
     def test_bbox_filtering(self):
         """Ensure this endpoint has bbox filtering via in_bbox=minlon,minlat,maxlon,maxlat."""
         url = reverse('city-list')

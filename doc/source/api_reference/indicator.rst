@@ -159,7 +159,7 @@ Example usage
 
 .. code-block:: http
 
-    GET /api/climate-data/1/RCP85/example_temperature_indicator/ HTTP/1.1
+    GET /api/climate-data/1/RCP85/indicator/example_temperature_indicator/ HTTP/1.1
     Host: example.org
     Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
 
@@ -183,12 +183,11 @@ Response:
                 ]
             },
             "properties": {
-                "map_cell": {
-                    "type": "Point",
-                    "coordinates": [
-                        285.875,
-                        40.625
-                    ]
+                "datasets": [
+                    "NEX-GDDP"
+                ],
+                "proximity": {
+                    "ocean": true
                 },
                 "name": "New York City",
                 "admin": "NY",

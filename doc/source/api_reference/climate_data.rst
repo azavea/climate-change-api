@@ -43,12 +43,11 @@ Response:
                 ]
             },
             "properties": {
-                "map_cell": {
-                    "type": "Point",
-                    "coordinates": [
-                        285.875,
-                        40.625
-                    ]
+                "datasets": [
+                    "NEX-GDDP"
+                ],
+                "proximity": {
+                    "ocean": true
                 },
                 "name": "New York City",
                 "admin": "NY",

@@ -77,11 +77,11 @@ INSTALLED_APPS = [
     # 3rd-party
     'storages',
     'debug_toolbar',
-    'django_filters',
     'rest_framework',
     'rest_framework_extensions',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'django_filters',
     'corsheaders',
     'bootstrap3',
     'watchman',
@@ -233,6 +233,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ACCOUNT_ACTIVATION_DAYS = 14
 REGISTRATION_OPEN = True
 
+# Serialization
+SERIALIZATION_MODULES = {'geojson': 'django.contrib.gis.serializers.geojson'}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
