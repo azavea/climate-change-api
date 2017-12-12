@@ -19,6 +19,7 @@ class UserAdmin(BaseUserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser',
                                     'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Throttling', {'fields': ('burst_rate', 'sustained_rate')}),
     )
     inlines = (UserProfileInline, )
     ordering = ('email', )
