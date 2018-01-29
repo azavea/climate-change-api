@@ -1,5 +1,14 @@
 # Change Log
 
+## [2.1.5](https://github.com/azavea/climate-change-api/tree/2.1.5) (2018-01-29)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.4...2.1.5)
+
+**Merged pull requests:**
+
+- Update django registration [\#794](https://github.com/azavea/climate-change-api/pull/794)
+- Allow managing user throttling rates in Admin panel [\#790](https://github.com/azavea/climate-change-api/pull/790)
+
 ## [2.1.4](https://github.com/azavea/climate-change-api/tree/2.1.4) (2017-12-11)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.3...2.1.4)
