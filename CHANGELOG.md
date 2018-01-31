@@ -1,5 +1,14 @@
 # Change Log
 
+## [2.1.6](https://github.com/azavea/climate-change-api/tree/2.1.6) (2018-01-31)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.5...2.1.6)
+
+**Merged pull requests:**
+
+- Update city cell during import [\#795](https://github.com/azavea/climate-change-api/pull/795)
+- Add geonames city importer [\#793](https://github.com/azavea/climate-change-api/pull/793)
+
 ## [2.1.5](https://github.com/azavea/climate-change-api/tree/2.1.5) (2018-01-29)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.4...2.1.5)
