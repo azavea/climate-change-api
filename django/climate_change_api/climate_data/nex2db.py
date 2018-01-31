@@ -2,6 +2,8 @@ import calendar
 import logging
 import collections
 
+from django.db.utils import IntegrityError
+
 import numpy
 import netCDF4
 
@@ -171,18 +173,24 @@ class Nex2DB(object):
         for city in self.get_cities():
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
-            city_cell, created = ClimateDataCityCell.objects.get_or_create(
-                city=city,
-                dataset=data_source.dataset,
-                map_cell=cell_model
-            )
-            if created:
-                self.logger.debug('Created new ClimateDataCityCell for '
-                                  'city %s dataset %s map_cell %s',
-                                  city.id, data_source.dataset.name, str(cell_model))
-            else:
-                assert(city_cell.map_cell.id == cell_model.id)
-            assert(city.map_cell_set.filter(dataset=data_source.dataset).count() == 1)
+            try:
+                city_cell, created = ClimateDataCityCell.objects.get_or_create(
+                    city=city,
+                    dataset=data_source.dataset,
+                    map_cell=cell_model
+                )
+
+                if created:
+                    self.logger.debug('Created new ClimateDataCityCell for '
+                                      'city %s dataset %s map_cell %s',
+                                      city.id, data_source.dataset.name, str(cell_model))
+                else:
+                    assert(city_cell.map_cell.id == cell_model.id)
+                assert(city.map_cell_set.filter(dataset=data_source.dataset).count() == 1)
+            except IntegrityError:
+                self.logger.warning('ClimateDataCityCell NOT created for '
+                                    'city %s dataset %s map_cell %s',
+                                    city.id, data_source.dataset.name, str(cell_model))
 
         # note job completed successfully
         data_source.import_completed = True
