@@ -37,12 +37,14 @@ Response:
         {
             "name": "RCP85",
             "label": "RCP 8.5",
-            "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php"
+            "description": "Rising radiative forcing pathway leading to 8.5 W/m2 in 2100. See https://www.skepticalscience.com/rcp.php",
+            "alias": "High emissions"
         },
         {
             "name": "historical",
             "label": "Historical",
-            "description": "A historical dataset from 1950 to 2005 that blends reanalysis data with observations"
+            "description": "A historical dataset from 1950 to 2005 that blends reanalysis data with observations",
+            "alias": ""
         }
     ]
 
