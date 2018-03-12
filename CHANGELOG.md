@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.2.0](https://github.com/azavea/climate-change-api/tree/2.2.0) (2018-03-12)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.6...2.2.0)
+
+**Merged pull requests:**
+
+- Add alias field to scenario [\#797](https://github.com/azavea/climate-change-api/pull/797)
+
 ## [2.1.6](https://github.com/azavea/climate-change-api/tree/2.1.6) (2018-01-31)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.5...2.1.6)
