@@ -75,7 +75,7 @@ class Nex2DB(object):
             assert(year == ds_year)
             self.logger.debug("Got year %d ?= self.datasource.year %d", year, ds_year)
 
-            cell_idx = set()
+            cell_indexes = set()
             city_to_coords = {}
             for city in self.cities:
                 self.logger.debug('processing variable %s for city: %s', var_name, city.name)
@@ -90,12 +90,12 @@ class Nex2DB(object):
                 latidx = (numpy.abs(city_y - latarr)).argmin()
                 lonidx = (numpy.abs(city_x - lonarr)).argmin()
 
-                cell_idx.add((latidx, lonidx))
+                cell_indexes.add((latidx, lonidx))
                 city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
 
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
             cell_data = {}
-            for (latidx, lonidx) in cell_idx:
+            for (latidx, lonidx) in cell_indexes:
                 values = list(ds.variables[var_name][:, latidx, lonidx])
                 # Our DB assumes that leap years have 366 values in their ArrayFields.
                 #   If we're woking with a calendar that doesn't consider leap years on a leap year,
@@ -104,77 +104,84 @@ class Nex2DB(object):
                     values.insert(DAY_OF_YEAR_FEB_29, None)
                 cell_data[(latarr[latidx], lonarr[lonidx])] = values
 
-        return {'cities': city_to_coords, 'cells': cell_data}
+        return city_to_coords, cell_data
 
-    def nex2db(self, variable_paths):  # NOQA: C901
-        """Extract data about cities from three NetCDF files and writes it to the database.
-
-        @param variable_paths Dictionary of variable identifier to path for the corresponding
-                              NetCDF file
-        """
-        assert(set(variable_paths) == ClimateDataYear.VARIABLE_CHOICES)
-        self.logger.debug("Using datasource: %s", self.datasource)
-
-        variable_data = {label: self.get_var_data(label, path, self.datasource)
-                         for label, path in variable_paths.items()}
-
-        # Convert data from {variable: {'cells': coords: [data]}}
-        # to {(coords): {'variable': [data]}}
-        datasource_data = collections.defaultdict(dict)
-        for variable, results in variable_data.items():
-            for coords, data in results['cells'].items():
-                datasource_data[coords][variable] = data
-
-        self.logger.debug('Combining city list')
+    def merge_netcdf_data(self, variable_paths):
+        # Parse each NetCDF file into useable data keyed by its variable
+        variable_data = {}
+        # In case any of the NetCDF files had different coordinates than any other, merge their
+        # city coordinate mappings into a single dict
         city_coords = {}
-        for results in variable_data.values():
-            city_coords.update(results['cities'])
+        for label, path in variable_paths.items():
+            city_to_coords, cell_data = self.get_var_data(label, path)
+            city_coords.update(city_to_coords)
+            variable_data[label] = cell_data
 
-        # Go through the collated list and create all the relevant datapoints
-        self.logger.debug('Saving to database')
+        return city_coords, variable_data
 
+    def collate_variable_data(self, variable_data):
+        # Convert data from {variable: {coords: [data]}}
+        # to {(coords): {'variable': [data]}}
+        data_by_coords = collections.defaultdict(dict)
+        for variable, results in variable_data.items():
+            for coords, data in results.items():
+                data_by_coords[coords][variable] = data
+        return data_by_coords
+
+    def load_map_cell_models(self, city_coords):
         # Load all of the map cells that already exist
         cell_models = {(cell.lat, cell.lon): cell for cell in ClimateDataCell.objects.all()}
 
-        for coords, results in datasource_data.items():
-
-            assert(set(results.keys()) == ClimateDataYear.VARIABLE_CHOICES)
-
-            lat, lon = coords
+        for coords in city_coords:
             try:
                 cell_model = cell_models[coords]
             except KeyError:
                 # This cell is not in the database, we should create it
+                lat, lon = coords
                 cell_model, cell_model_created = (ClimateDataCell.objects
-                                                  .get_or_create(lat=lat.item(), lon=lon.item()))
+                                                    .get_or_create(lat=lat.item(), lon=lon.item()))
                 cell_models[coords] = cell_model
                 if cell_model_created:
                     self.logger.info('Created map_cell at (%s, %s)', lat.item(), lon.item())
+        return cell_models
+
+    def save_climate_data_year(self, data_by_coords, cell_models):
+        # Go through the collated list and create all the relevant datapoints
+        self.logger.debug('Saving to database')
+
+        for coords, results in data_by_coords.items():
+            assert(set(results.keys()) == ClimateDataYear.VARIABLE_CHOICES)
 
             # If appropriate ClimateDataYear object exists, update data
             # Otherwise create it
+            cell_model = cell_models[coords]
             cdy, cdy_created = ClimateDataYear.objects.update_or_create(
                 map_cell=cell_model,
-                self.datasource=self.datasource,
+                datasource=self.datasource,
                 defaults=results
             )
             if cdy_created:
                 self.logger.info('Created ClimateDataYear record for ' +
-                                 'self.datasource: %s, map_cell: %s',
-                                 self.datasource,
-                                 cell_model)
+                                    'self.datasource: %s, map_cell: %s',
+                                    self.datasource,
+                                    cell_model)
             else:
                 self.logger.debug('Updated ClimateDataYear record ' +
-                                  'for self.datasource: %s, map_cell: %s',
-                                  self.datasource,
-                                  cell_model)
+                                    'for self.datasource: %s, map_cell: %s',
+                                    self.datasource,
+                                    cell_model)
+
+    def update_city_map_cells(self, city_coords, cell_models):
+        self.logger.debug('Combining city list')
+
+        for results in variable_data.values():
 
         # Go through all the cities and update their ClimateDataCityCell representations
         # Ensuring only one entry exists for a given city and dataset
         self.logger.debug('Updating cities')
         for city in self.cities:
-            coords = city_coords[city.id]
-            cell_model = cell_models[coords]
+            cell_coords = city_coords[city.id]
+            cell_model = cell_models[cell_coords]
             try:
                 city_cell, created = ClimateDataCityCell.objects.get_or_create(
                     city=city,
@@ -191,6 +198,32 @@ class Nex2DB(object):
                 self.logger.warning('ClimateDataCityCell NOT created for '
                                     'city %s dataset %s map_cell %s',
                                     city.id, self.datasource.dataset.name, str(cell_model))
+
+    def nex2db(self, variable_paths):
+        """Extract data about cities from three NetCDF files and writes it to the database.
+
+        @param variable_paths Dictionary of variable identifier to path for the corresponding
+                              NetCDF file
+        """
+        assert(set(variable_paths.keys()) == ClimateDataYear.VARIABLE_CHOICES)
+        self.logger.debug("Using datasource: %s", self.datasource)
+
+        # Convert the separate NetCDF file processing results into distinct results
+        # - city_coords as a single mapping of city ID to map cell coordinates
+        # - variable_data as a dictionary of {variable: {coords: [data]}}
+        city_coords, variable_data = self.merge_netcdf_data(variable_paths)
+
+        # Group the distinct variable data sets by coordinate
+        data_by_coords = self.collate_variable_data(variable_data)
+
+        # Make or load ClimateDataCell models for each coordinate set we have
+        cell_models = self.load_map_cell_models(data_by_coords.keys())
+
+        # Save the raw climate data to database
+        self.save_climate_data_year(data_by_coords, cell_models)
+
+        # Update cities to map to their respective map cell as needed
+        self.update_city_map_cells(city_coords, cell_models)
 
         # note job completed successfully
         self.datasource.import_completed = True
