@@ -18,13 +18,18 @@ class Nex2DB(object):
     # cache list of cites to guarantee ordering during import
     cities = None
 
-    def __init__(self, logger=None):
+    def __init__(self, data_source, update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
+        self.datasource = data_source
 
-    def get_cities(self):
-        if not self.cities:
-            self.cities = list(City.objects.all().order_by('pk'))
-        return self.cities
+        # Store a cache of all cities locally
+        cities_queryset = City.objects.all().order_by('pk')
+        if not update_existing:
+            # Only process cities that don't have this datasource loaded
+            cities_queryset = cities_queryset.exclude(
+                map_cell__datasource=data_source
+            )
+        self.cities = list(cities_queryset)
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
@@ -42,7 +47,7 @@ class Nex2DB(object):
             raise ValueError("Expected netcdf2year time_array to only contain values " +
                              "for a single year")
 
-    def get_var_data(self, var_name, path, data_source):
+    def get_var_data(self, var_name, path):
         """Read out data from a NetCDF file and return its data, translated.
 
         Reads only the points representing the cities in the database.
@@ -66,17 +71,13 @@ class Nex2DB(object):
             netcdf_calendar = ds.variables['time'].calendar
 
             year = self.netcdf2year(ds.variables['time'], time_unit, netcdf_calendar)
-            ds_year = int(data_source.year)
+            ds_year = int(self.datasource.year)
             assert(year == ds_year)
-            self.logger.debug("Got year %d ?= data_source.year %d", year, ds_year)
-
-            # read variable data into memory
-            var_data = ds.variables[var_name][:, :, :]  # :,:,: loads everything into ram
-            assert ds.variables[var_name].shape == var_data.shape
+            self.logger.debug("Got year %d ?= self.datasource.year %d", year, ds_year)
 
             cell_idx = set()
             city_to_coords = {}
-            for city in self.get_cities():
+            for city in self.cities:
                 self.logger.debug('processing variable %s for city: %s', var_name, city.name)
                 # Not geographic distance, but good enough for
                 # finding a point near a city center from disaggregated data.
@@ -95,7 +96,7 @@ class Nex2DB(object):
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
             cell_data = {}
             for (latidx, lonidx) in cell_idx:
-                values = list(var_data[:, latidx, lonidx])
+                values = list(ds.variables[var_name][:, latidx, lonidx])
                 # Our DB assumes that leap years have 366 values in their ArrayFields.
                 #   If we're woking with a calendar that doesn't consider leap years on a leap year,
                 #   insert None for Feb 29
@@ -105,17 +106,16 @@ class Nex2DB(object):
 
         return {'cities': city_to_coords, 'cells': cell_data}
 
-    def nex2db(self, variable_paths, data_source):  # NOQA: C901
+    def nex2db(self, variable_paths):  # NOQA: C901
         """Extract data about cities from three NetCDF files and writes it to the database.
 
         @param variable_paths Dictionary of variable identifier to path for the corresponding
                               NetCDF file
-        @param data_source ClimateDataSource object that defines the source model/scenario/year
         """
         assert(set(variable_paths) == ClimateDataYear.VARIABLE_CHOICES)
-        self.logger.debug("Using datasource: %s", data_source)
+        self.logger.debug("Using datasource: %s", self.datasource)
 
-        variable_data = {label: self.get_var_data(label, path, data_source)
+        variable_data = {label: self.get_var_data(label, path, self.datasource)
                          for label, path in variable_paths.items()}
 
         # Convert data from {variable: {'cells': coords: [data]}}
@@ -153,46 +153,46 @@ class Nex2DB(object):
 
             # If appropriate ClimateDataYear object exists, update data
             # Otherwise create it
-            cdy, cdy_created = ClimateDataYear.objects.update_or_create(map_cell=cell_model,
-                                                                        data_source=data_source,
-                                                                        defaults=results)
+            cdy, cdy_created = ClimateDataYear.objects.update_or_create(
+                map_cell=cell_model,
+                self.datasource=self.datasource,
+                defaults=results
+            )
             if cdy_created:
                 self.logger.info('Created ClimateDataYear record for ' +
-                                 'data_source: %s, map_cell: %s',
-                                 data_source,
+                                 'self.datasource: %s, map_cell: %s',
+                                 self.datasource,
                                  cell_model)
             else:
                 self.logger.debug('Updated ClimateDataYear record ' +
-                                  'for data_source: %s, map_cell: %s',
-                                  data_source,
+                                  'for self.datasource: %s, map_cell: %s',
+                                  self.datasource,
                                   cell_model)
 
         # Go through all the cities and update their ClimateDataCityCell representations
         # Ensuring only one entry exists for a given city and dataset
         self.logger.debug('Updating cities')
-        for city in self.get_cities():
+        for city in self.cities:
             coords = city_coords[city.id]
             cell_model = cell_models[coords]
             try:
                 city_cell, created = ClimateDataCityCell.objects.get_or_create(
                     city=city,
-                    dataset=data_source.dataset,
+                    dataset=self.datasource.dataset,
                     map_cell=cell_model
                 )
 
                 if created:
                     self.logger.debug('Created new ClimateDataCityCell for '
                                       'city %s dataset %s map_cell %s',
-                                      city.id, data_source.dataset.name, str(cell_model))
-                else:
-                    assert(city_cell.map_cell.id == cell_model.id)
-                assert(city.map_cell_set.filter(dataset=data_source.dataset).count() == 1)
+                                      city.id, self.datasource.dataset.name, str(cell_model))
+
             except IntegrityError:
                 self.logger.warning('ClimateDataCityCell NOT created for '
                                     'city %s dataset %s map_cell %s',
-                                    city.id, data_source.dataset.name, str(cell_model))
+                                    city.id, self.datasource.dataset.name, str(cell_model))
 
         # note job completed successfully
-        data_source.import_completed = True
-        data_source.save()
+        self.datasource.import_completed = True
+        self.datasource.save()
         self.logger.info('nex2db processing done')
