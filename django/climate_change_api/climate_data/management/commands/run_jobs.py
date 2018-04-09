@@ -7,14 +7,12 @@ from boto_helpers.sqs import get_queue
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from climate_data.models import (ClimateDataset,
-                                 ClimateDataSource,
-                                 ClimateDataYear,
-                                 Scenario)
+from climate_data.models import ClimateDataset, Scenario
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
 failure_logger = logging.getLogger('climate_data_import_failures')
+
 
 def handle_failing_message(message, failures):
     message_dict = json.loads(message.body)
