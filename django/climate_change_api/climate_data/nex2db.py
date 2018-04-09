@@ -3,8 +3,6 @@ import logging
 import collections
 import tempfile
 import boto3
-import shutil
-import os
 
 from django.db.utils import IntegrityError
 
@@ -17,8 +15,12 @@ DAY_OF_YEAR_FEB_29 = 60
 BUCKET = 'nasanex'
 
 
+logger = logging.getLogger('climate_data')
+
+
 class NetCdfDownloader(object):
     """Generic class for downloading a NetCDF object from S3 to a target path."""
+
     def get_object_key_format(self):
         raise NotImplementedError()
 
@@ -46,6 +48,7 @@ class NetCdfDownloader(object):
 
 class GddpNetCdfDownloader(NetCdfDownloader):
     """Specialized NetCdfDownloader for downloading GDDP-originated S3 objects from S3."""
+
     def get_object_key_format(self):
         return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/{ensemble}/v1.0/'
                 '{var}_day_BCSD_{rcp}_{ensemble}_{model}_{year}.nc')
@@ -56,6 +59,7 @@ class GddpNetCdfDownloader(NetCdfDownloader):
 
 class LocaNetCdfDownloader(NetCdfDownloader):
     """Specialized NetCdfDownloader for downloading LOCA-originated S3 objects from S3."""
+
     def get_object_key_format(self):
         return ('LOCA/{model}/16th/{rcp}/{ensemble}/{var}/'
                 '{var}_day_{model}_{rcp}_{ensemble}_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
@@ -90,7 +94,7 @@ class LocaNetCdfDownloader(NetCdfDownloader):
 def get_netcdf_downloader(dataset):
     downloader_class = {
         'LOCA': LocaNetCdfDownloader,
-        'GDDP': GddpNetCdfDownloader
+        'NEX-GDDP': GddpNetCdfDownloader
     }[dataset]
     return downloader_class()
 
@@ -166,6 +170,7 @@ class Nex2DB(object):
             year = self.netcdf2year(ds.variables['time'], time_unit, netcdf_calendar)
             ds_year = int(self.datasource.year)
             assert(year == ds_year)
+
             self.logger.debug("Got year %d ?= self.datasource.year %d", year, ds_year)
 
             cell_indexes = set()
@@ -205,12 +210,12 @@ class Nex2DB(object):
         with tempfile.NamedTemporaryFile() as fp:
             path = fp.name
             downloader.download(
-                    self.logger,
-                    self.datasource.scenario.name,
-                    self.datasource.model.name,
-                    self.datasource.year,
-                    var,
-                    path
+                self.logger,
+                self.datasource.scenario.name,
+                self.datasource.model.name,
+                self.datasource.year,
+                var,
+                path
             )
             return self.get_var_data(var, path)
 
@@ -274,21 +279,21 @@ class Nex2DB(object):
             # If appropriate ClimateDataYear object exists, update data
             # Otherwise create it
             cell_model = cell_models[coords]
-            cdy, cdy_created = ClimateDataYear.objects.update_or_create(
+            _, created = ClimateDataYear.objects.update_or_create(
                 map_cell=cell_model,
                 data_source=self.datasource,
                 defaults=results
             )
-            if cdy_created:
+            if created:
                 self.logger.info('Created ClimateDataYear record for ' +
-                                    'self.datasource: %s, map_cell: %s',
-                                    self.datasource,
-                                    cell_model)
+                                 'datasource: %s, map_cell: %s',
+                                 self.datasource,
+                                 cell_model)
             else:
                 self.logger.debug('Updated ClimateDataYear record ' +
-                                    'for self.datasource: %s, map_cell: %s',
-                                    self.datasource,
-                                    cell_model)
+                                  'for datasource: %s, map_cell: %s',
+                                  self.datasource,
+                                  cell_model)
 
     def update_city_map_cells(self, city_coords, cell_models):
         self.logger.debug('Combining city list')
@@ -300,19 +305,19 @@ class Nex2DB(object):
             cell_coords = city_coords[city.id]
             cell_model = cell_models[cell_coords]
             try:
-                city_cell, created = ClimateDataCityCell.objects.get_or_create(
-                     city=city,
-                     dataset=self.datasource.dataset,
-                     map_cell=cell_model
-                 )
+                _, created = ClimateDataCityCell.objects.get_or_create(
+                    city=city,
+                    dataset=self.datasource.dataset,
+                    map_cell=cell_model
+                )
 
                 if created:
                     self.logger.info('Created new ClimateDataCityCell for '
-                                       'city %s dataset %s map_cell %s',
-                                       city.id, self.datasource.dataset.name, str(cell_model))
+                                     'city %s dataset %s map_cell %s',
+                                     city.id, self.datasource.dataset.name, str(cell_model))
             except IntegrityError:
-                 # City and dataset are unique constraints, so an IntegrityError means our
-                 #  map_cell is different from the city's existing one, which is very bad.
+                # City and dataset are unique constraints, so an IntegrityError means our
+                #  map_cell is different from the city's existing one, which is very bad.
                 self.logger.warning('ClimateDataCityCell NOT created for '
                                     'city %s dataset %s map_cell %s',
                                     city.id, self.datasource.dataset.name, str(cell_model))
