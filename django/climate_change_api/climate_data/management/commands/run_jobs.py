@@ -52,12 +52,20 @@ def process_message(message, queue):
     model = dataset.models.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+    update_existing = message_dict.get('update_existing', False)
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
 
     # download files
     try:
-        Nex2DB(dataset, scenario, model, year, logger=logger).import_netcdf_data()
+        importer = Nex2DB(
+            dataset,
+            scenario,
+            model,
+            year,
+            update_existing=update_existing,
+            logger=logger)
+        importer.import_netcdf_data()
     except Exception:
         logger.exception('Failed to process data for dataset %s model %s scenario %s year %s',
                          dataset.name, model.name, scenario.name, year)
