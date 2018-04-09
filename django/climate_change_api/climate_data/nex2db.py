@@ -173,6 +173,10 @@ class Nex2DB(object):
 
             self.logger.debug("Got year %d ?= self.datasource.year %d", year, ds_year)
 
+            # read variable data into memory
+            var_data = ds.variables[var_name][:, :, :]  # :,:,: loads everything into ram
+            assert ds.variables[var_name].shape == var_data.shape
+
             cell_indexes = set()
             city_to_coords = {}
             for city in self.cities:
@@ -194,7 +198,7 @@ class Nex2DB(object):
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
             cell_data = {}
             for (latidx, lonidx) in cell_indexes:
-                values = list(ds.variables[var_name][:, latidx, lonidx])
+                values = list(var_data[:, latidx, lonidx])
                 # Our DB assumes that leap years have 366 values in their ArrayFields.
                 #   If we're woking with a calendar that doesn't consider leap years on a leap year,
                 #   insert None for Feb 29
