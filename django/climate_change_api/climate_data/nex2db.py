@@ -134,6 +134,8 @@ class Nex2DB(object):
     cities = None
     # Datasource object representing the source we intend to import
     datasource = None
+    # Boolean flag designating if we should update existing entries or only insert new
+    update_existing = False
 
     def __init__(self, dataset, scenario, model, year, update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
@@ -316,17 +318,29 @@ class Nex2DB(object):
             # If appropriate ClimateDataYear object exists, update data
             # Otherwise create it
             cell_model = cell_models[coords]
-            _, created = ClimateDataYear.objects.update_or_create(
-                map_cell=cell_model,
-                data_source=self.datasource,
-                defaults=results
-            )
+            if self.update_existing:
+                _, created = ClimateDataYear.objects.update_or_create(
+                    map_cell=cell_model,
+                    data_source=self.datasource,
+                    defaults=results
+                )
+            else:
+                try:
+                    ClimateDataYear.objects.create(
+                        map_cell=cell_model,
+                        data_source=self.datasource,
+                        defaults=results
+                    )
+                    created = True
+                except IntegrityError:
+                    created = False
+
             if created:
                 self.logger.info('Created ClimateDataYear record for ' +
                                  'datasource: %s, map_cell: %s',
                                  self.datasource,
                                  cell_model)
-            else:
+            elif self.update_existing:
                 self.logger.debug('Updated ClimateDataYear record ' +
                                   'for datasource: %s, map_cell: %s',
                                   self.datasource,
