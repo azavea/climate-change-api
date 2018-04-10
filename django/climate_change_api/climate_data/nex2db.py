@@ -111,6 +111,7 @@ class Nex2DB(object):
 
     def __init__(self, dataset, scenario, model, year, update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
+        self.update_existing = update_existing
 
         datasource, created = ClimateDataSource.objects.get_or_create(
             dataset=dataset,
@@ -125,7 +126,7 @@ class Nex2DB(object):
 
         # Store a cache of all cities locally
         cities_queryset = City.objects.all().order_by('pk')
-        if not update_existing:
+        if not self.update_existing:
             # Only process cities that don't have this datasource loaded
             cities_queryset = cities_queryset.exclude(
                 map_cell_set__map_cell__climatedatayear__data_source=datasource
@@ -298,7 +299,7 @@ class Nex2DB(object):
                     ClimateDataYear.objects.create(
                         map_cell=cell_model,
                         data_source=self.datasource,
-                        defaults=results
+                        **results
                     )
                     created = True
                 except IntegrityError:
