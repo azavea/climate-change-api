@@ -278,70 +278,60 @@ class Nex2DB(object):
                 self.logger.info('Created map_cell at (%s, %s)', lat.item(), lon.item())
         return cell_models
 
-    def save_climate_data_year(self, data_by_coords, cell_models):
-        # Go through the collated list and create all the relevant datapoints
-        self.logger.debug('Saving to database')
+    def save_climate_data_year(self, coordinates, climate_results, cell_models):
+        assert(set(climate_results.keys()) == ClimateDataYear.VARIABLE_CHOICES)
 
-        for coords, results in data_by_coords.items():
-            assert(set(results.keys()) == ClimateDataYear.VARIABLE_CHOICES)
-
-            # If appropriate ClimateDataYear object exists, update data
-            # Otherwise create it
-            cell_model = cell_models[coords]
-            if self.update_existing:
-                _, created = ClimateDataYear.objects.update_or_create(
+        # If appropriate ClimateDataYear object exists, update data
+        # Otherwise create it
+        cell_model = cell_models[coordinates]
+        if self.update_existing:
+            _, created = ClimateDataYear.objects.update_or_create(
+                map_cell=cell_model,
+                data_source=self.datasource,
+                defaults=climate_results
+            )
+        else:
+            try:
+                ClimateDataYear.objects.create(
                     map_cell=cell_model,
                     data_source=self.datasource,
-                    defaults=results
+                    **climate_results
                 )
-            else:
-                try:
-                    ClimateDataYear.objects.create(
-                        map_cell=cell_model,
-                        data_source=self.datasource,
-                        **results
-                    )
-                    created = True
-                except IntegrityError:
-                    created = False
+                created = True
+            except IntegrityError:
+                created = False
+
+        if created:
+            self.logger.info('Created ClimateDataYear record for ' +
+                             'datasource: %s, map_cell: %s',
+                             self.datasource,
+                             cell_model)
+        elif self.update_existing:
+            self.logger.debug('Updated ClimateDataYear record ' +
+                              'for datasource: %s, map_cell: %s',
+                              self.datasource,
+                              cell_model)
+
+    def update_city_map_cell(self, city, city_coords, cell_models):
+        cell_coords = city_coords[city.id]
+        cell_model = cell_models[cell_coords]
+        try:
+            _, created = ClimateDataCityCell.objects.get_or_create(
+                city=city,
+                dataset=self.datasource.dataset,
+                map_cell=cell_model
+            )
 
             if created:
-                self.logger.info('Created ClimateDataYear record for ' +
-                                 'datasource: %s, map_cell: %s',
-                                 self.datasource,
-                                 cell_model)
-            elif self.update_existing:
-                self.logger.debug('Updated ClimateDataYear record ' +
-                                  'for datasource: %s, map_cell: %s',
-                                  self.datasource,
-                                  cell_model)
-
-    def update_city_map_cells(self, city_coords, cell_models):
-        self.logger.debug('Combining city list')
-
-        # Go through all the cities and update their ClimateDataCityCell representations
-        # Ensuring only one entry exists for a given city and dataset
-        self.logger.debug('Updating cities')
-        for city in self.cities:
-            cell_coords = city_coords[city.id]
-            cell_model = cell_models[cell_coords]
-            try:
-                _, created = ClimateDataCityCell.objects.get_or_create(
-                    city=city,
-                    dataset=self.datasource.dataset,
-                    map_cell=cell_model
-                )
-
-                if created:
-                    self.logger.info('Created new ClimateDataCityCell for '
-                                     'city %s dataset %s map_cell %s',
-                                     city.id, self.datasource.dataset.name, str(cell_model))
-            except IntegrityError:
-                # City and dataset are unique constraints, so an IntegrityError means our
-                #  map_cell is different from the city's existing one, which is very bad.
-                self.logger.warning('ClimateDataCityCell NOT created for '
-                                    'city %s dataset %s map_cell %s',
-                                    city.id, self.datasource.dataset.name, str(cell_model))
+                self.logger.info('Created new ClimateDataCityCell for '
+                                 'city %s dataset %s map_cell %s',
+                                 city.id, self.datasource.dataset.name, str(cell_model))
+        except IntegrityError:
+            # City and dataset are unique constraints, so an IntegrityError means our
+            #  map_cell is different from the city's existing one, which is very bad.
+            self.logger.warning('ClimateDataCityCell NOT created for '
+                                'city %s dataset %s map_cell %s',
+                                city.id, self.datasource.dataset.name, str(cell_model))
 
     def import_netcdf_data(self):
         """Extract data about cities from three NetCDF files and writes it to the database."""
@@ -361,10 +351,15 @@ class Nex2DB(object):
         cell_models = self.load_map_cell_models(data_by_coords.keys())
 
         # Save the raw climate data to database
-        self.save_climate_data_year(data_by_coords, cell_models)
+        self.logger.debug('Saving to database')
+        for coords, results in data_by_coords.items():
+            self.save_climate_data_year(coords, results, cell_models)
 
-        # Update cities to map to their respective map cell as needed
-        self.update_city_map_cells(city_coords, cell_models)
+        # Go through all the cities and update their ClimateDataCityCell representations
+        # Ensuring only one entry exists for a given city and dataset
+        self.logger.debug('Updating cities')
+        for city in self.cities:
+            self.update_city_map_cell(city, city_coords, cell_models)
 
         # note job completed successfully
         self.datasource.import_completed = True
