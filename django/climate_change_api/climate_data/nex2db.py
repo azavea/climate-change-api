@@ -3,7 +3,6 @@ import logging
 import collections
 import tempfile
 import boto3
-import time
 
 from django.db.utils import IntegrityError
 
@@ -17,32 +16,6 @@ BUCKET = 'nasanex'
 
 
 logger = logging.getLogger('climate_data')
-
-
-class instrument(object):
-    """Decorator to add instrumentation logs for function calls"""
-
-    def __init__(self, name, log_level=None, with_args=True):
-        """Sets name to be used in logs"""
-        self.log_level = log_level if log_level is not None else logging.INFO
-        self.with_args = with_args
-
-        self.name = name
-
-    def __call__(self, func):
-
-        def wrapped_f(*args, **kwargs):
-            start_time = time.time()
-            result = func(*args, **kwargs)
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            instrument_name = self.name
-            msg = 'TIMING: function: %s, seconds: %.5f' % (instrument_name, elapsed_time)
-            if self.with_args:
-                msg += ', args: %s, kwargs: %s' % (args, kwargs)
-            logger.log(self.log_level, msg)
-            return result
-        return wrapped_f
 
 
 class NetCdfDownloader(object):
@@ -65,7 +38,6 @@ class NetCdfDownloader(object):
             ensemble=ensemble
         )
 
-    @instrument(name='netcdf_download')
     def download(self, logger, rcp, model, year, var, filename):
         key = self.get_object_key(model, rcp, year, var)
 
@@ -176,7 +148,6 @@ class Nex2DB(object):
             raise ValueError("Expected netcdf2year time_array to only contain values " +
                              "for a single year")
 
-    @instrument(name='get_var_data')
     def get_var_data(self, var_name, path):
         """Read out data from a NetCDF file and return its data, translated.
 
@@ -256,7 +227,6 @@ class Nex2DB(object):
             )
             return self.get_var_data(var, path)
 
-    @instrument(name='process_netcdf_data')
     def process_netcdf_variables(self):
         """Fetch and merge the NetCDF variables into a single dictionary keyed by coordinate."""
         # Choose the downloader for the dataset, to compensate for dataset-specific naming schemes
@@ -307,7 +277,6 @@ class Nex2DB(object):
                 self.logger.info('Created map_cell at (%s, %s)', lat.item(), lon.item())
         return cell_models
 
-    @instrument(name='save_climate_data', with_args=False)
     def save_climate_data_year(self, data_by_coords, cell_models):
         # Go through the collated list and create all the relevant datapoints
         self.logger.debug('Saving to database')
@@ -373,7 +342,6 @@ class Nex2DB(object):
                                     'city %s dataset %s map_cell %s',
                                     city.id, self.datasource.dataset.name, str(cell_model))
 
-    @instrument(name='import_netcdf_data')
     def import_netcdf_data(self):
         """Extract data about cities from three NetCDF files and writes it to the database."""
         self.logger.debug("Using datasource: %s", self.datasource)
