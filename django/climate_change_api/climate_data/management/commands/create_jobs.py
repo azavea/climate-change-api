@@ -43,12 +43,15 @@ class Command(BaseCommand):
                             help='Comma separated list of models, or "all"')
         parser.add_argument('years', type=str,
                             help='Comma separated list of years, or "all"')
+        parser.add_argument('--update-existing', action='store_true',
+                            help='If provided, jobs will update existing city data')
 
     def handle(self, *args, **options):
         queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
                           Attributes=settings.SQS_IMPORT_QUEUE_ATTRIBUTES)
         dataset = ClimateDataset.objects.get(name=options['dataset'])
         scenario_id = Scenario.objects.get(name=options['rcp']).id
+        update_existing = options['update_existing']
         if options['models'] == 'all':
             model_ids = [m.id for m in dataset.models.all()]
         else:
@@ -64,5 +67,6 @@ class Command(BaseCommand):
                     'dataset': dataset.name,
                     'scenario_id': scenario_id,
                     'model_id': model_id,
-                    'year': year
+                    'year': year,
+                    'update_existing': update_existing
                 })
