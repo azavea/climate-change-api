@@ -316,7 +316,7 @@ class Nex2DB(object):
         cell_coords = city_coords[city.id]
         cell_model = cell_models[cell_coords]
         try:
-            _, created = ClimateDataCityCell.objects.get_or_create(
+            city_cell, created = ClimateDataCityCell.objects.get_or_create(
                 city=city,
                 dataset=self.datasource.dataset,
                 map_cell=cell_model
@@ -326,6 +326,8 @@ class Nex2DB(object):
                 self.logger.info('Created new ClimateDataCityCell for '
                                  'city %s dataset %s map_cell %s',
                                  city.id, self.datasource.dataset.name, str(cell_model))
+            else:
+                assert(city_cell.map_cell.id == cell_model.id)
         except IntegrityError:
             # City and dataset are unique constraints, so an IntegrityError means our
             #  map_cell is different from the city's existing one, which is very bad.
