@@ -88,9 +88,9 @@ class ClimateDatasetFactory(DjangoModelFactory):
 
 class ClimateDataSourceFactory(DjangoModelFactory):
 
-    model = ClimateModelFactory()
-    scenario = ScenarioFactory()
-    dataset = ClimateDatasetFactory()
+    model = factory.SubFactory(ClimateModelFactory)
+    scenario = factory.SubFactory(ScenarioFactory)
+    dataset = factory.SubFactory(ClimateDatasetFactory)
     year = 2000
 
     class Meta:
@@ -109,9 +109,9 @@ class ClimateDataCellFactory(DjangoModelFactory):
 
 
 class ClimateDataCityCellFactory(DjangoModelFactory):
-    city = CityFactory()
-    map_cell = ClimateDataCellFactory()
-    dataset = ClimateDatasetFactory()
+    city = factory.SubFactory(CityFactory)
+    map_cell = factory.SubFactory(ClimateDataCellFactory)
+    dataset = factory.SubFactory(ClimateDatasetFactory)
 
     class Meta:
         model = ClimateDataCityCell
@@ -130,8 +130,8 @@ class HistoricDateRangeFactory(DjangoModelFactory):
 
 class ClimateDataYearFactory(DjangoModelFactory):
 
-    map_cell = ClimateDataCellFactory()
-    data_source = ClimateDataSourceFactory()
+    map_cell = factory.SubFactory(ClimateDataCellFactory)
+    data_source = factory.SubFactory(ClimateDataSourceFactory)
     tasmin = [273]
     tasmax = [293]
     pr = [0.0001]
@@ -143,12 +143,12 @@ class ClimateDataYearFactory(DjangoModelFactory):
 
 class ClimateDataBaselineFactory(DjangoModelFactory):
 
-    map_cell = ClimateDataCellFactory()
+    map_cell = factory.SubFactory(ClimateDataCellFactory)
     percentile = 99
     tasmin = 272
     tasmax = 292
     pr = 0.00005
-    historic_range = HistoricDateRangeFactory()
+    historic_range = factory.SubFactory(HistoricDateRangeFactory)
 
     class Meta:
         model = ClimateDataBaseline
@@ -157,11 +157,11 @@ class ClimateDataBaselineFactory(DjangoModelFactory):
 
 class HistoricAverageClimateDataYearFactory(DjangoModelFactory):
 
-    map_cell = ClimateDataCellFactory()
+    map_cell = factory.SubFactory(ClimateDataCellFactory)
     tasmin = [0]
     tasmax = [0]
     pr = [0]
-    historic_range = HistoricDateRangeFactory()
+    historic_range = factory.SubFactory(HistoricDateRangeFactory)
 
     class Meta:
         model = HistoricAverageClimateDataYear
