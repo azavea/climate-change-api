@@ -1,75 +1,17 @@
 import json
 import logging
-import os
-import shutil
-import tempfile
 from time import sleep
 
-import boto3
 from boto_helpers.sqs import get_queue
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from climate_data.models import (ClimateDataset,
-                                 ClimateDataSource,
-                                 ClimateDataYear,
-                                 Scenario)
+from climate_data.models import ClimateDataset, Scenario
 from climate_data.nex2db import Nex2DB
 
 logger = logging.getLogger('climate_data')
 failure_logger = logging.getLogger('climate_data_import_failures')
-
-BUCKET = 'nasanex'
-
-
-def get_key_format_for_dataset(dataset_name):
-    if dataset_name == 'NEX-GDDP':
-        return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/{ensemble}/v1.0/'
-                '{var}_day_BCSD_{rcp}_{ensemble}_{model}_{year}.nc')
-    elif dataset_name == 'LOCA':
-        return ('LOCA/{model}/16th/{rcp}/{ensemble}/{var}/'
-                '{var}_day_{model}_{rcp}_{ensemble}_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
-    else:
-        raise ValueError('Unsupported dataset {}'.format(dataset_name))
-
-
-def get_gddp_model_ensemble(model_name, rcp):
-    return 'r1i1p1'
-
-
-def get_loca_model_ensemble(model_name, rcp):
-    """Return ensemble given LOCA model and scenario."""
-    ensembles = {
-        'historical': {
-            'CCSM4': 'r6i1p1',
-            'GISS-E2-H': 'r6i1p1',
-            'GISS-E2-R': 'r6i1p1',
-        },
-        'RCP45': {
-            'CCSM4': 'r6i1p1',
-            'EC-EARTH': 'r8i1p1',
-            'GISS-E2-H': 'r6i1p3',
-            'GISS-E2-R': 'r6i1p1'
-        },
-        'RCP85': {
-            'CCSM4': 'r6i1p1',
-            'EC-EARTH': 'r2i1p1',
-            'GISS-E2-H': 'r2i1p1',
-            'GISS-E2-R': 'r2i1p1'
-        }
-    }
-    try:
-        return ensembles[rcp][model_name]
-    except KeyError:
-        return 'r1i1p1'
-
-
-def get_dataset_model_ensemble(dataset_name, model_name, rcp):
-    return {
-        'LOCA': get_loca_model_ensemble,
-        'NEX-GDDP': get_gddp_model_ensemble
-    }[dataset_name](model_name, rcp)
 
 
 def handle_failing_message(message, failures):
@@ -97,17 +39,6 @@ def handle_failing_message(message, failures):
         message.change_visibility(VisibilityTimeout=0)
 
 
-def download_nc(dataset_name, rcp, model, year, var, dir):
-    ensemble = get_dataset_model_ensemble(dataset_name, model, rcp)
-    key_format = get_key_format_for_dataset(dataset_name)
-    key = key_format.format(rcp=rcp.lower(), model=model, year=year, var=var, ensemble=ensemble)
-    filename = os.path.join(dir, os.path.basename(key))
-    s3 = boto3.resource('s3')
-    logger.warning('Downloading file: s3://{}/{}'.format(BUCKET, key))
-    s3.meta.client.download_file(BUCKET, key, filename)
-    return filename
-
-
 def process_message(message, queue):
     logger.debug('processing SQS message')
     # extract info from message
@@ -119,27 +50,20 @@ def process_message(message, queue):
     model = dataset.models.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+    update_existing = message_dict.get('update_existing', False)
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
 
-    datasource, created = ClimateDataSource.objects.get_or_create(dataset=dataset,
-                                                                  model=model,
-                                                                  scenario=scenario,
-                                                                  year=year)
-    if created:
-        logger.info('Created data source for dataset %s model %s scenario %s year %s',
-                    dataset.name, model.name, scenario.name, year)
-
     # download files
-    tmpdir = tempfile.mkdtemp()
     try:
-        # get .nc file
-        variables = {var: download_nc(dataset.name, scenario.name, model.name, year, var, tmpdir)
-                     for var in ClimateDataYear.VARIABLE_CHOICES}
-        assert(all(variables))
-
-        # pass to nex2db
-        Nex2DB(logger=logger).nex2db(variables, datasource)
+        importer = Nex2DB(
+            dataset,
+            scenario,
+            model,
+            year,
+            update_existing=update_existing,
+            logger=logger)
+        importer.import_netcdf_data()
     except Exception:
         logger.exception('Failed to process data for dataset %s model %s scenario %s year %s',
                          dataset.name, model.name, scenario.name, year)
@@ -147,9 +71,6 @@ def process_message(message, queue):
                                  'dataset %s model %s scenario %s year %s',
                                  dataset.name, model.name, scenario.name, year)
         raise
-    finally:
-        # Success or failure, clean up the .nc files
-        shutil.rmtree(tmpdir)
 
     logger.debug('SQS message processed')
 

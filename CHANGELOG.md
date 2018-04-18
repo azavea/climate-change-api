@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.2.1](https://github.com/azavea/climate-change-api/tree/2.2.1) (2018-04-17)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.0...2.2.1)
+
+**Merged pull requests:**
+
+- Allow processing only cities missing data for source during import [\#804](https://github.com/azavea/climate-change-api/pull/804)
+
 ## [2.2.0](https://github.com/azavea/climate-change-api/tree/2.2.0) (2018-03-12)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.1.6...2.2.0)
