@@ -9,6 +9,7 @@
 	* [Create a Processing Job](#create-a-processing-job)
 	* [`run_jobs`](#run-jobs)
 		* [Add Spot Instances to the ECS cluster](#add-spot-instances-to-the-ecs-cluster)
+		* [Add Task Definition](#add-a-new-task-definition)
 		* [Resize the Database](#resize-the-database)
 		* [Create a Processing Service](#create-a-processing-service)
 	* [Generate Historical Data](#generate-historical-data)
