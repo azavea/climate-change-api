@@ -83,9 +83,9 @@ Additional container instances and a new task definition will likely need to be 
 #### Add a new task definition
 
 - In ECS in AWS under Task Definitions, select `ProductionManagement` and create a new revision from the latest task definition.
-- Edit the `Task memory (MiB)` to 8192
-- Under Container Defintiions, select the `management` container and bump its Memory Limits to 8192 MB too
-- Remember to remove remove this task definition when `run_jobs` is complete
+- Edit the Task memory (MiB) to 8192.
+- Under Container Definitions, select the `management` container and bump its Memory Limits to 8192 MB too.
+- Remember to remove this task definition when `run_jobs` is complete.
 
 #### Resize the database
 
