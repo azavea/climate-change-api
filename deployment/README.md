@@ -9,6 +9,7 @@
 	* [Create a Processing Job](#create-a-processing-job)
 	* [`run_jobs`](#run-jobs)
 		* [Add Spot Instances to the ECS cluster](#add-spot-instances-to-the-ecs-cluster)
+		* [Add Temporary Task Definition](#add-a-temporary-task-definition)
 		* [Resize the Database](#resize-the-database)
 		* [Create a Processing Service](#create-a-processing-service)
 	* [Generate Historical Data](#generate-historical-data)
@@ -21,7 +22,7 @@
 
 ### Prepare a new task revision
 
-- Login to the task definition page in the [AWS ECS console](https://console.aws.amazon.com/ecs/home?region=us-east-1#/taskDefinitions).  
+- Login to the task definition page in the [AWS ECS console](https://console.aws.amazon.com/ecs/home?region=us-east-1#/taskDefinitions).
 
 - Create a new revision of the StagingManagement task definition.
 	- Click Create New Revision on the Task Definitions page.
@@ -65,11 +66,11 @@
 
 ### Run Jobs
 
-Additional container instances will likely need to be added into the ECS cluster in order to handle the amount of processing capacity necessary for processing jobs. A cluster with 20 `m4.2xlarge` container instances should be sufficient. The instructions to launch a spot fleet into the ECS Cluster are below.
+Additional container instances and a new task definition will likely need to be added into the ECS cluster in order to handle the amount of processing capacity necessary for processing jobs. A cluster with 20 `m4.2xlarge` container instances should be sufficient. The instructions to launch a spot fleet into the ECS Cluster are below. The new task definition that bumps the django container's maximum memory to 8192 MB (~8GB RAM) should be enough. The instructions are also below.
 
 #### Add Spot Instances to the ECS cluster
 
-- Through the AWS Console, Create a copy of the latest terraform-managed launch configuration for a container instance. 
+- Through the AWS Console, Create a copy of the latest terraform-managed launch configuration for a container instance.
 - Modify this launch config to have an instance size of `m4.2xlarge`, and 100GB of disk. Changing a pre-existing launch config ensures that instances will have the proper ECS cluster name at launch time.
 ![Instance Size Modifications](https://cloud.githubusercontent.com/assets/2507188/23183815/574f290e-f84b-11e6-90a0-641c7636c194.png)
 
@@ -79,6 +80,14 @@ Additional container instances will likely need to be added into the ECS cluster
 - Once your launch config is created, launch an Autoscaling Group with a desired capacity of 20, tied to that launch configuration.
 ![Launching an ASG](https://cloud.githubusercontent.com/assets/2507188/23184132/9574abd6-f84c-11e6-9f51-536b98f8ff4a.png)
 
+#### Add a temporary task definition
+
+- In ECS in AWS under Task Definitions, select `StagingManagement` and create a new revision from the latest task definition. For more guidance on this step, see [Prepare a New task revision](#prepare-a-new-task-revision).
+- Edit the Task memory (MiB) to 8192.
+- Under Container Definitions, select the `management` container:
+	- Bump Memory Limits to 8192 MB too.
+	- Set the Environment variable `DJANGO_LOG_LEVEL` to `DEBUG`.
+- Be sure to delete this task definition when `run_jobs` is complete!
 
 #### Resize the database
 
@@ -89,7 +98,7 @@ Start 200 `run_jobs` tasks. The easiest way to do this is to create a service.
 
 - In the [ECS Services page](https://console.aws.amazon.com/ecs/home?region=us-east-1#/clusters/ecsStagingCluster/services), click Create.
 
-- Using the StagingManagement task definition created above, add `run_jobs` to the Container Overrides and set the number of tasks to 200. It's also a good idea to set `DJANGO_LOG` to `DEBUG` for better output. 
+- Using the StagingManagement task definition created above, add `run_jobs` to the Container Overrides and set the number of tasks to 200. It's also a good idea to set `DJANGO_LOG` to `DEBUG` for better output.
 
 - Scope `run_jobs` tasks to run on the spot instances only.
 	- Under Task Placement, select a custom template.
