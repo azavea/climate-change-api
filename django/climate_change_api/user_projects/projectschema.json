@@ -23,6 +23,9 @@
     "scenario": {
       "type": "object",
       "properties": {
+        "alias": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
