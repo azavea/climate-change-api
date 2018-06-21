@@ -16,6 +16,9 @@
 		* [Import Raw Data](#import-raw-data)
 		* [General Historical Data](#generate-historical-data)
 
+## Ingesting new cities
+If you only want to ingest data for a small number of cities, please read the documentation on [the single city ingest process instead](single_city_ingest.md).
+
 ## Database Population
 
 **Before continuing, familiarize yourself with the *Loading Data from NetCDF* and *Loading From Historic Readings* sections of the project [README](../README.rst). This guide is intended to show how to run those commands in an ECS cluster.**
