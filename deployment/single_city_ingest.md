@@ -109,7 +109,9 @@ _This step can be skipped if there has not been a redeploy of the Climate Change
 
 From the `ProductionManagementRunJobs` task definition page, click Actions and choose "Update Service".
 - Set the number of tasks to 60
-- Check the PaperTrail logs immediately to verify that there were no errors, and check back periodically to see if the jobs have been completed
+- _If you created a new task definition of `ProductionManagementRunJobs`_ update the revision of the service
+
+Check the PaperTrail logs immediately to verify that there were no errors, and check back periodically to see if the jobs have been completed
 
 
 ### Turning off the import cluster
