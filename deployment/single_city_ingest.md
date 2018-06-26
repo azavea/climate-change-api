@@ -126,7 +126,7 @@ Once you've verified in Papertrail that the ingest is complete, you should turn 
 After finishing the ingest, revert the `dbproduction` RDS instance in the AWS Console to `db.t2.medium` and change the DB parameter group to `dbproduction`. Remember to check the Papertrail logs to verify there is little/no usage of the application, as changing the database type will cause *a few minutes of downtime*.
 
 ## Generate Historical Data
-From a shell in a production `cc-api` Docker container, run the `create_jobs` management command for every dataset and scenario you want to ingest.
+From a shell in a production `cc-api` Docker container, run the `generate_historic` management command.
 
 ```shell
 $ ssh climate-production-bastion
