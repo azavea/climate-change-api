@@ -62,11 +62,6 @@ class ClimateDataCityCellSerializer(serializers.ModelSerializer):
 
 class CitySerializer(GeoFeatureModelSerializer):
 
-    datasets = serializers.SerializerMethodField()
-
-    def get_datasets(self, obj):
-        return [map_cell.dataset.name for map_cell in obj.map_cell_set.select_related('dataset')]
-
     proximity = serializers.SerializerMethodField()
 
     def get_proximity(self, obj):
