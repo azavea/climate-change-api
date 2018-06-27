@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields.array import ArrayField
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import CASCADE, SET_NULL
 
 from climate_data.geo_boundary import census
@@ -16,10 +16,23 @@ class TinyOneToOne(models.OneToOneField):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
+def get_datasets():
+    return [ClimateDataset.Datasets.LOCA, ClimateDataset.Datasets.NEX_GDDP]
+
+
 class ClimateDataset(models.Model):
     """Model representing a particular climate projection dataset."""
 
-    name = models.CharField(max_length=48, unique=True)
+    class Datasets:
+        LOCA = 'LOCA'
+        NEX_GDDP = 'NEX-GDDP'
+
+        CHOICES = (
+            (LOCA, LOCA),
+            (NEX_GDDP, NEX_GDDP),
+        )
+
+    name = models.CharField(max_length=48, unique=True, choices=Datasets.CHOICES)
     label = models.CharField(max_length=128, blank=True, null=True)
     description = models.CharField(max_length=4096, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
@@ -286,6 +299,12 @@ class City(models.Model):
     is_coastal = models.BooleanField(default=False)
     population = models.IntegerField(null=True)
 
+    datasets = ArrayField(
+        models.CharField(max_length=48, choices=ClimateDataset.Datasets.CHOICES),
+        size=2,
+        default=get_datasets
+    )
+
     region = models.ForeignKey(Region, on_delete=SET_NULL, null=True)
 
     objects = CityManager()
@@ -296,6 +315,7 @@ class City(models.Model):
 
     class Meta:
         unique_together = ('name', 'admin')
+        verbose_name_plural = 'cities'
 
     def get_map_cell(self, dataset):
         """Get the map cell for a given dataset for a given city.
@@ -308,6 +328,11 @@ class City(models.Model):
 
     def natural_key(self):
         return (self.name, self.admin)
+
+    def clean(self):
+        super().clean()
+        if len(self.datasets) != len(set(self.datasets)):
+            raise ValidationError({'datasets': 'Cannot contain duplicate datasets'})
 
     def save(self, *args, **kwargs):
         """Override save to keep the geography field up to date."""

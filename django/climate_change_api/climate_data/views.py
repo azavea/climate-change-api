@@ -155,9 +155,7 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
         Returns 404 if the city object has no valid map cells.
         """
         city = self.get_object()
-        map_cells = ClimateDataCityCell.objects.filter(city=city)
-        response = [map_cell.dataset.name for map_cell in map_cells]
-        return Response(response, status=status.HTTP_200_OK)
+        return Response(city.datasets, status=status.HTTP_200_OK)
 
 
 class CityMapCellListView(APIView):
