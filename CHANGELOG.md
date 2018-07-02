@@ -1,6 +1,14 @@
 # Change Log
 
-## [2.2.1](https://github.com/azavea/climate-change-api/tree/2.2.1) (2018-04-17)
+## [2.2.2](https://github.com/azavea/climate-change-api/tree/2.2.2) (2018-07-02)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.1...2.2.2)
+
+**Merged pull requests:**
+
+- Pull SSL certificate ARN from remote state [\#827](https://github.com/azavea/climate-change-api/pull/827)
+
+## [2.2.1](https://github.com/azavea/climate-change-api/tree/2.2.1) (2018-04-18)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.0...2.2.1)
 
