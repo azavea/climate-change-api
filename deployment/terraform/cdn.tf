@@ -58,7 +58,7 @@ resource "aws_cloudfront_distribution" "cdn" {
 
   viewer_certificate {
     acm_certificate_arn      = "${data.terraform_remote_state.core.climate_ssl_certificate_arn}"
-    minimum_protocol_version = "TLSv1"
+    minimum_protocol_version = "TLSv1.1_2016"
     ssl_support_method       = "sni-only"
   }
 }
