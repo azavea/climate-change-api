@@ -88,7 +88,7 @@ resource "aws_alb_listener" "cc_api_https" {
   load_balancer_arn = "${aws_alb.cc_api.id}"
   port              = "443"
   protocol          = "HTTPS"
-  certificate_arn   = "${var.ssl_certificate_arn}"
+  certificate_arn   = "${data.terraform_remote_state.core.climate_ssl_certificate_arn}"
 
   default_action {
     target_group_arn = "${aws_alb_target_group.cc_api_https.id}"
