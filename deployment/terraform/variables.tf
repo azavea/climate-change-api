@@ -55,5 +55,3 @@ variable "papertrail_port" {}
 variable "climate_docs_site_bucket" {}
 
 variable "climate_docs_logs_bucket" {}
-
-variable "ssl_certificate_arn" {}
