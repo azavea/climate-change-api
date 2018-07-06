@@ -1,12 +1,24 @@
 # Change Log
 
+## [2.3.0](https://github.com/azavea/climate-change-api/tree/2.3.0) (2018-07-06)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.2...2.3.0)
+
+**Merged pull requests:**
+
+- Fix City detail page on Django Admin [\#828](https://github.com/azavea/climate-change-api/pull/828)
+- Pull SSL certificate ARN from remote state [\#827](https://github.com/azavea/climate-change-api/pull/827)
+- Move dynamic checking of which datasets a City supports to a DB field [\#825](https://github.com/azavea/climate-change-api/pull/825)
+
 ## [2.2.2](https://github.com/azavea/climate-change-api/tree/2.2.2) (2018-07-02)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.1...2.2.2)
 
 **Merged pull requests:**
 
-- Pull SSL certificate ARN from remote state [\#827](https://github.com/azavea/climate-change-api/pull/827)
+- Add documentation for the single city ingest process [\#814](https://github.com/azavea/climate-change-api/pull/814)
+- Add alias to scenario definition for user projects [\#811](https://github.com/azavea/climate-change-api/pull/811)
+- Feature/jf/deployment docs update [\#808](https://github.com/azavea/climate-change-api/pull/808)
 
 ## [2.2.1](https://github.com/azavea/climate-change-api/tree/2.2.1) (2018-04-18)
 
