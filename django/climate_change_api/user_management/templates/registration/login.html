@@ -26,9 +26,15 @@
           <p>{% trans "Don't have an account" %}? <a href="{% url 'registration_register' %}">{% trans "Register" %}</a></p>
         </div>
       </div>
-      <div class="row stack-xs">
-        <div class="column-12">
-          <p>Ready to take action? Put your location's data into context and start your city's vulnerability assessment and climate change action plan using <a href="https://temperate.io">Temperate</a>. Temperate was designed for small-and mid-sized cities with limited resources, and offers customized consulting assistance from ICLEI-USA. Start your free trial today!</p>
+      <div class="row stack-xs column-12">
+        <div class=" temperate-cta">
+          <img class="temperate-logo" src="/static/images/temperate-mark.svg" alt="Temperate mark">
+          <h2 class="subheader">Ready to take action?</h2>
+          <h3 class="header">Introducing Temperate</h3>
+          <p class="blurb">
+            We built an easy-to-use application using the Climate API called Temperate. Temperate puts climate data into context and helps planners develop their vulnerability assessment and action plan. Designed for small- and mid-sized cities with limited resources, Temperate offers customized consulting assistance from ICLEI-USA.
+          </p>
+          <a href="https://temperate.io" class="btn btn-primary btn-large">Start your free trial today!</a>
         </div>
       </div>
     {% endblock %}
