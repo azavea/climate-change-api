@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.4.0](https://github.com/azavea/climate-change-api/tree/2.4.0) (2018-08-20)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.3.0...2.4.0)
+
+**Merged pull requests:**
+
+- Add temperate ad text below login block [\#833](https://github.com/azavea/climate-change-api/pull/833)
+
 ## [2.3.0](https://github.com/azavea/climate-change-api/tree/2.3.0) (2018-07-06)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.2.2...2.3.0)
