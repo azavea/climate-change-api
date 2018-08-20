@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.4.1](https://github.com/azavea/climate-change-api/tree/2.4.1) (2018-08-20)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.4.0...2.4.1)
+
+**Merged pull requests:**
+
+- Use static template tag for Temperate logo [\#835](https://github.com/azavea/climate-change-api/pull/835)
+
 ## [2.4.0](https://github.com/azavea/climate-change-api/tree/2.4.0) (2018-08-20)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.3.0...2.4.0)
