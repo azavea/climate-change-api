@@ -1,7 +1,9 @@
 import logging
 import json
 
-from django.core.management.base import BaseCommand
+from django.core.exceptions import ValidationError
+from django.core.management.base import BaseCommand, CommandError
+from django.core.validators import URLValidator
 from django.conf import settings
 
 from boto_helpers.sqs import get_queue
@@ -45,6 +47,10 @@ class Command(BaseCommand):
                             help='Comma separated list of years, or "all"')
         parser.add_argument('--update-existing', action='store_true',
                             help='If provided, jobs will update existing city data')
+        parser.add_argument('--import-boundary-url', type=str,
+                            help='A URL to a zipped (multi)polygon shapefile to filter the ' +
+                                 'import by. All climate data cells that intersect this ' +
+                                 'boundary will imported.')
 
     def handle(self, *args, **options):
         queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
@@ -52,6 +58,14 @@ class Command(BaseCommand):
         dataset = ClimateDataset.objects.get(name=options['dataset'])
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         update_existing = options['update_existing']
+        import_boundary_url = options.get('import_boundary_url', None)
+        if import_boundary_url:
+            validator = URLValidator(schemes=['http', 'https'])
+            try:
+                validator(import_boundary_url)
+            except ValidationError:
+                raise CommandError('{} is not a valid URL!'.format(import_boundary_url))
+
         if options['models'] == 'all':
             model_ids = [m.id for m in dataset.models.all()]
         else:
@@ -61,12 +75,12 @@ class Command(BaseCommand):
                          else map(str, range(2006, 2101))))
         else:
             years = options['years'].split(',')
-        for year in years:
-            for model_id in model_ids:
-                send_message(queue, {
-                    'dataset': dataset.name,
-                    'scenario_id': scenario_id,
-                    'model_id': model_id,
-                    'year': year,
-                    'update_existing': update_existing
-                })
+        # for year in years:
+        #     for model_id in model_ids:
+        #         send_message(queue, {
+        #             'dataset': dataset.name,
+        #             'scenario_id': scenario_id,
+        #             'model_id': model_id,
+        #             'year': year,
+        #             'update_existing': update_existing
+        #         })
