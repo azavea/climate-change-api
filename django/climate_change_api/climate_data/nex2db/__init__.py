@@ -59,7 +59,7 @@ class Nex2DB(object):
             cities_queryset = cities_queryset.exclude(
                 map_cell_set__map_cell__climatedatayear__data_source=datasource
             )
-        self.locations = ClimateAPICityLocationSource(cities_queryset)
+        self.locations = ClimateAPICityLocationSource(cities_queryset, dataset)
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
