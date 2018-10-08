@@ -36,6 +36,9 @@ class ClimateDataset(models.Model):
     label = models.CharField(max_length=128, blank=True, null=True)
     description = models.CharField(max_length=4096, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
+    cell_size_x = models.DecimalField(max_digits=8, decimal_places=4, blank=True, null=True)
+    cell_size_y = models.DecimalField(max_digits=8, decimal_places=4, blank=True, null=True)
+
     models = models.ManyToManyField('ClimateModel', related_name='datasets')
 
     _DATASETS = None
