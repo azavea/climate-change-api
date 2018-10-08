@@ -75,12 +75,13 @@ class Command(BaseCommand):
                          else map(str, range(2006, 2101))))
         else:
             years = options['years'].split(',')
-        # for year in years:
-        #     for model_id in model_ids:
-        #         send_message(queue, {
-        #             'dataset': dataset.name,
-        #             'scenario_id': scenario_id,
-        #             'model_id': model_id,
-        #             'year': year,
-        #             'update_existing': update_existing
-        #         })
+        for year in years:
+            for model_id in model_ids:
+                send_message(queue, {
+                    'dataset': dataset.name,
+                    'scenario_id': scenario_id,
+                    'model_id': model_id,
+                    'year': year,
+                    'import_boundary_url': import_boundary_url,
+                    'update_existing': update_existing,
+                })
