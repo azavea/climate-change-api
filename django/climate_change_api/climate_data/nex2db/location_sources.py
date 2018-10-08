@@ -17,6 +17,10 @@ y: Latitude. The value must be between -90 and 90
 ClimateLocation = namedtuple('ClimateLocation', ['id', 'name', 'x', 'y'])
 
 
-def ClimateAPICityLocationSource(city_queryset):
+def ClimateAPICityLocationSource(city_queryset, dataset):
     return [ClimateLocation(id=city.id, x=city.geom.x, y=city.geom.y, name=city.name)
             for city in city_queryset]
+
+
+def MultipolygonBoundaryLocationSource(shapefile_url, dataset):
+    return []
