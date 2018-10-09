@@ -1,8 +1,11 @@
 import calendar
-import logging
 import collections
+import logging
+import os
 import tempfile
+from uuid import uuid4
 
+from django.conf import settings
 from django.db.utils import IntegrityError
 
 import numpy
@@ -16,7 +19,11 @@ from climate_data.models import (
     ClimateDataSource,
 )
 from climate_data.nex2db.downloaders import get_netcdf_downloader
-from climate_data.nex2db.location_sources import ClimateAPICityLocationSource
+from climate_data.nex2db.location_sources import (
+    ClimateAPICityLocationSource,
+    MultipolygonBoundaryLocationSource,
+    write_debug_shapefile,
+)
 
 
 DAY_OF_YEAR_FEB_29 = 60
@@ -53,13 +60,21 @@ class Nex2DB(object):
         self.datasource = datasource
 
         # Store a cache of all cities locally
-        cities_queryset = City.objects.all().order_by('pk')
-        if not self.update_existing:
-            # Only process cities that don't have this datasource loaded
-            cities_queryset = cities_queryset.exclude(
-                map_cell_set__map_cell__climatedatayear__data_source=datasource
-            )
-        self.locations = ClimateAPICityLocationSource(cities_queryset, dataset)
+        if import_boundary_url:
+            self.locations = MultipolygonBoundaryLocationSource(import_boundary_url, dataset)
+        else:
+            cities_queryset = City.objects.all().order_by('pk')
+            if not self.update_existing:
+                # Only process cities that don't have this datasource loaded
+                cities_queryset = cities_queryset.exclude(
+                    map_cell_set__map_cell__climatedatayear__data_source=datasource
+                )
+            self.locations = ClimateAPICityLocationSource(cities_queryset, dataset)
+        if settings.DEBUG:
+            debug_file = os.path.join(settings.BASE_DIR, 'nex2db-locations-debug',
+                                      '{}.shp'.format(str(uuid4())))
+            logger.info('Writing debug locations shapefile to path: {}'.format(debug_file))
+            write_debug_shapefile(self.locations, debug_file)
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
@@ -116,14 +131,14 @@ class Nex2DB(object):
                 self.logger.debug('processing variable %s for city: %s', var_name, location.name)
                 # Not geographic distance, but good enough for
                 # finding a point near a city center from disaggregated data.
-                # city_y must be in the range [-90, 90]
-                city_y = location.y
-                # city_x must be in the range [0,360] in units degrees east
+                # location_y must be in the range [-90, 90]
+                location_y = location.y
+                # location_x must be in the range [0,360] in units degrees east
                 # lon units are degrees east, so degrees west maps inversely to 180-360
-                city_x = 360 + location.x if location.x < 0 else location.x
+                location_x = 360 + location.x if location.x < 0 else location.x
 
-                latidx = (numpy.abs(city_y - latarr)).argmin()
-                lonidx = (numpy.abs(city_x - lonarr)).argmin()
+                latidx = (numpy.abs(location_y - latarr)).argmin()
+                lonidx = (numpy.abs(location_x - lonarr)).argmin()
 
                 cell_indexes.add((latidx, lonidx))
                 location_to_coords[location.id] = (latarr[latidx], lonarr[lonidx])
