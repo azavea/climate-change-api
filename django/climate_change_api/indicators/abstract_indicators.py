@@ -8,8 +8,7 @@ from django.core.exceptions import ValidationError
 from climate_data.models import (ClimateDataBaseline,
                                  ClimateDataYear,
                                  HistoricAverageClimateDataYear,
-                                 ClimateDataset,
-                                 ClimateDataCell)
+                                 ClimateDataset)
 from climate_data.filters import ClimateDataFilterSet
 from .params import IndicatorParams, ThresholdIndicatorParams
 from .serializers import IndicatorSerializer
@@ -69,16 +68,16 @@ class Indicator(object):
     # These are the keys that values are identified by when they come from the database.
     aggregate_keys = ['agg_key', 'data_source__model']
 
-    def __init__(self, city, scenario, parameters=None):
-        if not city:
-            raise ValueError('Indicator constructor requires a city instance')
+    def __init__(self, map_cell, scenario, parameters=None):
+        if not map_cell:
+            raise ValueError('Indicator constructor requires a ClimateDataCell instance')
         if not scenario:
-            raise ValueError('Indicator constructor requires a scenario instance')
+            raise ValueError('Indicator constructor requires a Scenario instance')
 
         self.params = self.init_params_class()
         self.params.set_parameters(parameters)
 
-        self.city = city
+        self.map_cell = map_cell
         self.scenario = scenario
         self.dataset = ClimateDataset.objects.get(name=self.params.dataset.value)
 
@@ -89,12 +88,6 @@ class Indicator(object):
         if invalid_models:
             raise ValidationError('Dataset %s has no data for model(s) %s'
                                   % (self.dataset.name, ','.join(invalid_models)))
-
-        try:
-            self.map_cell = self.city.get_map_cell(self.dataset)
-        except ClimateDataCell.DoesNotExist:
-            raise ValidationError('No data available for %s dataset at this location'
-                                  % (self.dataset.name))
 
         self.queryset = self.get_queryset()
 
