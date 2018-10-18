@@ -1,9 +1,15 @@
+import logging
+
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.fields.array import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import CASCADE, SET_NULL
 
 from climate_data.geo_boundary import census
+
+logger = logging.getLogger(__name__)
 
 
 class TinyForeignKey(models.ForeignKey):
@@ -159,6 +165,45 @@ class ClimateDataSource(models.Model):
 
 
 class ClimateDataCellManager(models.Manager):
+
+    def map_cell_for_lat_lon(self, lat, lon, dataset):
+        """Return the closest valid ClimateDataCell to the queried lat/lon.
+
+        The closest ClimateDataCell is found by constructing a Polygon box equal to the size
+        of the passed dataset cell size. We then query the ClimateDataCell geometries for points
+        ordered by distance to our search point, and take the closest (first) one
+        that contains valid data for the dataset + map_cell combination.
+
+        """
+        x_width = float(dataset.cell_size_x) / 2
+        y_width = float(dataset.cell_size_y) / 2
+        search_box = Polygon((
+            (lon - x_width, lat - y_width),
+            (lon - x_width, lat + y_width),
+            (lon + x_width, lat + y_width),
+            (lon + x_width, lat - y_width),
+            (lon - x_width, lat - y_width),
+        ))
+        search_point = Point(lon, lat, srid=4326)
+        map_cells = (ClimateDataCell.objects.filter(geom__within=search_box)
+                                            .annotate(distance=Distance('geom', search_point))
+                                            .order_by('distance'))
+        cells_checked = 0
+        for map_cell in map_cells:
+            cells_checked += 1
+            exists_for_dataset = (ClimateDataYear.objects.filter(map_cell=map_cell,
+                                                                 data_source__dataset=dataset)
+                                                         .exists())
+            if exists_for_dataset:
+                if cells_checked > 4:
+                    logger.warning('Checked {} cells at point ({}, {}) for dataset {}'
+                                   .format(cells_checked, lon, lat, dataset.name))
+                return map_cell
+        if cells_checked > 4:
+            logger.warning('Checked {} cells at point ({}, {}) for dataset {}'
+                           .format(cells_checked, lon, lat, dataset.name))
+        raise ClimateDataCell.DoesNotExist()
+
     def get_by_natural_key(self, lat, lon, dataset):
         return self.get(lat=lat, lon=lon, dataset=dataset)
 
@@ -167,7 +212,15 @@ class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lon = models.DecimalField(max_digits=9, decimal_places=6)
 
+    geom = models.PointField(srid=4326, blank=True, null=True)
+
     objects = ClimateDataCellManager()
+
+    def save(self, *args, **kwargs):
+        # Convert saved lon [0, 360) back to [-180, 180)
+        lon = self.lon if self.lon < 180 else self.lon - 360
+        self.geom = Point(float(lon), float(self.lat), srid=4326)
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ('lat', 'lon',)
