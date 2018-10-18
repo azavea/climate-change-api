@@ -71,8 +71,12 @@ class Nex2DB(object):
                 )
             self.locations = ClimateAPICityLocationSource(cities_queryset, dataset)
         if settings.DEBUG:
-            debug_file = os.path.join(settings.BASE_DIR, 'nex2db-locations-debug',
-                                      '{}.shp'.format(str(uuid4())))
+            debug_dir = os.path.join(settings.BASE_DIR, 'nex2db-locations-debug')
+            try:
+                os.mkdir(debug_dir)
+            except FileExistsError:
+                pass
+            debug_file = os.path.join(debug_dir, '{}.shp'.format(str(uuid4())))
             logger.info('Writing debug locations shapefile to path: {}'.format(debug_file))
             write_debug_shapefile(self.locations, debug_file)
 
