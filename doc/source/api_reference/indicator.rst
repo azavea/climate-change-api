@@ -143,10 +143,10 @@ Special Parameters Explained
 The Climate API allows for various pre-defined and custom types of ``time_aggregation`` when requesting indicator data. Most are familiar, i.e. ``yearly``. A unique format available is ``offset_yearly``, which counts a year starting from the summer solstice (180 days into the Gregorian year). This captures seasons in their entirety, making seasonal analysis easy.
 
 
-Indicator Data
-______________
+Indicator Data by City
+______________________
 
-Returns data for a specified indicator and its unique required and optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
+Returns data for a specified indicator queried by city and scenario and any optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
 
 .. note:: Requests to this endpoint are `rate-limited`_.
 
@@ -234,6 +234,84 @@ Response:
                 "max": 102.70332763671914,
                 "avg": 97.22591587611635,
                 "min": 92.67451293945382
+            }
+        }
+    }
+
+
+Indicator Data by Lat + Lon
+___________________________
+
+Returns data for a specified indicator queried by lat, lon and scenario and any optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
+
+.. note:: Requests to this endpoint are `rate-limited`_.
+
+.. openapi:: /openapi/climate_api.yml
+    :paths:
+        /api/climate-data/{lat}/{lon}/{scenario}/indicator/{indicator_name}/
+
+Example usage
+`````````````
+
+.. code-block:: http
+
+    GET /api/climate-data/44.525/-110.838/RCP85/indicator/example_temperature_indicator/ HTTP/1.1
+    Host: example.org
+    Authorization: Token 46806a08bf54136e9597e879ed3a0876113fdee6
+
+Response:
+
+.. code-block:: http
+
+    HTTP/1.1 200 OK
+    Vary: Accept
+    Content-Type: application/json
+
+    {
+        "geometry": {
+            "type": "Point",
+            "coordinates": [249.75, 44.5]
+        },
+        "dataset": "NEX-GDDP",
+        "scenario": "RCP85",
+        "indicator": {
+            "name": "example_temperature_indicator",
+            "label": "Example Temperature Indicator",
+            "description": "Simplified indicator to demonstrate the response format",
+            "valid_aggregations": [
+                "yearly",
+                "monthly"
+            ],
+            "variables": [
+                "tasmax",
+                "tasmin"
+            ],
+            "available_units": [
+                "C",
+                "K",
+                "F"
+            ],
+            "default_units": "F",
+            "parameters": [
+                {
+                    "name": "example",
+                    "description": "Example parameter",
+                    "required": false,
+                    "default": false
+                }
+            ]
+        },
+        "climate_models": [
+            "ACCESS1-0",
+            "BNU-ESM",
+        ],
+        "time_aggregation": "yearly",
+        "units": "F",
+        "data": {
+            "2050": {
+                "avg": 50.86513044801472,
+                "max": 54.34185903428133,
+                "min": 48.93485734893451
             }
         }
     }
