@@ -390,6 +390,77 @@ paths:
             Climate data
           schema:
             $ref: "#/definitions/ClimateData"
+  /api/climate-data/{lat}/{lon}/{scenario}/:
+    get:
+      description: |
+        Daily data aggregated across all or specified models for a lat, lon and scenario. All query parameters are optional.
+      parameters:
+        - name: lat
+          description: Latitude between -90 and 90
+          in: path
+          type: float
+          required: true
+          x-example: 44.525
+        - name: lon
+          description: Longitude between -180 and 180
+          in: path
+          type: float
+          required: true
+          x-example: -110.838
+        - name: scenario
+          description: |
+            Scenario name
+          in: path
+          type: string
+          required: true
+          x-example: RCP85
+        - name: models
+          description: |
+            A list of comma separated model names. Defaults to all models.
+          in: query
+          type: string
+          required: false
+          x-example: null
+        - name: variables
+          description: |
+            A list of comma separated variables.
+            Available values are "tasmax", "tasmin" and "pr".
+            Defaults to all variables.
+          in: query
+          type: string
+          x-example: pr,tasmax
+        - name: years
+          description: |
+            A list of comma separated year ranges. A year range is of the form "start[:end]", inclusive.
+            Examples: "2010", "2010:2020", "2010:2020,2030", "2010:2020,2030:2040".
+            Defaults to all years available.
+          in: query
+          type: string
+          required: false
+          x-example: "2050:2055,2060"
+        - name: agg
+          description: |
+            Get the minimum, maximum, or average of projected data across the included models. Options as: min, max, avg.
+          in: query
+          type: string
+          required: false
+          x-example: avg,min
+        - name: dataset
+          description: |
+            Choose which provider to use for climate projection data. Defaults to NEX-GDDP
+          in: query
+          type: string
+          required: false
+          x-example: NEX-GDDP,LOCA
+      responses:
+        "200":
+          description: |
+            Climate data
+          schema:
+            $ref: "#/definitions/ClimateDataForPoint"
+        "404":
+          description: |
+            Returned when there is no data available for the requested lat + lon.
   /api/indicator/:
     get:
       description: Lists all available indicators
@@ -454,6 +525,54 @@ paths:
           description: |
             Returned when at least one of the query parameters is misconfigured or missing.
             The response will contain a detailed message.
+        "429":
+          description: |
+            Returned when the request is rate-limited. The response will detail when the
+            request can be retried.
+  /api/climate-data/{lat}/{lon}/{scenario}/indicator/{indicator_name}/:
+    get:
+      description: |
+        Retrieves derived climate indicator data for the requested indicator and lat + lon.
+      produces:
+        - application/json
+      parameters:
+        - name: lat
+          description: Latitude between -90 and 90
+          in: path
+          type: float
+          required: true
+          x-example: 44.525
+        - name: lon
+          description: Longitude between -180 and 180
+          in: path
+          type: float
+          required: true
+          x-example: -110.838
+        - name: scenario
+          in: path
+          description: Scenario name
+          required: true
+          type: string
+          x-example: RCP85
+        - name: indicator_name
+          in: path
+          description: Indicator name
+          required: true
+          type: string
+          x-example: "average_high_temperature"
+      responses:
+        "200":
+          description: |
+            Indicator data
+          schema:
+            $ref: "#/definitions/ClimateData"
+        "400":
+          description: |
+            Returned when at least one of the query parameters is misconfigured or missing.
+            The response will contain a detailed message.
+        "404":
+          description: |
+            Returned when there is no data available for the requested lat + lon.
         "429":
           description: |
             Returned when the request is rate-limited. The response will detail when the
@@ -804,6 +923,28 @@ definitions:
     properties:
       city:
         $ref: "#/definitions/City"
+      dataset:
+        type: string
+      scenario:
+        type: string
+      climate_models:
+        type: array
+        items:
+          type: string
+      variables:
+        type: array
+        items:
+          type: string
+      data:
+        type: object
+        description: |
+            "year": { "variable": [ day1_value, day2_value, ... , day366_value ] }
+            The variable array always has length 366. Days with no available data will be null at their index.
+  ClimateDataForPoint:
+    type: object
+    properties:
+      geometry:
+        $ref: "#/definitions/Point"
       dataset:
         type: string
       scenario:
