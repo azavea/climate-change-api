@@ -28,35 +28,35 @@ class IndicatorTests(ClimateDataSetupMixin, object):
     def test_indicator_rcp85(self):
         params = merge_dicts(self.extra_params,
                              {'units': self.units, 'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city1, self.rcp85, parameters=params)
+        indicator = self.indicator_class(self.mapcell, self.rcp85, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_rcp85_equals)
 
     def test_indicator_rcp45(self):
         params = merge_dicts(self.extra_params,
                              {'units': self.units, 'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city1, self.rcp45, parameters=params)
+        indicator = self.indicator_class(self.mapcell, self.rcp45, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_rcp45_equals)
 
     def test_indicator_no_data(self):
         params = merge_dicts(self.extra_params,
                              {'units': self.units, 'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city2, self.rcp85, parameters=params)
+        indicator = self.indicator_class(self.mapcell2, self.rcp85, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_indicator_no_data_equals)
 
     def test_years_filter(self):
         params = merge_dicts(self.extra_params, {'units': self.units, 'years': '2001:2002',
                                                  'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city1, self.rcp45, parameters=params)
+        indicator = self.indicator_class(self.mapcell, self.rcp45, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_years_filter_equals)
 
     def test_models_filter(self):
         params = merge_dicts(self.extra_params, {'units': self.units, 'models': 'CCSM4',
                                                  'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city1, self.rcp45, parameters=params)
+        indicator = self.indicator_class(self.mapcell, self.rcp45, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_models_filter_equals)
 
@@ -69,7 +69,7 @@ class TemperatureIndicatorTests(IndicatorTests):
     def test_unit_conversion(self):
         params = merge_dicts(self.extra_params,
                              {'units': 'F', 'time_aggregation': self.time_aggregation})
-        indicator = self.indicator_class(self.city1, self.rcp85, parameters=params)
+        indicator = self.indicator_class(self.mapcell, self.rcp85, parameters=params)
         data = indicator.calculate()
         self.assertEqual(data, self.test_units_fahrenheit_equals,
                          'Temperature should be converted to degrees F')

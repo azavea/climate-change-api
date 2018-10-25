@@ -119,7 +119,7 @@ class IndicatorParamsBeforeSerializerTestCase(ClimateDataSetupMixin, TestCase):
         """Ensure CSV string input for aggregation param parsed into list before serialization."""
         parameters = merge_dicts({}, {'agg': agg_input})
         # test string parsing on an arbitrary indicator
-        indicator = indicators.TotalPrecipitation(self.city1, self.rcp45, parameters=parameters)
+        indicator = indicators.TotalPrecipitation(self.mapcell, self.rcp45, parameters=parameters)
         results = indicator.calculate()
 
         split_input = agg_input.split(',')

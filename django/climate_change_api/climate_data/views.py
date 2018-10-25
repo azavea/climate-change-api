@@ -38,7 +38,7 @@ from climate_data.serializers import (CitySerializer,
                                       ClimateDatasetSerializer,
                                       ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
-                                      ClimateCityScenarioDataSerializer,
+                                      ClimateMapCellScenarioDataSerializer,
                                       RegionDetailSerializer,
                                       RegionListSerializer,
                                       ScenarioSerializer,
@@ -72,21 +72,84 @@ def climate_data_cache_control(func):
     return handler
 
 
-class ClimateDatasetValidationMixin(object):
-    """Provides a single method which validates a 'dataset' request param."""
+class ClimateParamsValidationMixin(object):
+    """Provides methods with validate request params for climate requests.
 
-    def validate_param_dataset(self, request, default_dataset='NEX-GDDP'):
+    Supported:
+    - URL kwarg scenario -> Scenario
+    - param agg -> valid 'agg', default set if none provided
+    - param dataset -> ClimateDataset
+    - param models -> ['model_names']
+    - param variables -> ['variable_names']
+
+    """
+
+    def validate_kwarg_scenario(self, **kwargs):
+        """Return valid Scenario from url kwargs.
+
+        Raise .DoesNotExist or MultipleObjectsReturned if exactly one scenario is not found.
+
+        """
+        try:
+            return Scenario.objects.get(name=kwargs['scenario'])
+        except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
+            raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
+
+    def validate_param_agg(self, request, default='avg'):
+        """Return validated agg string param, must be one of 'avg', 'min', 'max'.
+
+        Raises ParseError if value provided and its not one of the valid AGGREGATION_CHOICES.
+
+        """
+        AGGREGATION_CHOICES = ('avg', 'min', 'max',)
+        aggregation = request.query_params.get('agg', default)
+        if aggregation in AGGREGATION_CHOICES:
+            return aggregation
+        else:
+            raise ParseError('Param agg must be one of {}'.format(AGGREGATION_CHOICES))
+
+    def validate_param_dataset(self, request, default='NEX-GDDP'):
         """Return valid ClimateDataset from GET param.
 
         Raise DRF ParseError if dataset invalid or not found
 
         """
         DATASET_CHOICES = set(ClimateDataset.datasets())
-        dataset_param = request.query_params.get('dataset', default_dataset)
+        dataset_param = request.query_params.get('dataset', default)
         if dataset_param not in DATASET_CHOICES:
             raise ParseError(detail='Dataset {} does not exist. Choose one of {}.'
                                     .format(dataset_param, DATASET_CHOICES))
         return ClimateDataset.objects.get(name=dataset_param)
+
+    def validate_param_models(self, request, dataset):
+        """Validate and return cleaned models list as array of string values."""
+        models_param = request.query_params.get('models', None)
+        if models_param:
+            models_param_list = models_param.split(',')
+            model_list = (dataset.models.filter(name__in=models_param_list)
+                                        .values_list('name', flat=True))
+            invalid_models = set(models_param_list) - set(model_list)
+            if invalid_models:
+                raise ParseError('Dataset %s has no data for model(s): %s'
+                                 % (dataset.name, ','.join(invalid_models)))
+        else:
+            # no model filter; use all available for dataset
+            model_list = dataset.models.all().values_list('name', flat=True)
+        return model_list
+
+    def validate_param_variables(self, request):
+        """Validate and return cleaned variable list as array of string values."""
+        def filter_variables_list(variables):
+            if variables:
+                valid_variables = set(ClimateDataYear.VARIABLE_CHOICES)
+                params_variables = set(variables.split(','))
+                return valid_variables.intersection(params_variables)
+            else:
+                return set(ClimateDataYear.VARIABLE_CHOICES)
+
+        # Get valid variable params list to use in response & serializer context
+        variables = request.query_params.get('variables', None)
+        return filter_variables_list(variables)
 
 
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
@@ -227,60 +290,29 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     ordering = ('name',)
 
 
-class ClimateDataView(ClimateDatasetValidationMixin, APIView):
+class ClimateDataMixin(object):
 
-    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
+    def get_data(self, request, dataset, map_cell, scenario, kwargs):
+        aggregation = self.validate_param_agg(request, default='avg')
+        model_list = self.validate_param_models(request, dataset)
+        variables = self.validate_param_variables(request)
 
-    @overridable_cache_response(key_func=full_url_cache_key_func)
-    @climate_data_cache_control
-    def get(self, request, *args, **kwargs):
-        """Retrieve all of the climate data for a given city and scenario."""
-        def filter_variables_list(variables):
-            if variables:
-                valid_variables = set(ClimateDataYear.VARIABLE_CHOICES)
-                params_variables = set(variables.split(','))
-                return valid_variables.intersection(params_variables)
-            else:
-                return set(ClimateDataYear.VARIABLE_CHOICES)
+        serializer = self.serializer_for(request, dataset, map_cell, scenario,
+                                         variables, aggregation)
 
-        try:
-            city = City.objects.get(id=kwargs['city'])
-        except (City.DoesNotExist, City.MultipleObjectsReturned):
-            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+        return OrderedDict([
+            ('dataset', dataset.name),
+            ('scenario', scenario.name),
+            ('climate_models', list(model_list)),
+            ('variables', variables),
+            ('data', serializer.data),
+        ])
 
-        try:
-            scenario = Scenario.objects.get(name=kwargs['scenario'])
-        except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
-            raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
-
-        dataset = self.validate_param_dataset(request)
-
-        # Get valid model params list to use in response
-        models_param = request.query_params.get('models', None)
-        if models_param:
-            models_param_list = models_param.split(',')
-            model_list = (dataset.models.filter(name__in=models_param_list)
-                                        .values_list('name', flat=True))
-            invalid_models = set(models_param_list) - set(model_list)
-            if invalid_models:
-                raise ParseError('Dataset %s has no data for model(s): %s'
-                                 % (dataset.name, ','.join(invalid_models)))
-        else:
-            # no model filter; use all available for dataset
-            model_list = dataset.models.all().values_list('name', flat=True)
-
-        # Get valid variable params list to use in response & serializer context
-        variables = request.query_params.get('variables', None)
-        cleaned_variables = filter_variables_list(variables)
-
-        # Get valid aggregation param
-        AGGREGATION_CHOICES = ('avg', 'min', 'max',)
-        aggregation = request.query_params.get('agg', 'avg')
-        aggregation = aggregation if aggregation in AGGREGATION_CHOICES else 'avg'
+    def serializer_for(self, request, dataset, map_cell, scenario, variables, aggregation):
 
         try:
             queryset = ClimateDataYear.objects.filter(
-                map_cell=city.get_map_cell(dataset),
+                map_cell=map_cell,
                 data_source__scenario=scenario
             )
         except ClimateDataCell.DoesNotExist:
@@ -290,16 +322,69 @@ class ClimateDataView(ClimateDatasetValidationMixin, APIView):
         # Filter on the ClimateData filter set
         data_filter = ClimateDataFilterSet(request.query_params, queryset)
 
-        context = {'variables': cleaned_variables, 'aggregation': aggregation}
-        serializer = ClimateCityScenarioDataSerializer(data_filter.qs, context=context)
-        return Response(OrderedDict([
-            ('city', CitySerializer(city).data),
-            ('dataset', dataset.name),
-            ('scenario', scenario.name),
-            ('climate_models', list(model_list)),
-            ('variables', cleaned_variables),
-            ('data', serializer.data),
-        ]))
+        context = {'variables': variables, 'aggregation': aggregation}
+        return ClimateMapCellScenarioDataSerializer(data_filter.qs, context=context)
+
+
+class CityCellAPIView(ClimateParamsValidationMixin, APIView):
+
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    @climate_data_cache_control
+    def get(self, request, *args, **kwargs):
+        scenario = self.validate_kwarg_scenario(**kwargs)
+        dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
+        city, map_cell = self.get_map_cell(dataset, kwargs)
+
+        response_data = OrderedDict([('city', CitySerializer(city).data)])
+        response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
+        return Response(response_data)
+
+    def get_map_cell(self, dataset, kwargs):
+        try:
+            city = City.objects.get(id=kwargs['city'])
+        except (City.DoesNotExist, City.MultipleObjectsReturned):
+            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
+        return city, city.get_map_cell(dataset)
+
+
+class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
+
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    @climate_data_cache_control
+    def get(self, request, *args, **kwargs):
+        scenario = self.validate_kwarg_scenario(**kwargs)
+        dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
+        map_cell = self.get_map_cell(dataset, kwargs)
+
+        response_data = OrderedDict([
+            ('geometry', {
+                'type': 'Point',
+                'coordinates': [map_cell.lon, map_cell.lat],
+            })
+        ])
+        response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
+        return Response(response_data)
+
+    def get_map_cell(self, dataset, kwargs):
+        try:
+            return ClimateDataCell.objects.map_cell_for_lat_lon(float(kwargs['lat']),
+                                                                float(kwargs['lon']),
+                                                                dataset)
+        except ClimateDataCell.DoesNotExist:
+            raise NotFound(detail='No {} data available for point ({}, {})'
+                                  .format(dataset.name, kwargs['lat'], kwargs['lon']))
+
+
+class ClimateDataForCityView(ClimateDataMixin, CityCellAPIView):
+    pass
+
+
+class ClimateDataForLatLonView(ClimateDataMixin, LatLonCellAPIView):
+    pass
 
 
 class IndicatorListView(APIView):
@@ -326,39 +411,17 @@ class IndicatorDetailView(APIView):
         return Response(IndicatorClass.to_dict())
 
 
-class IndicatorDataView(ClimateDatasetValidationMixin, APIView):
+class IndicatorDataMixin(object):
 
-    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
-
-    @overridable_cache_response(key_func=full_url_cache_key_func)
-    @climate_data_cache_control
-    def get(self, request, *args, **kwargs):
-        """Calculate and return the value of a climate indicator for a given city+scenario."""
-        try:
-            city = City.objects.get(id=kwargs['city'])
-        except (City.DoesNotExist, City.MultipleObjectsReturned):
-            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
-
-        try:
-            scenario = Scenario.objects.get(name=kwargs['scenario'])
-        except (Scenario.DoesNotExist, Scenario.MultipleObjectsReturned):
-            raise NotFound(detail='Scenario {} does not exist.'.format(kwargs['scenario']))
-
-        dataset = self.validate_param_dataset(request)
-
-        # Get valid model params list to use in response
-        models_param = request.query_params.get('models', None)
-        if models_param:
-            model_list = dataset.models.filter(name__in=models_param.split(','))
-        else:
-            model_list = dataset.models.all()
+    def get_data(self, request, dataset, map_cell, scenario, kwargs):
+        model_list = self.validate_param_models(request, dataset)
 
         indicator_key = kwargs['indicator']
         IndicatorClass = indicator_factory(indicator_key)
         if not IndicatorClass:
             raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
         try:
-            indicator_class = IndicatorClass(city, scenario, parameters=request.query_params)
+            indicator_class = IndicatorClass(map_cell, scenario, parameters=request.query_params)
             data = indicator_class.calculate()
         except ValidationError as e:
             # If indicator class/params fails validation, return error with help text for
@@ -368,16 +431,23 @@ class IndicatorDataView(ClimateDatasetValidationMixin, APIView):
                 ('help', IndicatorClass.init_params_class().to_dict()),
             ]), status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(OrderedDict([
-            ('city', CitySerializer(city).data),
+        return OrderedDict([
             ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('indicator', IndicatorClass.to_dict()),
-            ('climate_models', [m.name for m in model_list]),
+            ('climate_models', list(model_list)),
             ('time_aggregation', indicator_class.params.time_aggregation.value),
             ('units', indicator_class.params.units.value),
             ('data', data),
-        ]))
+        ])
+
+
+class IndicatorDataForCityView(IndicatorDataMixin, CityCellAPIView):
+    pass
+
+
+class IndicatorDataForLatLonView(IndicatorDataMixin, LatLonCellAPIView):
+    pass
 
 
 class HistoricDateRangeView(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
