@@ -290,9 +290,23 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     ordering = ('name',)
 
 
-class ClimateDataForMapCellView(ClimateParamsValidationMixin, APIView):
+class ClimateDataMixin(object):
 
-    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
+    def get_data(self, request, dataset, map_cell, scenario, kwargs):
+        aggregation = self.validate_param_agg(request, default='avg')
+        model_list = self.validate_param_models(request, dataset)
+        variables = self.validate_param_variables(request)
+
+        serializer = self.serializer_for(request, dataset, map_cell, scenario,
+                                         variables, aggregation)
+
+        return OrderedDict([
+            ('dataset', dataset.name),
+            ('scenario', scenario.name),
+            ('climate_models', list(model_list)),
+            ('variables', variables),
+            ('data', serializer.data),
+        ])
 
     def serializer_for(self, request, dataset, map_cell, scenario, variables, aggregation):
 
@@ -312,71 +326,65 @@ class ClimateDataForMapCellView(ClimateParamsValidationMixin, APIView):
         return ClimateMapCellScenarioDataSerializer(data_filter.qs, context=context)
 
 
-class ClimateDataForCityView(ClimateDataForMapCellView):
+class CityCellAPIView(ClimateParamsValidationMixin, APIView):
+
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
     @overridable_cache_response(key_func=full_url_cache_key_func)
     @climate_data_cache_control
     def get(self, request, *args, **kwargs):
-        """Retrieve all of the climate data for a given city and scenario."""
+        scenario = self.validate_kwarg_scenario(**kwargs)
+        dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
+        city, map_cell = self.get_map_cell(dataset, kwargs)
+
+        response_data = OrderedDict([('city', CitySerializer(city).data)])
+        response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
+        return Response(response_data)
+
+    def get_map_cell(self, dataset, kwargs):
         try:
             city = City.objects.get(id=kwargs['city'])
         except (City.DoesNotExist, City.MultipleObjectsReturned):
             raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
-        scenario = self.validate_kwarg_scenario(**kwargs)
-        dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
-        map_cell = city.get_map_cell(dataset)
-
-        aggregation = self.validate_param_agg(request, default='avg')
-        model_list = self.validate_param_models(request, dataset)
-        variables = self.validate_param_variables(request)
-
-        serializer = self.serializer_for(request, dataset, map_cell, scenario,
-                                         variables, aggregation)
-
-        return Response(OrderedDict([
-            ('city', CitySerializer(city).data),
-            ('dataset', dataset.name),
-            ('scenario', scenario.name),
-            ('climate_models', list(model_list)),
-            ('variables', variables),
-            ('data', serializer.data),
-        ]))
+        return city, city.get_map_cell(dataset)
 
 
-class ClimateDataForLatLonView(ClimateDataForMapCellView):
+class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
+
+    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
     @overridable_cache_response(key_func=full_url_cache_key_func)
     @climate_data_cache_control
     def get(self, request, *args, **kwargs):
-        """Retrieve all of the climate data for a given lat, lon and scenario."""
         scenario = self.validate_kwarg_scenario(**kwargs)
         dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
+        map_cell = self.get_map_cell(dataset, kwargs)
+
+        response_data = OrderedDict([
+            ('geometry', {
+                'type': 'Point',
+                'coordinates': [map_cell.lon, map_cell.lat],
+            })
+        ])
+        response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
+        return Response(response_data)
+
+    def get_map_cell(self, dataset, kwargs):
         try:
-            map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(float(kwargs['lat']),
-                                                                    float(kwargs['lon']),
-                                                                    dataset)
+            return ClimateDataCell.objects.map_cell_for_lat_lon(float(kwargs['lat']),
+                                                                float(kwargs['lon']),
+                                                                dataset)
         except ClimateDataCell.DoesNotExist:
             raise NotFound(detail='No {} data available for point ({}, {})'
                                   .format(dataset.name, kwargs['lat'], kwargs['lon']))
 
-        aggregation = self.validate_param_agg(request, default='avg')
-        model_list = self.validate_param_models(request, dataset)
-        variables = self.validate_param_variables(request)
 
-        serializer = self.serializer_for(request, dataset, map_cell, scenario,
-                                         variables, aggregation)
+class ClimateDataForCityView(ClimateDataMixin, CityCellAPIView):
+    pass
 
-        return Response(OrderedDict([
-            ('geometry', {
-                'type': 'Point',
-                'coordinates': [map_cell.lon, map_cell.lat],
-            }),
-            ('dataset', dataset.name),
-            ('scenario', scenario.name),
-            ('climate_models', list(model_list)),
-            ('variables', variables),
-            ('data', serializer.data),
-        ]))
+
+class ClimateDataForLatLonView(ClimateDataMixin, LatLonCellAPIView):
+    pass
 
 
 class IndicatorListView(APIView):
@@ -403,22 +411,9 @@ class IndicatorDetailView(APIView):
         return Response(IndicatorClass.to_dict())
 
 
-class IndicatorDataForCityView(ClimateParamsValidationMixin, APIView):
+class IndicatorDataMixin(object):
 
-    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
-
-    @overridable_cache_response(key_func=full_url_cache_key_func)
-    @climate_data_cache_control
-    def get(self, request, *args, **kwargs):
-        """Calculate and return the value of a climate indicator for a given city+scenario."""
-        try:
-            city = City.objects.get(id=kwargs['city'])
-        except (City.DoesNotExist, City.MultipleObjectsReturned):
-            raise NotFound(detail='City {} does not exist.'.format(kwargs['city']))
-
-        scenario = self.validate_kwarg_scenario(**kwargs)
-        dataset = self.validate_param_dataset(request)
-        map_cell = city.get_map_cell(dataset)
+    def get_data(self, request, dataset, map_cell, scenario, kwargs):
         model_list = self.validate_param_models(request, dataset)
 
         indicator_key = kwargs['indicator']
@@ -436,8 +431,7 @@ class IndicatorDataForCityView(ClimateParamsValidationMixin, APIView):
                 ('help', IndicatorClass.init_params_class().to_dict()),
             ]), status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(OrderedDict([
-            ('city', CitySerializer(city).data),
+        return OrderedDict([
             ('dataset', dataset.name),
             ('scenario', scenario.name),
             ('indicator', IndicatorClass.to_dict()),
@@ -445,56 +439,15 @@ class IndicatorDataForCityView(ClimateParamsValidationMixin, APIView):
             ('time_aggregation', indicator_class.params.time_aggregation.value),
             ('units', indicator_class.params.units.value),
             ('data', data),
-        ]))
+        ])
 
 
-class IndicatorDataForLatLonView(ClimateParamsValidationMixin, APIView):
+class IndicatorDataForCityView(IndicatorDataMixin, CityCellAPIView):
+    pass
 
-    throttle_classes = (ClimateDataBurstRateThrottle, ClimateDataSustainedRateThrottle,)
 
-    @overridable_cache_response(key_func=full_url_cache_key_func)
-    @climate_data_cache_control
-    def get(self, request, *args, **kwargs):
-        """Calculate and return the value of a climate indicator for a given city+scenario."""
-        scenario = self.validate_kwarg_scenario(**kwargs)
-        dataset = self.validate_param_dataset(request)
-        try:
-            map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(float(kwargs['lat']),
-                                                                    float(kwargs['lon']),
-                                                                    dataset)
-        except ClimateDataCell.DoesNotExist:
-            raise NotFound(detail='No {} data available for point ({}, {})'
-                                  .format(dataset.name, kwargs['lat'], kwargs['lon']))
-        model_list = self.validate_param_models(request, dataset)
-
-        indicator_key = kwargs['indicator']
-        IndicatorClass = indicator_factory(indicator_key)
-        if not IndicatorClass:
-            raise NotFound(detail='Indicator {} does not exist.'.format(indicator_key))
-        try:
-            indicator_class = IndicatorClass(map_cell, scenario, parameters=request.query_params)
-            data = indicator_class.calculate()
-        except ValidationError as e:
-            # If indicator class/params fails validation, return error with help text for
-            # as much context as possible.
-            return Response(OrderedDict([
-                ('error', str(e)),
-                ('help', IndicatorClass.init_params_class().to_dict()),
-            ]), status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(OrderedDict([
-            ('geometry', {
-                'type': 'Point',
-                'coordinates': [map_cell.lon, map_cell.lat],
-            }),
-            ('dataset', dataset.name),
-            ('scenario', scenario.name),
-            ('indicator', IndicatorClass.to_dict()),
-            ('climate_models', list(model_list)),
-            ('time_aggregation', indicator_class.params.time_aggregation.value),
-            ('units', indicator_class.params.units.value),
-            ('data', data),
-        ]))
+class IndicatorDataForLatLonView(IndicatorDataMixin, LatLonCellAPIView):
+    pass
 
 
 class HistoricDateRangeView(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
