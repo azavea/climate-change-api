@@ -33,7 +33,7 @@ class HistoricDateRangeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ClimateDataCellSerializer(serializers.ModelSerializer):
+class ClimateDataCellGeometrySerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
@@ -45,12 +45,27 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
         model = ClimateDataCell
 
 
+class ClimateDataCellSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Feature"),
+            ("geometry", ClimateDataCellGeometrySerializer(obj).data),
+            ("properties", {
+                "is_coastal": obj.is_coastal
+            })
+        ])
+
+    class Meta:
+        model = ClimateDataCell
+
+
 class ClimateDataCityCellSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Feature"),
-            ("geometry", ClimateDataCellSerializer(obj.map_cell).data),
+            ("geometry", ClimateDataCellGeometrySerializer(obj.map_cell).data),
             ("properties", {
                 "dataset": obj.dataset.name
             })
