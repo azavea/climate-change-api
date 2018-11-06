@@ -36,6 +36,7 @@ from climate_data.models import (City,
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
+                                      ClimateDataCellSerializer,
                                       ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
                                       ClimateMapCellScenarioDataSerializer,
@@ -361,10 +362,7 @@ class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
         map_cell = self.get_map_cell(dataset, kwargs)
 
         response_data = OrderedDict([
-            ('geometry', {
-                'type': 'Point',
-                'coordinates': [map_cell.lon, map_cell.lat],
-            })
+            ('feature', ClimateDataCellSerializer(map_cell).data),
         ])
         response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
         return Response(response_data)
