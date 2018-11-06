@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import GEOSGeometry, LineString, MultiPolygon
 from django.db import connection
 
-from climate_data.models import City, CityBoundary, Coastline
+from climate_data.models import ClimateDataCell, Coastline
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +57,9 @@ class Command(BaseCommand):
             cursor.execute(RAW_UNION)
             row = cursor.fetchone()
             poly = MultiPolygon(*GEOSGeometry(row[0]))
-            coastal = CityBoundary.objects.filter(geom__intersects=poly)
-            ct = City.objects.filter(pk__in=coastal.values_list('city',
-                                                                flat=True)).update(is_coastal=True)
-            total = City.objects.all().count()
-            logger.info('Flagged %s of %s cities as coastal', ct, total)
+
+            coastal_cells = ClimateDataCell.objects.filter(geom__within=poly)
+            count_coastal_cells = coastal_cells.update(is_coastal=True)
+            total_coastal_cells = ClimateDataCell.objects.count()
+            logger.info('Flagged %s of %s ClimateDataCells as coastal',
+                        count_coastal_cells, total_coastal_cells)

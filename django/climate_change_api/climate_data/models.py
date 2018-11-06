@@ -214,6 +214,8 @@ class ClimateDataCell(models.Model):
 
     geom = models.PointField(srid=4326, blank=True, null=True)
 
+    is_coastal = models.BooleanField(default=False)
+
     objects = ClimateDataCellManager()
 
     def save(self, *args, **kwargs):
