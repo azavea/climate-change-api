@@ -1,5 +1,21 @@
 # Change Log
 
+## [2.5.0](https://github.com/azavea/climate-change-api/tree/2.5.0) (2018-12-11)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.4.1...2.5.0)
+
+**Merged pull requests:**
+
+- Add additional location sources  [\#854](https://github.com/azavea/climate-change-api/pull/854)
+- Temporarily remove docs for new by lat/lon endpoints [\#852](https://github.com/azavea/climate-change-api/pull/852)
+- Fix crash due to type mismatch in percentile indicators [\#851](https://github.com/azavea/climate-change-api/pull/851)
+- Supply dataset context for ClimateDataCellSerializer [\#850](https://github.com/azavea/climate-change-api/pull/850)
+- Add API endpoint to get map cells for a lat/lon point [\#849](https://github.com/azavea/climate-change-api/pull/849)
+- Update Lat + Lon API views with ocean proximity [\#846](https://github.com/azavea/climate-change-api/pull/846)
+- Add ClimateDataCell.is\_coastal field and populate via Coastline [\#845](https://github.com/azavea/climate-change-api/pull/845)
+- Add API view to query climate data  by Lat + Lon [\#843](https://github.com/azavea/climate-change-api/pull/843)
+- Refactor Nex2DB to allow importing cells based on a MultiPolygon shapefile [\#841](https://github.com/azavea/climate-change-api/pull/841)
+
 ## [2.4.1](https://github.com/azavea/climate-change-api/tree/2.4.1) (2018-08-20)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.4.0...2.4.1)
