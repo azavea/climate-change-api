@@ -52,7 +52,9 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
             ("type", "Feature"),
             ("geometry", ClimateDataCellGeometrySerializer(obj).data),
             ("properties", {
-                "is_coastal": obj.is_coastal
+                "proximity": {
+                    "ocean": obj.is_coastal,
+                },
             })
         ])
 
