@@ -565,7 +565,7 @@ paths:
           description: |
             Indicator data
           schema:
-            $ref: "#/definitions/ClimateData"
+            $ref: "#/definitions/ClimateDataForPoint"
         "400":
           description: |
             Returned when at least one of the query parameters is misconfigured or missing.
@@ -905,6 +905,15 @@ definitions:
           type: number
           minItems: 2
           maxItems: 2
+  PointFeature:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/Point"
+      properties:
+        type: object
   Scenario:
     type: object
     properties:
@@ -943,8 +952,8 @@ definitions:
   ClimateDataForPoint:
     type: object
     properties:
-      geometry:
-        $ref: "#/definitions/Point"
+      feature:
+        $ref: "#/definitions/PointFeature"
       dataset:
         type: string
       scenario:

@@ -268,9 +268,17 @@ Response:
     Content-Type: application/json
 
     {
-        "geometry": {
-            "type": "Point",
-            "coordinates": [249.75, 44.5]
+        "feature": {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [249.75, 44.5]
+            },
+            "properties": {
+                "proximity": {
+                    "ocean": false
+                }
+            }
         },
         "dataset": "NEX-GDDP",
         "scenario": "RCP85",
