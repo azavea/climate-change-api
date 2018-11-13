@@ -5,6 +5,8 @@ API Reference
 
 .. include:: api_reference/city.rst
 
+.. include:: api_reference/map_cell.rst
+
 .. include:: api_reference/dataset.rst
 
 .. include:: api_reference/climate_model.rst
