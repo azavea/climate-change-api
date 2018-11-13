@@ -77,6 +77,8 @@ class ClimateDataSetupMixin(object):
         self.model1 = ClimateModelFactory(name='CCSM4')
         self.model2 = ClimateModelFactory(name='CanESM2')
 
+        # Yes, this really is supposed to be lon=240 see the comments on ClimateDataCell
+        # for further explanation
         self.mapcell = ClimateDataCellFactory(lat=15, lon=240)
         self.mapcell2 = ClimateDataCellFactory(lat=1, lon=1)
 
