@@ -401,3 +401,44 @@ class CityViewSetTestCase(CityDataSetupMixin, CCAPITestCase):
 
         response = self.client.get(url, {'lat': 5, 'lon': 5, 'limit': 0})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class LatLonMapCellListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
+
+    def test_querying_returns_data(self):
+        """Should retrieve data for point."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url)
+        self.assertEqual(1, len(response.data))
+
+    def test_querying_returns_200_status(self):
+        """Should return 200 status code for point."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_returned_data_contains_datasets(self):
+        """Data should contains list of datasets."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url)
+        self.assertIn('dataset', response.data[0]['properties'])
+
+    def test_returned_data_contains_is_coastal(self):
+        """Data should contain proximity to coast field."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url)
+        self.assertIn('proximity', response.data[0]['properties'])
+
+    def test_no_data_returns_404_status(self):
+        """Should return 404 for point without data."""
+        url = reverse('lat-lon-map-cell-list', kwargs={'lat': 17, 'lon': 17})
+        response = self.client.get(url)
+        self.assertEqual(404, response.status_code)
