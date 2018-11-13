@@ -55,6 +55,7 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
                 "proximity": {
                     "ocean": obj.is_coastal,
                 },
+                "dataset": self.context['dataset'].name,
             })
         ])
 

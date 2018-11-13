@@ -54,6 +54,8 @@ urlpatterns = [
     url(r'^api/city/' + CITY_ID + r'/map-cell/(?P<dataset>.+)/$',
         climate_data_views.CityMapCellDatasetDetailView.as_view(),
         name='city-map-cell-dataset-detail'),
+    url(r'^api/map-cell/' + LAT_LNG + r'/$',
+        climate_data_views.LatLonMapCellListView.as_view(), name='lat-lon-map-cell-list'),
     url(r'^api/indicator/$',
         climate_data_views.IndicatorListView.as_view(), name='climateindicator-list'),
     url(r'^api/indicator/(?P<indicator>.+)/$',
