@@ -237,6 +237,35 @@ class CityMapCellListView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class LatLonMapCellListView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Return the map cells associated with a Lat/Lon point.
+
+        Returns 404 if the point has no valid map cells.
+        """
+        data = []
+        for dataset in ClimateDataset.objects.all():
+            try:
+                map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(
+                    float(kwargs['lat']),
+                    float(kwargs['lon']),
+                    dataset,
+                )
+                serializer = ClimateDataCellSerializer(map_cell, context={
+                    'dataset': dataset
+                })
+                data.append(serializer.data)
+            except ClimateDataCell.DoesNotExist:
+                pass
+
+        if len(data) == 0:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
 class CityMapCellDatasetDetailView(APIView):
 
     @overridable_cache_response(key_func=full_url_cache_key_func)
