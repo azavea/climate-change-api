@@ -389,9 +389,12 @@ class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
         scenario = self.validate_kwarg_scenario(**kwargs)
         dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
         map_cell = self.get_map_cell(dataset, kwargs)
+        serializer = ClimateDataCellSerializer(map_cell, context={
+            'dataset': dataset
+        })
 
         response_data = OrderedDict([
-            ('feature', ClimateDataCellSerializer(map_cell).data),
+            ('feature', serializer.data),
         ])
         response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
         return Response(response_data)
