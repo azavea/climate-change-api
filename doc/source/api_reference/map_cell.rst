@@ -1,7 +1,7 @@
 Map cells
 ---------
 
-The API breaks up global climate projections by Map Cell. Each Map Cell represents a 25 km^2 slice of the Earth's surface. As data returned by the API is calculated by Map Cell, points or Cities within the same Map Cell will return the same data.
+The API breaks up global climate projections by Map Cell. Each Map Cell represents the geographic area of the underlying climate dataset. For example, each LOCA Map Cell represents a 1/16 degree box. As data returned by the API is calculated by Map Cell, points or Cities within the same Map Cell will return the same data.
 
 Each Map Cell may be associated with a number of City objects.
 
