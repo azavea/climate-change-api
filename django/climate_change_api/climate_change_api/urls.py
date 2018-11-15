@@ -29,6 +29,13 @@ from user_management.views import (ClimateAPIObtainAuthToken, ClimateAPIRefreshA
 if settings.DEBUG and settings.STATIC_URL_PATH:
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+CITY_ID = r'(?P<city>[0-9]+)'
+SCENARIO = r'(?P<scenario>[0-9A-Za-z]+)'
+LAT_LNG = r'(?P<lat>[+-]?\d+(?:\.\d+)?)/(?P<lon>[+-]?\d+(?:\.\d+)?)'
+
+CITY_AND_SCENARIO = CITY_ID + '/' + SCENARIO
+LAT_LNG_AND_SCENARIO = LAT_LNG + '/' + SCENARIO
+
 
 router = routers.DefaultRouter()
 router.include_root_view = False
@@ -42,22 +49,24 @@ urlpatterns = [
     url(r'^$', AppHomeView.as_view(), name='app_home'),
     url(r'^accounts/', include('user_management.urls')),
     url(r'^api/', include(router.urls)),
-    url(r'^api/city/(?P<city>[0-9]+)/map-cell/$',
+    url(r'^api/city/' + CITY_ID + r'/map-cell/$',
         climate_data_views.CityMapCellListView.as_view(), name='city-map-cell-list'),
-    url(r'^api/city/(?P<city>[0-9]+)/map-cell/(?P<dataset>.+)/$',
+    url(r'^api/city/' + CITY_ID + r'/map-cell/(?P<dataset>.+)/$',
         climate_data_views.CityMapCellDatasetDetailView.as_view(),
         name='city-map-cell-dataset-detail'),
+    url(r'^api/map-cell/' + LAT_LNG + r'/$',
+        climate_data_views.LatLonMapCellListView.as_view(), name='lat-lon-map-cell-list'),
     url(r'^api/indicator/$',
         climate_data_views.IndicatorListView.as_view(), name='climateindicator-list'),
     url(r'^api/indicator/(?P<indicator>.+)/$',
         climate_data_views.IndicatorDetailView.as_view(), name='climateindicator-detail'),
-    url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>.+)/indicator/(?P<indicator>.+)/$',
+    url(r'^api/climate-data/' + CITY_AND_SCENARIO + r'/indicator/(?P<indicator>.+)/$',
         climate_data_views.IndicatorDataForCityView.as_view(), name='climateindicator-get'),
-    url(r'^api/climate-data/(?P<city>[0-9]+)/(?P<scenario>[0-9A-Za-z]+)/$',
+    url(r'^api/climate-data/' + CITY_AND_SCENARIO + '/$',
         climate_data_views.ClimateDataForCityView.as_view(), name='climatedata-list'),
-    url(r'^api/climate-data/(?P<lat>[+-]?\d+(?:\.\d+)?)/(?P<lon>[+-]?\d+(?:\.\d+)?)/(?P<scenario>.+)/indicator/(?P<indicator>.+)/$',  # noqa: E501
+    url(r'^api/climate-data/' + LAT_LNG_AND_SCENARIO + r'/indicator/(?P<indicator>.+)/$',
         climate_data_views.IndicatorDataForLatLonView.as_view(), name='climateindicatorlatlon-get'),
-    url(r'^api/climate-data/(?P<lat>[+-]?\d+(?:\.\d+)?)/(?P<lon>[+-]?\d+(?:\.\d+)?)/(?P<scenario>[0-9A-Za-z]+)/$',  # noqa: E501
+    url(r'^api/climate-data/' + LAT_LNG_AND_SCENARIO + r'/$',
         climate_data_views.ClimateDataForLatLonView.as_view(), name='climatedatalatlon-list'),
     url(r'^api/historic-range/$',
         climate_data_views.HistoricDateRangeView.as_view({'get': 'list'}), name='historic-list'),

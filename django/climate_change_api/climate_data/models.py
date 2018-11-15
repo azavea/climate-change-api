@@ -210,6 +210,8 @@ class ClimateDataCellManager(models.Manager):
 
 class ClimateDataCell(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6)
+    # Note: This field uses a non-standard range of [0, 360) instead of [-180, 180)
+    # This was done to match the source NetCDF data
     lon = models.DecimalField(max_digits=9, decimal_places=6)
 
     geom = models.PointField(srid=4326, blank=True, null=True)
