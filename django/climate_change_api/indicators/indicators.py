@@ -101,7 +101,7 @@ class PercentileHighTemperature(TemperatureUnitsMixin, ArrayIndicator):
     params_class_kwargs = {'percentile': 50}
 
     def agg_function(self, values):
-        percentile = self.params.percentile.value
+        percentile = int(self.params.percentile.value)
         return np.percentile(values, percentile)
 
 
@@ -114,7 +114,7 @@ class PercentileLowTemperature(TemperatureUnitsMixin, ArrayIndicator):
     params_class_kwargs = {'percentile': 50}
 
     def agg_function(self, values):
-        percentile = self.params.percentile.value
+        percentile = int(self.params.percentile.value)
         return np.percentile(values, percentile)
 
 
@@ -142,7 +142,7 @@ class PercentilePrecipitation(PrecipRateUnitsMixin, ArrayIndicator):
     params_class_kwargs = {'percentile': 50}
 
     def agg_function(self, values):
-        percentile = self.params.percentile.value
+        percentile = int(self.params.percentile.value)
         return np.percentile(values, percentile)
 
 
