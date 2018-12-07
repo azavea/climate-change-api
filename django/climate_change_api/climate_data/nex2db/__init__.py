@@ -22,7 +22,7 @@ from climate_data.nex2db.downloaders import get_netcdf_downloader
 from climate_data.nex2db.location_sources import (
     ClimateAPICityLocationSource,
     MultipolygonBoundaryLocationSource,
-    write_debug_shapefile,
+    write_debug_file,
 )
 
 
@@ -78,7 +78,7 @@ class Nex2DB(object):
                 pass
             debug_file = os.path.join(debug_dir, '{}.shp'.format(str(uuid4())))
             logger.info('Writing debug locations shapefile to path: {}'.format(debug_file))
-            write_debug_shapefile(self.locations, debug_file)
+            write_debug_file(self.locations, debug_file, file_format='shpfile')
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
