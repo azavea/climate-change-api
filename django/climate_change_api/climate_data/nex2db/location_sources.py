@@ -95,7 +95,7 @@ def GeoJsonUrlLocationSource(geojson_url):
         with open(json_filename, 'r') as data:
             feature_collection = json.load(data)
             locations = [
-                ClimateLocation(id=uuid.uuid4(),
+                ClimateLocation(id=str(uuid.uuid4()),
                                 name='',
                                 x=float(feature['geometry']['coordinates'][0]),
                                 y=float(feature['geometry']['coordinates'][1]))

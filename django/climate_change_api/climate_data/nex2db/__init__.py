@@ -21,6 +21,7 @@ from climate_data.models import (
 from climate_data.nex2db.downloaders import get_netcdf_downloader
 from climate_data.nex2db.location_sources import (
     ClimateAPICityLocationSource,
+    GeoJsonUrlLocationSource,
     MultipolygonBoundaryLocationSource,
     write_debug_file,
 )
@@ -43,10 +44,12 @@ class Nex2DB(object):
     update_existing = False
 
     def __init__(self, dataset, scenario, model, year,
-                 import_boundary_url=None, update_existing=False, logger=None):
+                 import_boundary_url=None, import_geojson_url=None,
+                 update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
         self.update_existing = update_existing
         self.import_boundary_url = import_boundary_url
+        self.import_geojson_url = import_geojson_url
 
         datasource, created = ClimateDataSource.objects.get_or_create(
             dataset=dataset,
@@ -62,6 +65,8 @@ class Nex2DB(object):
         # Store a cache of all cities locally
         if import_boundary_url:
             self.locations = MultipolygonBoundaryLocationSource(import_boundary_url, dataset)
+        elif import_geojson_url:
+            self.locations = GeoJsonUrlLocationSource(import_geojson_url)
         else:
             cities_queryset = City.objects.all().order_by('pk')
             if not self.update_existing:
