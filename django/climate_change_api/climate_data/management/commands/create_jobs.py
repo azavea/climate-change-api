@@ -12,6 +12,14 @@ from climate_data.models import ClimateDataset, ClimateModel, Scenario
 logger = logging.getLogger(__name__)
 
 
+def validate_url(url):
+    validator = URLValidator(schemes=['http', 'https'])
+    try:
+        validator(url)
+    except ValidationError:
+        raise CommandError('{} is not a valid URL!'.format(url))
+
+
 def send_message(queue, message):
     """Create a message in SQS with the provided body."""
     body = json.dumps(message)
@@ -50,7 +58,12 @@ class Command(BaseCommand):
         parser.add_argument('--import-boundary-url', type=str,
                             help='A URL to a zipped (multi)polygon shapefile to filter the ' +
                                  'import by. All climate data cells that intersect this ' +
-                                 'boundary will imported.')
+                                 'boundary will imported. This option takes precedence over ' +
+                                 '--import-geojson-url')
+        parser.add_argument('--import-geojson-url', type=str,
+                            help='A URL to a geojson FeatureCollection of Point features. ' +
+                                 'The importer will import climate data for each ' +
+                                 'point feature in the FeatureCollection.')
 
     def handle(self, *args, **options):
         queue = get_queue(QueueName=settings.SQS_QUEUE_NAME,
@@ -59,12 +72,13 @@ class Command(BaseCommand):
         scenario_id = Scenario.objects.get(name=options['rcp']).id
         update_existing = options['update_existing']
         import_boundary_url = options.get('import_boundary_url', None)
+        import_geojson_url = options.get('import_geojson_url', None)
+        if import_boundary_url and import_geojson_url:
+            raise CommandError('You must choose one of import_boundary_url or import_geojson_url.')
         if import_boundary_url:
-            validator = URLValidator(schemes=['http', 'https'])
-            try:
-                validator(import_boundary_url)
-            except ValidationError:
-                raise CommandError('{} is not a valid URL!'.format(import_boundary_url))
+            validate_url(import_boundary_url)
+        if import_geojson_url:
+            validate_url(import_geojson_url)
 
         if options['models'] == 'all':
             model_ids = [m.id for m in dataset.models.all()]
@@ -83,5 +97,6 @@ class Command(BaseCommand):
                     'model_id': model_id,
                     'year': year,
                     'import_boundary_url': import_boundary_url,
+                    'import_geojson_url': import_geojson_url,
                     'update_existing': update_existing,
                 })

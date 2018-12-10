@@ -21,8 +21,9 @@ from climate_data.models import (
 from climate_data.nex2db.downloaders import get_netcdf_downloader
 from climate_data.nex2db.location_sources import (
     ClimateAPICityLocationSource,
+    GeoJsonUrlLocationSource,
     MultipolygonBoundaryLocationSource,
-    write_debug_shapefile,
+    write_debug_file,
 )
 
 
@@ -43,10 +44,12 @@ class Nex2DB(object):
     update_existing = False
 
     def __init__(self, dataset, scenario, model, year,
-                 import_boundary_url=None, update_existing=False, logger=None):
+                 import_boundary_url=None, import_geojson_url=None,
+                 update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
         self.update_existing = update_existing
         self.import_boundary_url = import_boundary_url
+        self.import_geojson_url = import_geojson_url
 
         datasource, created = ClimateDataSource.objects.get_or_create(
             dataset=dataset,
@@ -62,6 +65,8 @@ class Nex2DB(object):
         # Store a cache of all cities locally
         if import_boundary_url:
             self.locations = MultipolygonBoundaryLocationSource(import_boundary_url, dataset)
+        elif import_geojson_url:
+            self.locations = GeoJsonUrlLocationSource(import_geojson_url)
         else:
             cities_queryset = City.objects.all().order_by('pk')
             if not self.update_existing:
@@ -78,7 +83,7 @@ class Nex2DB(object):
                 pass
             debug_file = os.path.join(debug_dir, '{}.shp'.format(str(uuid4())))
             logger.info('Writing debug locations shapefile to path: {}'.format(debug_file))
-            write_debug_shapefile(self.locations, debug_file)
+            write_debug_file(self.locations, debug_file, file_format='shpfile')
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
