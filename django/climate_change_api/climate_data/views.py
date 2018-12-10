@@ -36,6 +36,7 @@ from climate_data.models import (City,
 from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
+                                      ClimateDataCellDistanceSerializer,
                                       ClimateDataCellSerializer,
                                       ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
@@ -234,6 +235,21 @@ class CityMapCellListView(APIView):
         if len(map_cells) == 0:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         response = [ClimateDataCityCellSerializer(map_cell).data for map_cell in map_cells]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class LatLonMapCellDistanceListView(APIView):
+
+    @overridable_cache_response(key_func=full_url_cache_key_func)
+    def get(self, request, *args, **kwargs):
+        """Returns the map cells within a given distance of a Lat/Lon point."""
+        map_cells = ClimateDataCell.objects.map_cells_near_lat_lon(
+            float(kwargs['lat']),
+            float(kwargs['lon']),
+            float(kwargs['distance']),
+        )
+
+        response = [ClimateDataCellDistanceSerializer(map_cell).data for map_cell in map_cells]
         return Response(response, status=status.HTTP_200_OK)
 
 
