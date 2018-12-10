@@ -442,3 +442,38 @@ class LatLonMapCellListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         url = reverse('lat-lon-map-cell-list', kwargs={'lat': 17, 'lon': 17})
         response = self.client.get(url)
         self.assertEqual(404, response.status_code)
+
+
+class LatLonMapCellDistanceListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
+
+    def test_querying_returns_data(self):
+        """Should retrieve data for point."""
+        url = reverse('lat-lon-map-cell-distance-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x, 'distance': 5000
+        })
+        response = self.client.get(url)
+        self.assertEqual(1, len(response.data))
+
+    def test_querying_returns_200_status(self):
+        """Should return 200 status code for point."""
+        url = reverse('lat-lon-map-cell-distance-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x, 'distance': 5000
+        })
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_returned_data_contains_distances(self):
+        """Data should contain distances."""
+        url = reverse('lat-lon-map-cell-distance-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x, 'distance': 5000
+        })
+        response = self.client.get(url)
+        self.assertIn('distance_meters', response.data[0]['properties'])
+
+    def test_no_data_returns_empty_list(self):
+        """Should return empty for point without data in the distance radius."""
+        url = reverse('lat-lon-map-cell-distance-list', kwargs={'lat': 17,
+                      'lon': 17, 'distance': 0})
+        response = self.client.get(url)
+        self.assertEqual(0, len(response.data))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -205,7 +205,7 @@ class ClimateDataCellManager(models.Manager):
         raise ClimateDataCell.DoesNotExist()
 
     def map_cells_near_lat_lon(self, lat, lon, distance):
-        """Returns ClimateDataCells queryset within the given distance of a given point.
+        """Return ClimateDataCells queryset within the given distance of a given point.
 
         Each cell is annotated with its distance from the given search point, as a Distance object
         that offers conversion to various units.
