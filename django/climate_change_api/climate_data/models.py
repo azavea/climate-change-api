@@ -215,6 +215,7 @@ class ClimateDataCell(models.Model):
     lon = models.DecimalField(max_digits=9, decimal_places=6)
 
     geom = models.PointField(srid=4326, blank=True, null=True)
+    geog = models.PointField(geography=True, blank=True, null=True)
 
     is_coastal = models.BooleanField(default=False)
 
@@ -224,6 +225,7 @@ class ClimateDataCell(models.Model):
         # Convert saved lon [0, 360) back to [-180, 180)
         lon = self.lon if self.lon < 180 else self.lon - 360
         self.geom = Point(float(lon), float(self.lat), srid=4326)
+        self.geog = self.geom
         super().save(*args, **kwargs)
 
     class Meta:
