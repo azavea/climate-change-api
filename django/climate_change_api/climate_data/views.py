@@ -242,7 +242,7 @@ class LatLonMapCellDistanceListView(APIView):
 
     @overridable_cache_response(key_func=full_url_cache_key_func)
     def get(self, request, *args, **kwargs):
-        """Returns the map cells within a given distance of a Lat/Lon point."""
+        """Return the map cells within a given distance of a Lat/Lon point."""
         map_cells = ClimateDataCell.objects.map_cells_near_lat_lon(
             float(kwargs['lat']),
             float(kwargs['lon']),
