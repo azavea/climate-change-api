@@ -69,10 +69,11 @@ def write_debug_file(climate_locations, output_filename, file_format='geojson'):
         with open(output_filename, 'w') as jsonfile:
             json.dump(geojson, jsonfile, indent=2)
     elif file_format == 'shpfile':
+        schema = {'geometry': 'Point', 'properties': {'id': 'str', 'name': 'str'}}
         with fiona.open(output_filename, 'w',
                         driver='ESRI Shapefile',
                         crs=from_epsg(4326),
-                        schema={'geometry': 'Point', 'properties': {'id': 'str', 'name': 'str'}}) as shapefile:
+                        schema=schema) as shapefile:
             shapefile.writerecords(features)
     else:
         raise TypeError('file_format handler not available for {}'.format(file_format))
@@ -144,7 +145,7 @@ def GeonamesLocationSource(geonames_file, dataset, filter_fn=None):
 
     locations = []
     if filter_fn is None:
-        filter_fn = lambda row: True
+        filter_fn = lambda row: True    # noqa: E731
     with open(geonames_file, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter='\t', fieldnames=GEONAMES_HEADER)
         locations = [
