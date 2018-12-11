@@ -6,13 +6,6 @@ import django.contrib.gis.db.models.fields
 from django.db import migrations
 
 
-def set_cell_geography(apps, schema_editor):
-    ClimateDataCell = apps.get_model('climate_data', 'ClimateDataCell')
-    for obj in ClimateDataCell.objects.all():
-        obj.geog = obj.geom
-        obj.save()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,6 +18,4 @@ class Migration(migrations.Migration):
             name='geog',
             field=django.contrib.gis.db.models.fields.PointField(blank=True, geography=True, null=True, srid=4326),
         ),
-
-        migrations.RunPython(set_cell_geography, reverse_code=migrations.RunPython.noop),
     ]
