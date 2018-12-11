@@ -45,7 +45,7 @@ class ClimateDataCellGeometrySerializer(serializers.ModelSerializer):
         model = ClimateDataCell
 
 
-class ClimateDataCellSerializer(serializers.ModelSerializer):
+class ClimateDataCellBaseSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
@@ -54,13 +54,28 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
             ("properties", {
                 "proximity": {
                     "ocean": obj.is_coastal,
-                },
-                "dataset": self.context['dataset'].name,
+                }
             })
         ])
 
     class Meta:
         model = ClimateDataCell
+
+
+class ClimateDataCellDistanceSerializer(ClimateDataCellBaseSerializer):
+
+    def to_representation(self, obj):
+        odict = super(ClimateDataCellDistanceSerializer, self).to_representation(obj)
+        odict['properties']['distance_meters'] = round(obj.distance.m)
+        return odict
+
+
+class ClimateDataCellSerializer(ClimateDataCellBaseSerializer):
+
+    def to_representation(self, obj):
+        odict = super(ClimateDataCellSerializer, self).to_representation(obj)
+        odict['properties']['dataset'] = self.context['dataset'].name
+        return odict
 
 
 class ClimateDataCityCellSerializer(serializers.ModelSerializer):

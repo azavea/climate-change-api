@@ -186,7 +186,7 @@ class ClimateDataCellManager(models.Manager):
         ))
         search_point = Point(lon, lat, srid=4326)
         map_cells = (ClimateDataCell.objects.filter(geom__within=search_box)
-                                            .annotate(distance=Distance('geom', search_point))
+                                            .annotate(distance=Distance('geog', search_point))
                                             .order_by('distance'))
         cells_checked = 0
         for map_cell in map_cells:
@@ -204,6 +204,18 @@ class ClimateDataCellManager(models.Manager):
                            .format(cells_checked, lon, lat, dataset.name))
         raise ClimateDataCell.DoesNotExist()
 
+    def map_cells_near_lat_lon(self, lat, lon, distance):
+        """Return ClimateDataCells queryset within the given distance of a given point.
+
+        Each cell is annotated with its distance from the given search point, as a Distance object
+        that offers conversion to various units.
+
+        The queryset is ordered by distance.
+        """
+        search_point = Point(lon, lat, srid=4326)
+        return ClimateDataCell.objects.annotate(distance=Distance('geog', search_point)).filter(
+            distance__lte=distance).order_by('distance')
+
     def get_by_natural_key(self, lat, lon, dataset):
         return self.get(lat=lat, lon=lon, dataset=dataset)
 
@@ -215,6 +227,7 @@ class ClimateDataCell(models.Model):
     lon = models.DecimalField(max_digits=9, decimal_places=6)
 
     geom = models.PointField(srid=4326, blank=True, null=True)
+    geog = models.PointField(geography=True, blank=True, null=True)
 
     is_coastal = models.BooleanField(default=False)
 
@@ -224,6 +237,7 @@ class ClimateDataCell(models.Model):
         # Convert saved lon [0, 360) back to [-180, 180)
         lon = self.lon if self.lon < 180 else self.lon - 360
         self.geom = Point(float(lon), float(self.lat), srid=4326)
+        self.geog = self.geom
         super().save(*args, **kwargs)
 
     class Meta:
