@@ -143,10 +143,10 @@ Special Parameters Explained
 The Climate API allows for various pre-defined and custom types of ``time_aggregation`` when requesting indicator data. Most are familiar, i.e. ``yearly``. A unique format available is ``offset_yearly``, which counts a year starting from the summer solstice (180 days into the Gregorian year). This captures seasons in their entirety, making seasonal analysis easy.
 
 
-Indicator Data
-______________
+Indicator Data by City
+______________________
 
-Returns data for a specified indicator and its unique required and optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
+Returns data for a specified indicator queried by city and scenario and any optional query parameters. See `Indicator detail`_ for more information about how to get these parameters.
 
 .. note:: Requests to this endpoint are `rate-limited`_.
 

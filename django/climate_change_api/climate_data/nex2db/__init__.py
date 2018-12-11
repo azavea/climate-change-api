@@ -1,102 +1,36 @@
 import calendar
-import logging
 import collections
+import logging
+import os
 import tempfile
-import boto3
+from uuid import uuid4
 
+from django.conf import settings
 from django.db.utils import IntegrityError
 
 import numpy
 import netCDF4
 
-from .models import City, ClimateDataCell, ClimateDataCityCell, ClimateDataYear, ClimateDataSource
+from climate_data.models import (
+    City,
+    ClimateDataCell,
+    ClimateDataCityCell,
+    ClimateDataYear,
+    ClimateDataSource,
+)
+from climate_data.nex2db.downloaders import get_netcdf_downloader
+from climate_data.nex2db.location_sources import (
+    ClimateAPICityLocationSource,
+    GeoJsonUrlLocationSource,
+    MultipolygonBoundaryLocationSource,
+    write_debug_file,
+)
+
 
 DAY_OF_YEAR_FEB_29 = 60
-BUCKET = 'nasanex'
 
 
 logger = logging.getLogger('climate_data')
-
-
-class NetCdfDownloader(object):
-    """Generic class for downloading a NetCDF object from S3 to a target path."""
-
-    def get_object_key_format(self):
-        raise NotImplementedError()
-
-    def get_model_ensemble(self, model, rcp):
-        raise NotImplementedError()
-
-    def get_object_key(self, model, rcp, year, var):
-        ensemble = self.get_model_ensemble(model, rcp)
-        key_format = self.get_object_key_format()
-        return key_format.format(
-            rcp=rcp.lower(),
-            model=model,
-            year=year,
-            var=var,
-            ensemble=ensemble
-        )
-
-    def download(self, logger, rcp, model, year, var, filename):
-        key = self.get_object_key(model, rcp, year, var)
-
-        s3 = boto3.resource('s3')
-        logger.warning('Downloading file: s3://{}/{}'.format(BUCKET, key))
-        s3.meta.client.download_file(BUCKET, key, filename)
-
-
-class GddpNetCdfDownloader(NetCdfDownloader):
-    """Specialized NetCdfDownloader for downloading GDDP-originated S3 objects from S3."""
-
-    def get_object_key_format(self):
-        return ('NEX-GDDP/BCSD/{rcp}/day/atmos/{var}/{ensemble}/v1.0/'
-                '{var}_day_BCSD_{rcp}_{ensemble}_{model}_{year}.nc')
-
-    def get_model_ensemble(self, model, rcp):
-        return 'r1i1p1'
-
-
-class LocaNetCdfDownloader(NetCdfDownloader):
-    """Specialized NetCdfDownloader for downloading LOCA-originated S3 objects from S3."""
-
-    def get_object_key_format(self):
-        return ('LOCA/{model}/16th/{rcp}/{ensemble}/{var}/'
-                '{var}_day_{model}_{rcp}_{ensemble}_{year}0101-{year}1231.LOCA_2016-04-02.16th.nc')
-
-    def get_model_ensemble(self, model, rcp):
-        """Return ensemble given LOCA model and scenario."""
-        ensembles = {
-            'historical': {
-                'CCSM4': 'r6i1p1',
-                'GISS-E2-H': 'r6i1p1',
-                'GISS-E2-R': 'r6i1p1',
-            },
-            'RCP45': {
-                'CCSM4': 'r6i1p1',
-                'EC-EARTH': 'r8i1p1',
-                'GISS-E2-H': 'r6i1p3',
-                'GISS-E2-R': 'r6i1p1'
-            },
-            'RCP85': {
-                'CCSM4': 'r6i1p1',
-                'EC-EARTH': 'r2i1p1',
-                'GISS-E2-H': 'r2i1p1',
-                'GISS-E2-R': 'r2i1p1'
-            }
-        }
-        try:
-            return ensembles[rcp][model]
-        except KeyError:
-            return 'r1i1p1'
-
-
-def get_netcdf_downloader(dataset):
-    downloader_class = {
-        'LOCA': LocaNetCdfDownloader,
-        'NEX-GDDP': GddpNetCdfDownloader
-    }[dataset]
-    return downloader_class()
 
 
 class Nex2DB(object):
@@ -109,9 +43,13 @@ class Nex2DB(object):
     # Boolean flag designating if we should update existing entries or only insert new
     update_existing = False
 
-    def __init__(self, dataset, scenario, model, year, update_existing=False, logger=None):
+    def __init__(self, dataset, scenario, model, year,
+                 import_boundary_url=None, import_geojson_url=None,
+                 update_existing=False, logger=None):
         self.logger = logger if logger else logging.getLogger(__name__)
         self.update_existing = update_existing
+        self.import_boundary_url = import_boundary_url
+        self.import_geojson_url = import_geojson_url
 
         datasource, created = ClimateDataSource.objects.get_or_create(
             dataset=dataset,
@@ -125,13 +63,27 @@ class Nex2DB(object):
         self.datasource = datasource
 
         # Store a cache of all cities locally
-        cities_queryset = City.objects.all().order_by('pk')
-        if not self.update_existing:
-            # Only process cities that don't have this datasource loaded
-            cities_queryset = cities_queryset.exclude(
-                map_cell_set__map_cell__climatedatayear__data_source=datasource
-            )
-        self.cities = list(cities_queryset)
+        if import_boundary_url:
+            self.locations = MultipolygonBoundaryLocationSource(import_boundary_url, dataset)
+        elif import_geojson_url:
+            self.locations = GeoJsonUrlLocationSource(import_geojson_url)
+        else:
+            cities_queryset = City.objects.all().order_by('pk')
+            if not self.update_existing:
+                # Only process cities that don't have this datasource loaded
+                cities_queryset = cities_queryset.exclude(
+                    map_cell_set__map_cell__climatedatayear__data_source=datasource
+                )
+            self.locations = ClimateAPICityLocationSource(cities_queryset, dataset)
+        if settings.DEBUG:
+            debug_dir = os.path.join(settings.BASE_DIR, 'nex2db-locations-debug')
+            try:
+                os.mkdir(debug_dir)
+            except FileExistsError:
+                pass
+            debug_file = os.path.join(debug_dir, '{}.shp'.format(str(uuid4())))
+            logger.info('Writing debug locations shapefile to path: {}'.format(debug_file))
+            write_debug_file(self.locations, debug_file, file_format='shpfile')
 
     def netcdf2year(self, time_array, time_unit, netcdf_calendar):
         """Return the year of the netcdf file as an int.
@@ -183,22 +135,22 @@ class Nex2DB(object):
             assert ds.variables[var_name].shape == var_data.shape
 
             cell_indexes = set()
-            city_to_coords = {}
-            for city in self.cities:
-                self.logger.debug('processing variable %s for city: %s', var_name, city.name)
+            location_to_coords = {}
+            for location in self.locations:
+                self.logger.debug('processing variable %s for city: %s', var_name, location.name)
                 # Not geographic distance, but good enough for
                 # finding a point near a city center from disaggregated data.
-                # city_y must be in the range [-90, 90]
-                city_y = city.geom.y
-                # city_x must be in the range [0,360] in units degrees east
+                # location_y must be in the range [-90, 90]
+                location_y = location.y
+                # location_x must be in the range [0,360] in units degrees east
                 # lon units are degrees east, so degrees west maps inversely to 180-360
-                city_x = 360 + city.geom.x if city.geom.x < 0 else city.geom.x
+                location_x = 360 + location.x if location.x < 0 else location.x
 
-                latidx = (numpy.abs(city_y - latarr)).argmin()
-                lonidx = (numpy.abs(city_x - lonarr)).argmin()
+                latidx = (numpy.abs(location_y - latarr)).argmin()
+                lonidx = (numpy.abs(location_x - lonarr)).argmin()
 
                 cell_indexes.add((latidx, lonidx))
-                city_to_coords[city.id] = (latarr[latidx], lonarr[lonidx])
+                location_to_coords[location.id] = (latarr[latidx], lonarr[lonidx])
 
             # Use numpy to get a list of var_data[*][lat][lon] for each referenced cell
             cell_data = {}
@@ -211,7 +163,7 @@ class Nex2DB(object):
                     values.insert(DAY_OF_YEAR_FEB_29, None)
                 cell_data[(latarr[latidx], lonarr[lonidx])] = values
 
-        return city_to_coords, cell_data
+        return location_to_coords, cell_data
 
     def process_netcdf_object(self, downloader, var):
         """Download and process a single NetCDF results file."""
@@ -313,7 +265,12 @@ class Nex2DB(object):
                               cell_model)
 
     def update_city_map_cell(self, city, city_coords, cell_models):
-        cell_coords = city_coords[city.id]
+        try:
+            cell_coords = city_coords[city.id]
+        except KeyError:
+            self.logger.warning('ClimateDataCityCell update SKIPPED for {}. City wasn\'t modified.'
+                                .format(city.id))
+            return
         cell_model = cell_models[cell_coords]
         try:
             city_cell, created = ClimateDataCityCell.objects.get_or_create(
@@ -339,9 +296,9 @@ class Nex2DB(object):
         """Extract data about cities from three NetCDF files and writes it to the database."""
         self.logger.debug("Using datasource: %s", self.datasource)
 
-        if not self.cities:
-            self.logger.warning("No cities need import for datasource {}, quitting early.".format(
-                self.datasource))
+        if not self.locations:
+            self.logger.warning("No locations need import for datasource {}, quitting early."
+                                .format(self.datasource))
             return
 
         # Combine the separate NetCDF files into useable results
@@ -360,7 +317,7 @@ class Nex2DB(object):
         # Go through all the cities and update their ClimateDataCityCell representations
         # Ensuring only one entry exists for a given city and dataset
         self.logger.debug('Updating cities')
-        for city in self.cities:
+        for city in City.objects.all().order_by('pk'):
             self.update_city_map_cell(city, city_coords, cell_models)
 
         # note job completed successfully

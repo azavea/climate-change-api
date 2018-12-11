@@ -237,6 +237,34 @@ paths:
         "404":
           description: |
             No valid map cell
+  /api/map-cell/{lat}/{lon}/:
+    get:
+      description: |
+        Return the list of valid map cells for this point along with the datasets they belong to.
+      parameters:
+        - name: lat
+          description: Latitude between -90 and 90
+          in: path
+          type: float
+          required: true
+          x-example: 44.525
+        - name: lon
+          description: Longitude between -180 and 180
+          in: path
+          type: float
+          required: true
+          x-example: -110.838
+      responses:
+        "200":
+          description: |
+            List of map cells valid for the point as a list of GeoJson Point features
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ClimateMapCell"
+        "404":
+          description: |
+            No valid map cells
   /api/dataset/:
     get:
       description: Lists all climate datasets available via the Climate API
@@ -648,6 +676,20 @@ definitions:
       geometry:
         ref: "#/definitions/Point"
     additionalProperties: false
+  ClimateMapCell:
+    type: object
+    properties:
+      type:
+        type: string
+      properties:
+        type: object
+        properties:
+          dataset:
+            type: string
+        additionalProperties: false
+      geometry:
+        ref: "#/definitions/Point"
+    additionalProperties: false
   ClimateModel:
     type: object
     properties:
@@ -786,6 +828,15 @@ definitions:
           type: number
           minItems: 2
           maxItems: 2
+  PointFeature:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        $ref: "#/definitions/Point"
+      properties:
+        type: object
   Scenario:
     type: object
     properties:
@@ -804,6 +855,28 @@ definitions:
     properties:
       city:
         $ref: "#/definitions/City"
+      dataset:
+        type: string
+      scenario:
+        type: string
+      climate_models:
+        type: array
+        items:
+          type: string
+      variables:
+        type: array
+        items:
+          type: string
+      data:
+        type: object
+        description: |
+            "year": { "variable": [ day1_value, day2_value, ... , day366_value ] }
+            The variable array always has length 366. Days with no available data will be null at their index.
+  ClimateDataForPoint:
+    type: object
+    properties:
+      feature:
+        $ref: "#/definitions/PointFeature"
       dataset:
         type: string
       scenario:

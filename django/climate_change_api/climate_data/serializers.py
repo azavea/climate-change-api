@@ -33,7 +33,7 @@ class HistoricDateRangeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ClimateDataCellSerializer(serializers.ModelSerializer):
+class ClimateDataCellGeometrySerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
@@ -45,12 +45,30 @@ class ClimateDataCellSerializer(serializers.ModelSerializer):
         model = ClimateDataCell
 
 
+class ClimateDataCellSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, obj):
+        return OrderedDict([
+            ("type", "Feature"),
+            ("geometry", ClimateDataCellGeometrySerializer(obj).data),
+            ("properties", {
+                "proximity": {
+                    "ocean": obj.is_coastal,
+                },
+                "dataset": self.context['dataset'].name,
+            })
+        ])
+
+    class Meta:
+        model = ClimateDataCell
+
+
 class ClimateDataCityCellSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Feature"),
-            ("geometry", ClimateDataCellSerializer(obj.map_cell).data),
+            ("geometry", ClimateDataCellGeometrySerializer(obj.map_cell).data),
             ("properties", {
                 "dataset": obj.dataset.name
             })
@@ -102,7 +120,7 @@ class ClimateDataSourceSerializer(serializers.ModelSerializer):
         model = ClimateDataSource
 
 
-class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
+class ClimateMapCellScenarioDataSerializer(serializers.BaseSerializer):
     """Read-only custom serializer to generate the data object for the ClimateDataList view.
 
     Since we will be combining multiple ClimateDataYear instances into a single unified output,
@@ -110,7 +128,8 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     but does require the serializer `context` kwarg with a key 'variables'.
 
     :param instance Queryset A ClimateDataYear Queryset
-        It should already be filtered on City and Scenario before being passed to the serializer
+        It should already be filtered on ClimateDataCell and Scenario before
+        being passed to the serializer
     :param context Dict
         Provide key 'variables' with an iterable subset of ClimateDataYear.VARIABLE_CHOICES to
         filter the output.
@@ -119,7 +138,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
     """
 
     def __init__(self, instance=None, **kwargs):
-        super(ClimateCityScenarioDataSerializer, self).__init__(instance, **kwargs)
+        super(ClimateMapCellScenarioDataSerializer, self).__init__(instance, **kwargs)
         if self._context.get('variables', None) is None:
             self._context['variables'] = ClimateDataYear.VARIABLE_CHOICES
         if self._context.get('aggregation', None) is None:
@@ -133,7 +152,7 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         }
         """Serialize queryset to the expected python object format."""
         assert isinstance(queryset, QuerySet), (
-            'ClimateCityScenarioDataSerializer must be given a queryset')
+            'ClimateMapCellScenarioDataSerializer must be given a queryset')
 
         aggregation = self._context['aggregation']
 
@@ -162,13 +181,13 @@ class ClimateCityScenarioDataSerializer(serializers.BaseSerializer):
         return output
 
     def to_internal_value(self, data):
-        raise NotImplementedError('ClimateCityScenarioDataSerializer is read only!')
+        raise NotImplementedError('ClimateMapCellScenarioDataSerializer is read only!')
 
     def create(self, validated_data):
-        raise NotImplementedError('ClimateCityScenarioDataSerializer is read only!')
+        raise NotImplementedError('ClimateMapCellScenarioDataSerializer is read only!')
 
     def update(self, instance, validated_data):
-        raise NotImplementedError('ClimateCityScenarioDataSerializer is read only!')
+        raise NotImplementedError('ClimateMapCellScenarioDataSerializer is read only!')
 
 
 class ClimateModelSerializer(serializers.ModelSerializer):

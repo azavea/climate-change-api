@@ -77,7 +77,10 @@ class ClimateDataSetupMixin(object):
         self.model1 = ClimateModelFactory(name='CCSM4')
         self.model2 = ClimateModelFactory(name='CanESM2')
 
+        # Yes, this really is supposed to be lon=240 see the comments on ClimateDataCell
+        # for further explanation
         self.mapcell = ClimateDataCellFactory(lat=15, lon=240)
+        self.mapcell2 = ClimateDataCellFactory(lat=1, lon=1)
 
         self.dataset = ClimateDatasetFactory(name='NEX-GDDP')
 
@@ -150,5 +153,4 @@ class ClimateDataSetupMixin(object):
                                               dataset=self.dataset)
 
         self.city1 = CityFactory(name='city1', admin='city1', map_cell_set=[self.mapcell])
-        self.city2 = CityFactory(name='city2', admin='city2',
-                                 map_cell_set=[ClimateDataCellFactory(lat=1, lon=1)])
+        self.city2 = CityFactory(name='city2', admin='city2', map_cell_set=[self.mapcell2])

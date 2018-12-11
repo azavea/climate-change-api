@@ -50,6 +50,8 @@ def process_message(message, queue):
     model = dataset.models.get(id=message_dict['model_id'])
     scenario = Scenario.objects.get(id=message_dict['scenario_id'])
     year = message_dict['year']
+    import_boundary_url = message_dict.get('import_boundary_url', None)
+    import_geojson_url = message_dict.get('import_geojson_url', None)
     update_existing = message_dict.get('update_existing', False)
     logger.info('Processing SQS message for model %s scenario %s year %s',
                 model.name, scenario.name, year)
@@ -61,6 +63,8 @@ def process_message(message, queue):
             scenario,
             model,
             year,
+            import_boundary_url=import_boundary_url,
+            import_geojson_url=import_geojson_url,
             update_existing=update_existing,
             logger=logger)
         importer.import_netcdf_data()
