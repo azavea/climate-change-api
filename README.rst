@@ -30,6 +30,7 @@ In the VM:
 Within the shell:
 
 .. code-block:: bash
+
     # Get your created user using its email address
     In  [1]: my_user = ClimateUser.objects.get(email="<Your User's Email>")
 
