@@ -38,7 +38,11 @@ class ClimateDataCellGeometrySerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Point"),
-            ("coordinates", [obj.lon, obj.lat])
+            ("coordinates", [
+                # Perform [0, 360) -> [-180, 180) conversion to make response valid 4326 GeoJSON
+                obj.lon if obj.lon < 180 else obj.lon - 360,
+                obj.lat
+            ])
         ])
 
     class Meta:
