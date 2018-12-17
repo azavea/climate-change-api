@@ -16,6 +16,8 @@ This endpoint exposes the underlying grid points used for each dataset. A grid p
 
 Retrieve all available map cells for a given Lat + Lon.
 
+Note that the longitude returned was previously in the range [0, 360), which aligns with the source NetCDF dataset, but it has been changed to be in the range [-180, 180) so that the response represents valid GeoJSON in EPSG:4326.
+
 .. openapi:: /openapi/climate_api.yml
     :paths:
         /api/map-cell/{lat}/{lon}/
