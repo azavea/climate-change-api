@@ -37,7 +37,6 @@ from climate_data.serializers import (CitySerializer,
                                       CityBoundarySerializer,
                                       ClimateDatasetSerializer,
                                       ClimateDataCellDistanceSerializer,
-                                      ClimateDataCellSerializer,
                                       ClimateDataCityCellSerializer,
                                       ClimateModelSerializer,
                                       ClimateMapCellScenarioDataSerializer,
@@ -153,6 +152,20 @@ class ClimateParamsValidationMixin(object):
         variables = request.query_params.get('variables', None)
         return filter_variables_list(variables)
 
+    def validate_param_distance(self, request, default='0'):
+        """Return validated distance numeric param, must be 0 or greater.
+
+        Raises ParseError if value provided is not a number greater than or equal to 0
+        """
+        try:
+            val = float(request.query_params.get('distance', default))
+        except ValueError:
+            raise ParseError('Param distance must be a number')
+
+        if val < 0:
+            raise ParseError('Param distance must greater than or equal to 0')
+        return val
+
 
 class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     """Returns a paginated GeoJSON object of the available cities."""
@@ -238,48 +251,20 @@ class CityMapCellListView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-class LatLonMapCellDistanceListView(APIView):
+class LatLonMapCellListView(ClimateParamsValidationMixin, APIView):
 
     @overridable_cache_response(key_func=full_url_cache_key_func)
     def get(self, request, *args, **kwargs):
         """Return the map cells within a given distance of a Lat/Lon point."""
-        map_cells = ClimateDataCell.objects.map_cells_near_lat_lon(
+        distance = self.validate_param_distance(request)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(
             float(kwargs['lat']),
             float(kwargs['lon']),
-            float(kwargs['distance']),
+            distance,
         )
 
         response = [ClimateDataCellDistanceSerializer(map_cell).data for map_cell in map_cells]
         return Response(response, status=status.HTTP_200_OK)
-
-
-class LatLonMapCellListView(APIView):
-
-    @overridable_cache_response(key_func=full_url_cache_key_func)
-    def get(self, request, *args, **kwargs):
-        """Return the map cells associated with a Lat/Lon point.
-
-        Returns 404 if the point has no valid map cells.
-        """
-        data = []
-        for dataset in ClimateDataset.objects.all():
-            try:
-                map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(
-                    float(kwargs['lat']),
-                    float(kwargs['lon']),
-                    dataset,
-                )
-                serializer = ClimateDataCellSerializer(map_cell, context={
-                    'dataset': dataset
-                })
-                data.append(serializer.data)
-            except ClimateDataCell.DoesNotExist:
-                pass
-
-        if len(data) == 0:
-            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        return Response(data, status=status.HTTP_200_OK)
 
 
 class CityMapCellDatasetDetailView(APIView):
@@ -404,10 +389,9 @@ class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
     def get(self, request, *args, **kwargs):
         scenario = self.validate_kwarg_scenario(**kwargs)
         dataset = self.validate_param_dataset(request, default=ClimateDataset.Datasets.NEX_GDDP)
-        map_cell = self.get_map_cell(dataset, kwargs)
-        serializer = ClimateDataCellSerializer(map_cell, context={
-            'dataset': dataset
-        })
+        distance = self.validate_param_distance(request)
+        map_cell = self.get_map_cell(dataset, distance, kwargs)
+        serializer = ClimateDataCellDistanceSerializer(map_cell)
 
         response_data = OrderedDict([
             ('feature', serializer.data),
@@ -415,11 +399,12 @@ class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
         response_data.update(self.get_data(request, dataset, map_cell, scenario, kwargs))
         return Response(response_data)
 
-    def get_map_cell(self, dataset, kwargs):
+    def get_map_cell(self, dataset, distance, kwargs):
         try:
-            return ClimateDataCell.objects.map_cell_for_lat_lon(float(kwargs['lat']),
-                                                                float(kwargs['lon']),
-                                                                dataset)
+            map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(float(kwargs['lat']),
+                                                                      float(kwargs['lon']),
+                                                                      distance)
+            return map_cells.filter(datasets__contains=[dataset])[0]
         except ClimateDataCell.DoesNotExist:
             raise NotFound(detail='No {} data available for point ({}, {})'
                                   .format(dataset.name, kwargs['lat'], kwargs['lon']))

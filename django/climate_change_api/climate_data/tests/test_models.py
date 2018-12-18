@@ -100,55 +100,55 @@ class ClimateDataCellManagerTestCase(TestCase):
                                                             scenario=self.scenario,
                                                             year=2050,
                                                             import_completed=True)
+        self.loca_data_source = ClimateDataSource.objects.create(dataset=self.loca,
+                                                                 model=self.model,
+                                                                 scenario=self.scenario,
+                                                                 year=2050,
+                                                                 import_completed=True)
 
-    def _make_data_for_map_cell(self, map_cell):
-        ClimateDataYear.objects.create(data_source=self.data_source,
+    def _make_data_for_map_cell(self, map_cell, data_source=None):
+        if data_source is None:
+            data_source = self.data_source
+        ClimateDataYear.objects.create(data_source=data_source,
                                        map_cell=map_cell,
                                        tasmax=[], tasmin=[], pr=[])
 
-    def test_map_cell_for_lat_lon(self):
+    def test_map_cells_for_lat_lon(self):
         target_map_cell = ClimateDataCell.objects.create(lat=Decimal(0.0), lon=Decimal(0.0))
         self._make_data_for_map_cell(target_map_cell)
-        map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(0.1, 0.1, self.nex_gddp)
-        self.assertEqual(target_map_cell.lat, map_cell.lat)
-        self.assertEqual(target_map_cell.lon, map_cell.lon)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(0.1, 0.1)
+        self.assertEqual(target_map_cell.lat, map_cells[0].lat)
+        self.assertEqual(target_map_cell.lon, map_cells[0].lon)
 
-    def test_map_cell_for_lat_lon_upper_bound(self):
+    def test_multiple_datasets_per_map_cell(self):
+        target_map_cell = ClimateDataCell.objects.create(lat=Decimal(0.0), lon=Decimal(0.0))
+        self._make_data_for_map_cell(target_map_cell)
+        self._make_data_for_map_cell(target_map_cell, self.loca_data_source)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(0.1, 0.1)
+        self.assertEqual(2, len(map_cells[0].datasets))
+
+    def test_map_cells_for_lat_lon_upper_bound(self):
         target_map_cell = ClimateDataCell.objects.create(lat=Decimal(0.25), lon=Decimal(0.25))
         self._make_data_for_map_cell(target_map_cell)
-        map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(0.2, 0.23, self.nex_gddp)
-        self.assertEqual(target_map_cell.lat, map_cell.lat)
-        self.assertEqual(target_map_cell.lon, map_cell.lon)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(0.2, 0.23)
+        self.assertEqual(target_map_cell.lat, map_cells[0].lat)
+        self.assertEqual(target_map_cell.lon, map_cells[0].lon)
 
-    def test_map_cell_for_lat_lon_negative(self):
+    def test_map_cells_for_lat_lon_negative(self):
         target_map_cell = ClimateDataCell.objects.create(lat=Decimal(-0.25), lon=Decimal(1.25))
         self._make_data_for_map_cell(target_map_cell)
-        map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(-0.2, 1.23, self.nex_gddp)
-        self.assertEqual(target_map_cell.lat, map_cell.lat)
-        self.assertEqual(target_map_cell.lon, map_cell.lon)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(-0.2, 1.23)
+        self.assertEqual(target_map_cell.lat, map_cells[0].lat)
+        self.assertEqual(target_map_cell.lon, map_cells[0].lon)
 
-    def test_map_cell_for_lat_lon_fails(self):
+    def test_map_cells_for_lat_lon_return_empty_list(self):
         target_map_cell = ClimateDataCell.objects.create(lat=Decimal(-0.25), lon=Decimal(1.25))
         self._make_data_for_map_cell(target_map_cell)
-        with self.assertRaises(ClimateDataCell.DoesNotExist):
-            ClimateDataCell.objects.map_cell_for_lat_lon(0, 0, self.nex_gddp)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(0, 0)
+        self.assertEqual(len(map_cells), 0)
 
-    def test_filter_map_cell_results_by_dataset(self):
-        # The lat/lon values defined here and for target_map_cell should be less than
-        # half the loca cell size width so that queries for both dataset match geom bounds
-        lat = 0.0
-        lon = 0.0
-        target_map_cell_x = Decimal(lon + float(self.loca.cell_size_x) / 4)
-        target_map_cell_y = Decimal(lat + float(self.loca.cell_size_y) / 4)
-        target_map_cell = ClimateDataCell.objects.create(lat=target_map_cell_x,
-                                                         lon=target_map_cell_y)
+    def test_map_cells_for_lat_lon_matches_with_distance(self):
+        target_map_cell = ClimateDataCell.objects.create(lat=Decimal(-0.25), lon=Decimal(1.25))
         self._make_data_for_map_cell(target_map_cell)
-        # First request should succeed and return our map_cell because there is data for that
-        #   dataset + map_cell in range
-        map_cell = ClimateDataCell.objects.map_cell_for_lat_lon(lat, lon, self.nex_gddp)
-        self.assertEqual(target_map_cell.pk, map_cell.pk)
-        self.assertEqual(target_map_cell.pk, map_cell.pk)
-
-        # Second request should fail, since there's no data for the dataset + map_cell combo
-        with self.assertRaises(ClimateDataCell.DoesNotExist):
-            ClimateDataCell.objects.map_cell_for_lat_lon(lat, lon, self.loca)
+        map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(0, 0, 150000)
+        self.assertEqual(len(map_cells), 1)
