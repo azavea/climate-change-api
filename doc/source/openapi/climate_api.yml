@@ -254,6 +254,15 @@ paths:
           type: float
           required: true
           x-example: -110.838
+        - name: distance
+          in: query
+          type: float
+          minimum: 0
+          default: 0
+          x-example: 15000
+          required: false
+          description: |
+            Maximum allowed distance to Map Cell from provided Lat + Lon.
       responses:
         "200":
           description: |
@@ -442,6 +451,15 @@ paths:
           type: string
           required: true
           x-example: RCP85
+        - name: distance
+          in: query
+          type: float
+          minimum: 0
+          default: 0
+          x-example: 15000
+          required: false
+          description: |
+            Maximum allowed distance to Map Cell from provided Lat + Lon.
         - name: models
           description: |
             A list of comma separated model names. Defaults to all models.
@@ -588,6 +606,15 @@ paths:
           required: true
           type: string
           x-example: "average_high_temperature"
+        - name: distance
+          in: query
+          type: float
+          minimum: 0
+          default: 0
+          x-example: 15000
+          required: false
+          description: |
+            Maximum allowed distance to Map Cell from provided Lat + Lon.
       responses:
         "200":
           description: |
