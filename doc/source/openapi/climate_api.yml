@@ -771,6 +771,9 @@ definitions:
               type: string
           proximity:
             type: object
+            description: |
+              Whether this city is nearby any geographical features.
+              Currently only used for proximity to oceans.
             additionalProperties:
               type: boolean
           name:
@@ -830,8 +833,21 @@ definitions:
       properties:
         type: object
         properties:
-          dataset:
+          datasets:
             type: string
+            description: Array of climate data set names available for this map cell
+            items:
+              type: string
+          distance_meters:
+            type: integer
+            description: Distance in meters  to this map cell from the provided Lat + Lon.
+          proximity:
+            type: object
+            description: |
+              Whether this map cell is nearby any geographical features.
+              Currently only used for proximity to oceans.
+            additionalProperties:
+              type: boolean
         additionalProperties: false
       geometry:
         ref: "#/definitions/Point"
