@@ -23,7 +23,7 @@ class TinyOneToOne(models.OneToOneField):
         return models.SmallIntegerField().db_type(connection=connection)
 
 
-# TODO: Remove after upgrading to Django 2.0
+# TODO: Remove after upgrading to Django 2.0 (GH #867)
 class DistinctArrayAgg(ArrayAgg):
     template = '%(function)s(DISTINCT %(expressions)s)'
 
