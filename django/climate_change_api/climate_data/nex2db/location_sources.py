@@ -1,5 +1,10 @@
 """LocationSource methods that map external sources to a list of ClimateLocation tuples.
 
+In order to generate GeoJSON files for use with the --import-geojson-url option of the nex2db
+importer, use write_debug_file(locations, output_filename, file_format='geojson') to generate the
+appropriate files. Or, you can directly import any ESRI Shapefile or GeoJSON FeatureCollection that
+contains Point geometries.
+
 New sources should define functions or callable classes that perform this mapping.
 
 """
