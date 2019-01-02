@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.fields.array import ArrayField
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import CASCADE, SET_NULL
 
@@ -20,6 +21,15 @@ class TinyForeignKey(models.ForeignKey):
 class TinyOneToOne(models.OneToOneField):
     def db_type(self, connection):
         return models.SmallIntegerField().db_type(connection=connection)
+
+
+# TODO: Remove after upgrading to Django 2.0 (GH #867)
+class DistinctArrayAgg(ArrayAgg):
+    template = '%(function)s(DISTINCT %(expressions)s)'
+
+    @property
+    def output_field(self):
+        return ArrayField(self.source_expressions[0].output_field)
 
 
 def get_datasets():
@@ -165,16 +175,38 @@ class ClimateDataSource(models.Model):
 
 
 class ClimateDataCellManager(models.Manager):
+    def map_cells_for_lat_lon(self, lat, lon, distance=0):
+        """Return the ClimateDataCells for a given point, as well as any cells within the given distance.
 
-    def map_cell_for_lat_lon(self, lat, lon, dataset):
-        """Return the closest valid ClimateDataCell to the queried lat/lon.
+        Each cell is annotated with its distance from the given search point, as a Distance object
+        that offers conversion to various units.
 
-        The closest ClimateDataCell is found by constructing a Polygon box equal to the size
-        of the passed dataset cell size. We then query the ClimateDataCell geometries for points
-        ordered by distance to our search point, and take the closest (first) one
-        that contains valid data for the dataset + map_cell combination.
-
+        The queryset is ordered by distance.
         """
+        map_cells = self._map_cells_at_lat_lon(lat, lon)
+        if distance > 0:
+            # TODO (GH #411): This would be better as map_cells = map_cells.union(...)
+            # but that isn't available until Django 1.11
+            map_cells = map_cells | self._map_cells_near_lat_lon(lat, lon, distance)
+
+        return map_cells.annotate(
+            datasets=DistinctArrayAgg('climatedatayear__data_source__dataset__name'),
+        ).order_by('distance')
+
+    def _map_cells_at_lat_lon(self, lat, lon):
+        map_cell_ids = []
+        # The query to ClimateDataset could be problematic, but there are only 2 so it's not really
+        for dataset in ClimateDataset.objects.all():
+            map_cell_id = self._map_cell_id_at_lat_lon(lat, lon, dataset)
+            if map_cell_id is not None:
+                map_cell_ids.append(map_cell_id)
+
+        search_point = Point(lon, lat, srid=4326)
+        return ClimateDataCell.objects.filter(id__in=map_cell_ids).annotate(
+            distance=Distance('geog', search_point)
+        )
+
+    def _map_cell_id_at_lat_lon(self, lat, lon, dataset):
         x_width = float(dataset.cell_size_x) / 2
         y_width = float(dataset.cell_size_y) / 2
         search_box = Polygon((
@@ -185,36 +217,31 @@ class ClimateDataCellManager(models.Manager):
             (lon - x_width, lat - y_width),
         ))
         search_point = Point(lon, lat, srid=4326)
-        map_cells = (ClimateDataCell.objects.filter(geom__within=search_box)
-                                            .annotate(distance=Distance('geog', search_point))
-                                            .order_by('distance'))
+        map_cell_ids = (ClimateDataCell.objects.filter(geom__within=search_box)
+                                               .annotate(distance=Distance('geog', search_point))
+                                               .values_list('id', flat=True)
+                                               .order_by('distance'))
         cells_checked = 0
-        for map_cell in map_cells:
+        for map_cell_id in map_cell_ids:
             cells_checked += 1
-            exists_for_dataset = (ClimateDataYear.objects.filter(map_cell=map_cell,
+            exists_for_dataset = (ClimateDataYear.objects.filter(map_cell_id=map_cell_id,
                                                                  data_source__dataset=dataset)
                                                          .exists())
             if exists_for_dataset:
                 if cells_checked > 4:
                     logger.warning('Checked {} cells at point ({}, {}) for dataset {}'
                                    .format(cells_checked, lon, lat, dataset.name))
-                return map_cell
+                return map_cell_id
         if cells_checked > 4:
             logger.warning('Checked {} cells at point ({}, {}) for dataset {}'
                            .format(cells_checked, lon, lat, dataset.name))
-        raise ClimateDataCell.DoesNotExist()
+        return None
 
-    def map_cells_near_lat_lon(self, lat, lon, distance):
-        """Return ClimateDataCells queryset within the given distance of a given point.
-
-        Each cell is annotated with its distance from the given search point, as a Distance object
-        that offers conversion to various units.
-
-        The queryset is ordered by distance.
-        """
+    def _map_cells_near_lat_lon(self, lat, lon, distance):
         search_point = Point(lon, lat, srid=4326)
-        return ClimateDataCell.objects.annotate(distance=Distance('geog', search_point)).filter(
-            distance__lte=distance).order_by('distance')
+        return ClimateDataCell.objects.annotate(
+            distance=Distance('geog', search_point)
+        ).filter(distance__lte=distance)
 
     def get_by_natural_key(self, lat, lon, dataset):
         return self.get(lat=lat, lon=lon, dataset=dataset)
