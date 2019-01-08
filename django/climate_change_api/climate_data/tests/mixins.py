@@ -152,5 +152,7 @@ class ClimateDataSetupMixin(object):
                                               tasmax=[0], tasmin=[0], pr=[0],
                                               dataset=self.dataset)
 
-        self.city1 = CityFactory(name='city1', admin='city1', map_cell_set=[self.mapcell])
-        self.city2 = CityFactory(name='city2', admin='city2', map_cell_set=[self.mapcell2])
+        self.city1 = CityFactory(name='city1', admin='city1', map_cell_set=[self.mapcell],
+                                 geom=self.mapcell.geom)
+        self.city2 = CityFactory(name='city2', admin='city2', map_cell_set=[self.mapcell2],
+                                 geom=self.mapcell2.geom)

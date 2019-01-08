@@ -404,8 +404,8 @@ class LatLonCellAPIView(ClimateParamsValidationMixin, APIView):
             map_cells = ClimateDataCell.objects.map_cells_for_lat_lon(float(kwargs['lat']),
                                                                       float(kwargs['lon']),
                                                                       distance)
-            return map_cells.filter(datasets__contains=[dataset])[0]
-        except ClimateDataCell.DoesNotExist:
+            return map_cells.filter(datasets__contains=[dataset.name])[0]
+        except (ClimateDataCell.DoesNotExist, IndexError):
             raise NotFound(detail='No {} data available for point ({}, {})'
                                   .format(dataset.name, kwargs['lat'], kwargs['lon']))
 
