@@ -82,6 +82,40 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class ClimateDataLatLonViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
+
+    def test_complete_response(self):
+        dataset = ClimateDatasetFactory(name='NEX-GDDP')
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': self.city1.geom.x,
+                              'lat': self.city1.geom.y})
+
+        response = self.client.get(url, {'dataset': dataset.name})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['feature']['geometry']['coordinates'],
+                         list(self.city1.geom.coords))
+        self.assertEqual(response.data['scenario'], self.rcp45.name)
+        self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
+        self.assertEqual(response.data['climate_models'], [m.name for m in
+                         dataset.models.all()])
+        self.assertEqual(len(response.data['data']), 4)
+
+    def test_404_if_latlon_invalid(self):
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': 3000,
+                              'lat': 200})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_if_dataset_doesnt_match(self):
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': self.city1.geom.x,
+                              'lat': self.city1.geom.y})
+
+        response = self.client.get(url, {'dataset': 'LOCA'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class IndicatorDetailViewTestCase(CCAPITestCase):
 
     def test_200_if_indicator_valid(self):
