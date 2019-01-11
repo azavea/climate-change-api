@@ -262,7 +262,8 @@ class LatLonMapCellListView(ClimateParamsValidationMixin, APIView):
             float(kwargs['lon']),
             distance,
         )
-
+        if len(map_cells) == 0:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         response = [ClimateDataCellDistanceSerializer(map_cell).data for map_cell in map_cells]
         return Response(response, status=status.HTTP_200_OK)
 
