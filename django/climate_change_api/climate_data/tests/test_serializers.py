@@ -2,7 +2,21 @@ from django.test import TestCase
 
 from climate_data.models import ClimateDataYear
 from climate_data.tests.mixins import ClimateDataSetupMixin
-from climate_data.serializers import ClimateMapCellScenarioDataSerializer
+from climate_data.serializers import (
+    ClimateMapCellScenarioDataSerializer,
+    ClimateDataCellGeometrySerializer
+)
+
+
+class ClimateDataCellGeometrySerializerTestCase(ClimateDataSetupMixin, TestCase):
+    """Test that this serializer generates valid 4326 coordinates."""
+
+    def test_0_360_conversion(self):
+        # self.mapcell has lon = 240, self.mapcell2 has lon = 1, which tests both sides of the
+        # conversion branch
+        for cell in [self.mapcell, self.mapcell2]:
+            serializer = ClimateDataCellGeometrySerializer(cell)
+            self.assertEqual(cell.geom.x, serializer.data['coordinates'][0])
 
 
 class ClimateMapCellScenarioDataSerializerTestCase(ClimateDataSetupMixin, TestCase):

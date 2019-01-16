@@ -82,6 +82,40 @@ class ClimateDataViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class ClimateDataLatLonViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
+
+    def test_complete_response(self):
+        dataset = ClimateDatasetFactory(name='NEX-GDDP')
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': self.city1.geom.x,
+                              'lat': self.city1.geom.y})
+
+        response = self.client.get(url, {'dataset': dataset.name})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['feature']['geometry']['coordinates'],
+                         list(self.city1.geom.coords))
+        self.assertEqual(response.data['scenario'], self.rcp45.name)
+        self.assertEqual(response.data['variables'], ClimateDataYear.VARIABLE_CHOICES)
+        self.assertEqual(response.data['climate_models'], [m.name for m in
+                         dataset.models.all()])
+        self.assertEqual(len(response.data['data']), 4)
+
+    def test_404_if_latlon_invalid(self):
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': 3000,
+                              'lat': 200})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_404_if_dataset_doesnt_match(self):
+        url = reverse('climatedatalatlon-list',
+                      kwargs={'scenario': self.rcp45.name, 'lon': self.city1.geom.x,
+                              'lat': self.city1.geom.y})
+
+        response = self.client.get(url, {'dataset': 'LOCA'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class IndicatorDetailViewTestCase(CCAPITestCase):
 
     def test_200_if_indicator_valid(self):
@@ -413,6 +447,14 @@ class LatLonMapCellListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         response = self.client.get(url)
         self.assertEqual(1, len(response.data))
 
+    def test_querying_distance_returns_data(self):
+        """Should retrieve data nearest point."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url, data={'distance': '5000'})
+        self.assertEqual(1, len(response.data))
+
     def test_querying_returns_200_status(self):
         """Should return 200 status code for point."""
         url = reverse('lat-lon-map-cell-list', kwargs={
@@ -421,13 +463,20 @@ class LatLonMapCellListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_no_data_returns_404_status(self):
+        """Should return 404 for point without data."""
+        url = reverse('lat-lon-map-cell-list', kwargs={'lat': 17, 'lon': 17})
+        response = self.client.get(url)
+        self.assertEqual(404, response.status_code)
+
     def test_returned_data_contains_datasets(self):
         """Data should contains list of datasets."""
         url = reverse('lat-lon-map-cell-list', kwargs={
             'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
         })
         response = self.client.get(url)
-        self.assertIn('dataset', response.data[0]['properties'])
+        self.assertIn('datasets', response.data[0]['properties'])
+        self.assertEqual('NEX-GDDP', response.data[0]['properties']['datasets'][0])
 
     def test_returned_data_contains_is_coastal(self):
         """Data should contain proximity to coast field."""
@@ -437,8 +486,10 @@ class LatLonMapCellListViewTestCase(ClimateDataSetupMixin, CCAPITestCase):
         response = self.client.get(url)
         self.assertIn('proximity', response.data[0]['properties'])
 
-    def test_no_data_returns_404_status(self):
-        """Should return 404 for point without data."""
-        url = reverse('lat-lon-map-cell-list', kwargs={'lat': 17, 'lon': 17})
-        response = self.client.get(url)
-        self.assertEqual(404, response.status_code)
+    def test_returned_data_contains_distances(self):
+        """Data should contain distances."""
+        url = reverse('lat-lon-map-cell-list', kwargs={
+            'lat': self.mapcell.geom.y, 'lon': self.mapcell.geom.x
+        })
+        response = self.client.get(url, data={'distance': '5000'})
+        self.assertIn('distance_meters', response.data[0]['properties'])

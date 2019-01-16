@@ -38,25 +38,30 @@ class ClimateDataCellGeometrySerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Point"),
-            ("coordinates", [obj.lon, obj.lat])
+            ("coordinates", [
+                # Perform [0, 360) -> [-180, 180) conversion to make response valid 4326 GeoJSON
+                obj.lon if obj.lon < 180 else obj.lon - 360,
+                obj.lat
+            ])
         ])
 
     class Meta:
         model = ClimateDataCell
 
 
-class ClimateDataCellSerializer(serializers.ModelSerializer):
+class ClimateDataCellDistanceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         return OrderedDict([
             ("type", "Feature"),
             ("geometry", ClimateDataCellGeometrySerializer(obj).data),
-            ("properties", {
-                "proximity": {
+            ("properties", OrderedDict([
+                ("datasets", obj.datasets),
+                ("distance_meters", round(obj.distance.m)),
+                ("proximity", {
                     "ocean": obj.is_coastal,
-                },
-                "dataset": self.context['dataset'].name,
-            })
+                })
+            ]))
         ])
 
     class Meta:
