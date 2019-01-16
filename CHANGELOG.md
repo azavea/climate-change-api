@@ -1,5 +1,19 @@
 # Change Log
 
+## [2.6.0](https://github.com/azavea/climate-change-api/tree/2.6.0) (2019-01-15)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.5.0...2.6.0)
+
+**Merged pull requests:**
+
+- Correct /api/map-cell/ endpoint to return 404 when no data is found [\#873](https://github.com/azavea/climate-change-api/pull/873)
+- Fix bugs in the climate data lat/lon endpoints [\#871](https://github.com/azavea/climate-change-api/pull/871)
+- Update climate data import documentation [\#868](https://github.com/azavea/climate-change-api/pull/868)
+- Merge 'lat-lon-map-cell-distance-list' view into 'lat-lon-map-cell-list' [\#866](https://github.com/azavea/climate-change-api/pull/866)
+- Return valid 4326 longitudes in map-cell endpoints [\#864](https://github.com/azavea/climate-change-api/pull/864)
+- Feature/kak/query by distance\#855 [\#856](https://github.com/azavea/climate-change-api/pull/856)
+- Revert "Temporarily remove docs for new by lat/lon endpoints" [\#853](https://github.com/azavea/climate-change-api/pull/853)
+
 ## [2.5.0](https://github.com/azavea/climate-change-api/tree/2.5.0) (2018-12-11)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.4.1...2.5.0)
