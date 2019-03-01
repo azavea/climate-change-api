@@ -159,7 +159,7 @@
         }
       },
       "additionalProperties": false,
-      "required": ["id", "type", "geometry", "properties"]
+      "required": ["type", "geometry", "properties"]
     },
     "dataset": {
       "type": "object",
