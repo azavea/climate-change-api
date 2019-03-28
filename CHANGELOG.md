@@ -1,6 +1,15 @@
 # Change Log
 
-## [2.6.0](https://github.com/azavea/climate-change-api/tree/2.6.0) (2019-01-15)
+## [2.7.0](https://github.com/azavea/climate-change-api/tree/2.7.0) (2019-03-28)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.6.0...2.7.0)
+
+**Merged pull requests:**
+
+- Don't require city id in project json schema [\#875](https://github.com/azavea/climate-change-api/pull/875)
+- Bump dependency versions for docker-compose [\#842](https://github.com/azavea/climate-change-api/pull/842)
+
+## [2.6.0](https://github.com/azavea/climate-change-api/tree/2.6.0) (2019-01-16)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.5.0...2.6.0)
 
