@@ -39,6 +39,7 @@ RUN set -ex \
     && deps=" \
         gdal-bin \
         gettext \
+        libmemcached11 \
         postgresql-client-$PG_MAJOR=$PG_VERSION \
     " \
     && apt-get update && apt-get install -y $buildDeps $deps --no-install-recommends \
