@@ -8,6 +8,7 @@
 
 - Don't require city id in project json schema [\#875](https://github.com/azavea/climate-change-api/pull/875)
 - Bump dependency versions for docker-compose [\#842](https://github.com/azavea/climate-change-api/pull/842)
+- Upgrade Django container image to Debian Stretch [\#881](https://github.com/azavea/climate-change-api/pull/881)
 
 ## [2.6.0](https://github.com/azavea/climate-change-api/tree/2.6.0) (2019-01-16)
 
