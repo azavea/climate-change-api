@@ -1,6 +1,6 @@
 from django import forms
 from user_management.models import UserProfile, ClimateUser
-from registration.forms import RegistrationFormUniqueEmail
+from django_registration.forms import RegistrationFormUniqueEmail
 
 
 class UserForm(RegistrationFormUniqueEmail):
