@@ -1,4 +1,4 @@
-FROM quay.io/azavea/django:1.10-python3.5-slim
+FROM quay.io/azavea/django:1.11-python3.6-slim
 
 MAINTAINER Azavea
 
