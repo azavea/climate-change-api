@@ -188,8 +188,6 @@ class ClimateDataCellManager(models.Manager):
         """
         map_cells = self._map_cells_at_lat_lon(lat, lon)
         if distance > 0:
-            # TODO (GH #411): This would be better as map_cells = map_cells.union(...)
-            # but that isn't available until Django 1.11
             map_cells = map_cells | self._map_cells_near_lat_lon(lat, lon, distance)
 
         return map_cells.annotate(
