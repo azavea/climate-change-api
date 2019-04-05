@@ -3,7 +3,7 @@ import logging
 from django.db.models import Q
 
 import django_filters
-from rest_framework import filters
+from django_filters.rest_framework import FilterSet
 
 from climate_data.models import City, ClimateDataYear, ClimateModel
 from functools import reduce
@@ -11,13 +11,13 @@ from functools import reduce
 logger = logging.getLogger(__name__)
 
 
-class CityFilterSet(filters.FilterSet):
+class CityFilterSet(FilterSet):
     """FilterSet for City."""
 
     admin = django_filters.CharFilter(lookup_expr='icontains')
     name = django_filters.CharFilter(lookup_expr='icontains')
-    population_lte = django_filters.NumberFilter(name='population', lookup_expr='lte')
-    population_gte = django_filters.NumberFilter(name='population', lookup_expr='gte')
+    population_lte = django_filters.NumberFilter(field_name='population', lookup_expr='lte')
+    population_gte = django_filters.NumberFilter(field_name='population', lookup_expr='gte')
     region = django_filters.NumberFilter()
     search = django_filters.CharFilter(method='filter_search')
 
@@ -31,7 +31,7 @@ class CityFilterSet(filters.FilterSet):
         fields = ['admin', 'name', 'population_lte', 'population_gte', 'region', 'search']
 
 
-class ClimateDataFilterSet(filters.FilterSet):
+class ClimateDataFilterSet(FilterSet):
     """FilterSet for ClimateData, used by the ClimateData ListAPIView."""
 
     models = django_filters.CharFilter(method='filter_models')
