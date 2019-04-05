@@ -114,7 +114,7 @@ if DEBUG:
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
+    EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'noreply@climate.azavea.com')
 DEFAULT_TO_EMAIL = os.getenv('CC_TO_EMAIL', 'climate@azavea.com')
 COMPANY_DOMAIN = '@azavea.com'
