@@ -16,3 +16,7 @@
 /deployment/ansible/node_modules
 /deployment/ansible/*.retry
 /database_backup
+
+# Coverage
+.coverage
+django/climate_change_api/htmlcov/
