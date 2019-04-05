@@ -176,6 +176,7 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
     filter_backends = (InBBoxFilter, DjangoFilterBackend, filters.OrderingFilter,)
     filterset_class = CityFilterSet
     ordering_fields = ('name', 'admin', 'population', 'region',)
+    ordering = ('name', 'admin',)
     pagination_class = GeoJsonPagination
     bbox_filter_field = 'geom'
     bbox_filter_include_overlapping = True
