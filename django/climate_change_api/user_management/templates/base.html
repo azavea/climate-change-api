@@ -42,10 +42,10 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="accountDropdown">
                     <li><a href="{% url 'edit_profile' %}">Account</a></li>
-                    <li><a href="{% url 'auth_logout' %}">Log out</a></li>
+                    <li><a href="{% url 'logout' %}">Log out</a></li>
                 </ul>
             {% else %}
-                <a class="btn btn-link" href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
+                <a class="btn btn-link" href="{% url 'login' %}">{% trans "Log in" %}</a>
             {% endif %}
           </nav>
         </div>
