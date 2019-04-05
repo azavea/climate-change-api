@@ -98,6 +98,9 @@ class ClimateModel(models.Model):
     def natural_key(self):
         return (self.name,)
 
+    class Meta:
+        ordering = ['name']
+
 
 class Scenario(models.Model):
     """Model representing a particular climate emissions scenario.
