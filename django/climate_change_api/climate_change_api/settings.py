@@ -257,7 +257,7 @@ USE_TZ = True
 if os.getenv('COMMIT'):
     STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     AWS_STORAGE_BUCKET_NAME = os.getenv('CC_S3STORAGE_BUCKET')
-    AWS_LOCATION = '/{}/static'.format(os.getenv('COMMIT'))
+    AWS_LOCATION = '{}/static'.format(os.getenv('COMMIT'))
     AWS_HEADERS = {
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
