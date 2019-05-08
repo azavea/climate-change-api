@@ -114,7 +114,7 @@ if DEBUG:
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    EMAIL_BACKEND = 'django_amazon_ses.backends.boto.EmailBackend'
+    EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('CC_FROM_EMAIL', 'noreply@climate.azavea.com')
 DEFAULT_TO_EMAIL = os.getenv('CC_TO_EMAIL', 'climate@azavea.com')
 COMPANY_DOMAIN = '@azavea.com'
@@ -257,7 +257,7 @@ USE_TZ = True
 if os.getenv('COMMIT'):
     STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     AWS_STORAGE_BUCKET_NAME = os.getenv('CC_S3STORAGE_BUCKET')
-    AWS_LOCATION = '/{}/static'.format(os.getenv('COMMIT'))
+    AWS_LOCATION = '{}/static'.format(os.getenv('COMMIT'))
     AWS_HEADERS = {
         'Cache-Control': 'max-age={}'.format(os.getenv('AWS_CACHE_DURATION')),
     }
@@ -333,7 +333,7 @@ LOGGING = {
 # http://www.django-rest-framework.org/
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
-        'rest_framework.filters.DjangoFilterBackend',
+        'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

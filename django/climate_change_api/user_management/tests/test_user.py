@@ -18,7 +18,7 @@ class UserTestCase(DummyCacheTestCase):
     def test_login(self):
 
         self.client = Client()
-        url = reverse('auth_login')
+        url = reverse('login')
         response = self.client.post(url, {'username': 'panda@wwf.org',
                                           'password': 'iucnendangered'},
                                     follow=True)

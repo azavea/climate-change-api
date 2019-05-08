@@ -20,7 +20,7 @@ from corsheaders.middleware import (ACCESS_CONTROL_ALLOW_CREDENTIALS,
                                     ACCESS_CONTROL_ALLOW_HEADERS,
                                     ACCESS_CONTROL_ALLOW_ORIGIN,
                                     ACCESS_CONTROL_EXPOSE_HEADERS)
-from registration.backends.hmac.views import RegistrationView as BaseRegistrationView
+from django_registration.backends.activation.views import RegistrationView as BaseRegistrationView
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
