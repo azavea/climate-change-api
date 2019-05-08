@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import connection, DataError
 from django.utils.cache import patch_cache_control
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import NotFound, ParseError
@@ -172,9 +173,10 @@ class CityViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    filter_backends = (InBBoxFilter, filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_class = CityFilterSet
+    filter_backends = (InBBoxFilter, DjangoFilterBackend, filters.OrderingFilter,)
+    filterset_class = CityFilterSet
     ordering_fields = ('name', 'admin', 'population', 'region',)
+    ordering = ('name', 'admin',)
     pagination_class = GeoJsonPagination
     bbox_filter_field = 'geom'
     bbox_filter_include_overlapping = True
@@ -291,8 +293,8 @@ class ClimateDatasetViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyMode
     serializer_class = ClimateDatasetSerializer
     pagination_class = None
     lookup_field = 'name'
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('name',)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
+    filterset_fields = ('name',)
     ordering_fields = ('name',)
     ordering = ('name',)
 
@@ -303,8 +305,8 @@ class ClimateModelViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelV
     serializer_class = ClimateModelSerializer
     pagination_class = None
     lookup_field = 'name'
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('name',)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
+    filterset_fields = ('name',)
     ordering_fields = ('name',)
     ordering = ('name',)
 
@@ -316,8 +318,8 @@ class ScenarioViewSet(OverridableCacheResponseMixin, viewsets.ReadOnlyModelViewS
     serializer_class = ScenarioSerializer
     pagination_class = None
     lookup_field = 'name'
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('name',)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
+    filterset_fields = ('name',)
     ordering_fields = ('name',)
     ordering = ('name',)
 
@@ -500,8 +502,8 @@ class RegionListView(OverridableCacheResponseMixin, ListAPIView):
     queryset = Region.objects.all()
     serializer_class = RegionListSerializer
     filter_backends = (InBBoxFilter, filters.SearchFilter,
-                       filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('level1', 'level2',)
+                       DjangoFilterBackend, filters.OrderingFilter,)
+    filterset_fields = ('level1', 'level2',)
     search_fields = ('level1_description', 'level2_description',)
     ordering_fields = ('level1', 'level2',)
     bbox_filter_field = 'geom'

@@ -123,6 +123,7 @@ class ClimateDataSourceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClimateDataSource
+        fields = '__all__'
 
 
 class ClimateMapCellScenarioDataSerializer(serializers.BaseSerializer):
@@ -217,6 +218,7 @@ class RegionDetailSerializer(GeoFeatureModelSerializer):
         # because our JSON renderer in the view does not respect bounding boxes
         auto_bbox = False
         bbox_geo_field = None
+        fields = '__all__'
 
 
 class RegionListSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ end
 ROOT_VM_DIR = "/home/vagrant/climate-change-api"
 
 Vagrant.configure(2) do |config|
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "bento/ubuntu-16.04"
 
   config.vm.synced_folder "./", ROOT_VM_DIR
 
@@ -54,7 +54,7 @@ Vagrant.configure(2) do |config|
         sudo apt-get update -qq
         sudo apt-get install python-pip python-dev -y
         sudo pip install --upgrade pip
-        sudo pip install ansible==2.3.2.0
+        sudo pip install ansible==2.4.6.0
       fi
 
       cd /vagrant/deployment/ansible && \

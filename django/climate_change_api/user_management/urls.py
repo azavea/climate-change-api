@@ -2,19 +2,15 @@
 
 from django.conf.urls import include, url
 from user_management.views import RegistrationView, UserProfileView, APIHomeView
-from django.conf import settings
 
 
 urlpatterns = [
     url(r'^register/$',
         RegistrationView.as_view(),
-        name='registration_register'),
+        name='django_registration_register'),
     url(r'^api/new_token/', APIHomeView().new_token, name='new_token'),
     url(r'^profile/$', UserProfileView.as_view(), name='edit_profile'),
     url(r'^api/$', APIHomeView.as_view(), name='api_home'),
-    url(r'', include('registration.backends.hmac.urls')),
+    url(r'', include('django_registration.backends.activation.urls')),
+    url(r'', include('django.contrib.auth.urls')),
 ]
-
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls))]
