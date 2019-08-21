@@ -34,12 +34,12 @@ Within the shell:
     # Get your created user using its email address
     In  [1]: my_user = ClimateUser.objects.get(email="<Your User's Email>")
 
-    # Create a UserProfile associated with the user object retrieved above 
+    # Create a UserProfile associated with the user object retrieved above
     In  [2]: UserProfile.objects.create(user=my_user)
     Out [2]: <UserProfile: (Your User's Email)>
 
 
-Once you have a new user, run ``./scripts/server`` inside the VM to begin serving the application on port 8080.
+Once you have a new user, run ``./scripts/server`` inside the VM to begin serving the application on port 8083.
 
 This project conforms to the specification provided by `Azaveas Scripts to Rule Them All`_.
 
@@ -75,7 +75,7 @@ Then start the Docker container with::
 
     docker-compose up loadtest
 
-Naviagate to http://localhost:8089 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
+Naviagate to http://localhost:8087 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
 
 
 Request Debugging
