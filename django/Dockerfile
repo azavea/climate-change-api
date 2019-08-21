@@ -27,10 +27,10 @@ COPY ./ /opt/django
 
 WORKDIR /opt/django/climate_change_api
 
-EXPOSE 8080
+EXPOSE 8083
 
 CMD ["-w", "2", \
-     "-b", "0.0.0.0:8080", \
+     "-b", "0.0.0.0:8083", \
      "--reload", \
      "--log-level", "info", \
      "--error-logfile", "-", \

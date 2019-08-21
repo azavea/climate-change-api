@@ -15,7 +15,7 @@ COPY ./ /opt/loadtest
 
 WORKDIR /opt/loadtest
 
-EXPOSE 8089
+EXPOSE 8087
 
 ENTRYPOINT ["/bin/bash"]
 
