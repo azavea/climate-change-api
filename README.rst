@@ -75,7 +75,7 @@ Then start the Docker container with::
 
     docker-compose up loadtest
 
-Naviagate to http://localhost:8087 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
+Navigate to http://localhost:8087 and start tests by setting the swarm and hatch rate (1 for each is fine). To stop tests, click the red button in the web UI (or halt the container).
 
 
 Request Debugging
