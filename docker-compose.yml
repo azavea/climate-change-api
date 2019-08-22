@@ -16,8 +16,8 @@ services:
       context: ./django
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
       - "8082:8082"
+      - "8083:8083"
     links:
       - memcached
       - postgres
@@ -75,7 +75,7 @@ services:
       context: ./loadtest
       dockerfile: Dockerfile
     ports:
-      - "8089:8089"
+      - "8087:8087"
     environment:
       - API_TOKEN
       - API_HOST
