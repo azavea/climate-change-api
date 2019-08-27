@@ -29,7 +29,7 @@ Vagrant.configure(2) do |config|
   end
 
   # django port
-  config.vm.network :forwarded_port, guest: 8083, host: Integer(ENV.fetch("CC_PORT_8083", 8083))
+  config.vm.network :forwarded_port, guest: 8083, host: Integer(ENV.fetch("CC_PORT_8083", 8080))
 
   # nginx port
   config.vm.network :forwarded_port, guest: 8088, host: Integer(ENV.fetch("CC_PORT_8088", 8088))
