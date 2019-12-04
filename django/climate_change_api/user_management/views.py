@@ -4,8 +4,10 @@ A two-step (registration followed by activation) workflow, implemented by emaili
 timestamped activation token to the user on signup.
 """
 
-import requests
+import json
 import logging
+import requests
+import urllib
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -36,27 +38,33 @@ from user_management.serializers import AuthTokenSerializer
 logger = logging.getLogger(__name__)
 
 
-def _post_salesforce_lead(user):
-    """Register new external users to Salesforce."""
+def _post_hubspot_lead(request, user):
+    """Register new external users to HubSpot."""
     if user.email.endswith(settings.COMPANY_DOMAIN):
         return
 
-    data = {
-        'oid': settings.SALESFORCE_OID,
-        'Campaign_ID': settings.SALESFORCE_CAMPAIGN_ID,
-        settings.SALESFORCE_CONTACT_OUTREACH: '1',
-        settings.SALESFORCE_VALIDATION: '1',  # Disable Validation
-        'lead_source': 'Web',
-        'first_name': user.first_name,
-        'last_name': user.last_name,
+    hs_context = {}
+    if 'hubspotutk' in request.COOKIES:
+        hs_context['hutk'] = request.COOKIES['hubspotutk']
+    # If we're in production, this header should have the original IP
+    if 'HTTP_X_FORWARDED_FOR' in request.META:
+        hs_context['ipAddress'] = request.META['HTTP_X_FORWARDED_FOR']
+
+    data = urllib.parse.urlencode({
+        'firstname': user.first_name,
+        'lastname': user.last_name,
         'email': user.email,
         'company': user.userprofile.organization,
+        'hs_context': json.dumps(hs_context)
+    })
+
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
+    response = requests.post(settings.HUBSPOT_URL, data=data, headers=headers)
 
-    response = requests.post(settings.SALESFORCE_URL, data=data)
-
-    if response.status_code != 200:
-        logger.error("ERROR CODE %s. Could not save newly registered user to Salesforce:" +
+    if response.status_code != 204:
+        logger.error("ERROR CODE %s. Could not save newly registered user to HubSpot:" +
                      "%s", response.status_code, data)
     return
 
@@ -75,8 +83,7 @@ class RegistrationView(BaseRegistrationView):
         new_profile.save()
         new_user.save()
 
-        # Also save user info to Salesforce
-        _post_salesforce_lead(new_user)
+        _post_hubspot_lead(self.request, new_user)
 
         return new_user
 
