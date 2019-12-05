@@ -29,14 +29,16 @@ Vagrant.configure(2) do |config|
   end
 
   # django port
-  config.vm.network :forwarded_port, guest: 8080, host: Integer(ENV.fetch("CC_PORT_8080", 8080))
+  config.vm.network :forwarded_port, guest: 8080, host: Integer(ENV.fetch("CC_PORT_8083", 8083))
+
+  # nginx port
   config.vm.network :forwarded_port, guest: 8088, host: Integer(ENV.fetch("CC_PORT_8088", 8088))
 
   # docs port
   config.vm.network :forwarded_port, guest: 8084, host: Integer(ENV.fetch("CC_PORT_8084", 8084))
 
   # locust port
-  config.vm.network :forwarded_port, guest: 8089, host: Integer(ENV.fetch("CC_PORT_8080", 8089))
+  config.vm.network :forwarded_port, guest: 8087, host: Integer(ENV.fetch("CC_PORT_8087", 8087))
 
   # django runserver/debugging
   config.vm.network :forwarded_port, guest: 8082, host: Integer(ENV.fetch("CC_PORT_8082", 8082))

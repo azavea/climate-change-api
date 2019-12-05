@@ -381,12 +381,8 @@ WATCHMAN_CHECKS = (
 )
 
 
-# Salesforce
-SALESFORCE_URL = 'https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8'
-SALESFORCE_OID = '00D30000000efK8'  # Azavea Salesforce ID
-SALESFORCE_CAMPAIGN_ID = '701130000027aQw'  # Climate Beta Test campaign in Salesforce
-SALESFORCE_CONTACT_OUTREACH = '00N1300000B4tSR'  # Contact Outreach 'Climate Beta Test'
-SALESFORCE_VALIDATION = '00N30000004RyN1'  # Toggle lead validation
+# HubSpot
+HUBSPOT_URL = 'https://forms.hubspot.com/uploads/form/v2/6397011/99d8d39d-edeb-4c6f-b41c-d82e854ff2c9'  # NOQA
 
 
 # Boto setup
