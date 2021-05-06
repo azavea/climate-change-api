@@ -13,6 +13,13 @@ class UserProfileInline(admin.StackedInline):
 
 # Define a new User admin
 class UserAdmin(BaseUserAdmin):
+    add_fieldsets = (
+        (None, {
+            'fields': ('email', 'password1', 'password2'),
+        }),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Throttling', {'fields': ('burst_rate', 'sustained_rate')}),
+    )
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
