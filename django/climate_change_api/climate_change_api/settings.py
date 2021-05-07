@@ -232,7 +232,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Django-Registration
 # https://django-registration.readthedocs.io/en/2.1/
 ACCOUNT_ACTIVATION_DAYS = 14
-REGISTRATION_OPEN = True
+REGISTRATION_OPEN = False
 
 # Serialization
 SERIALIZATION_MODULES = {'geojson': 'django.contrib.gis.serializers.geojson'}
