@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.9.0](https://github.com/azavea/climate-change-api/tree/2.9.0) (2021-05-10)
+
+[Full Changelog](https://github.com/azavea/climate-change-api/compare/2.8.0...2.9.0)
+
+**Merged pull requests:**
+
+- Disable logins [\#893](https://github.com/azavea/climate-change-api/pull/893)
+
 ## [2.8.0](https://github.com/azavea/climate-change-api/tree/2.8.0) (2019-12-05)
 
 [Full Changelog](https://github.com/azavea/climate-change-api/compare/2.7.1...2.8.0)
